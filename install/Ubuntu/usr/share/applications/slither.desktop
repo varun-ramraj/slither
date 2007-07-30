@@ -1,0 +1,14 @@
+[Desktop Entry]
+Name=Slither
+Name[en_CA]=Slither
+Version=1.0
+Encoding=UTF-8
+Comment=Track the movement of C. elegan worms in a laboratory environment...
+Exec=slither %F
+Icon=slither.png
+Terminal=false
+Type=Application
+Categories=Application;Education;Biology
+StartupNotify=true
+MimeType=application/x-slither
+

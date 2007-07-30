@@ -1,0 +1,5 @@
+You can reduce the amount of CPU resources an analysis consumes by trading it for time with the processor throttle.
+You can disable these tips on startup if you uncheck the "Show tips at startup" box below.
+You can move Slither experiments between Linux, Windows, and Mac OS X without worry of incompatibility.
+If you are using OS X, hold down on the Ctrl key and select a video in the data pane to see additional actions.
+
