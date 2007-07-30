@@ -25,7 +25,7 @@ inline Worm::Worm(CvSeq const &Contour, IplImage const &Image)
         throw bad_alloc;
 
     // Update the worm's metrics based on the contour...
-    UpdateMetrics(Contour, Image);
+    DiscoverMetrics(Contour, Image);
 }
 
 // Adjust the distance of the second vertex by the given distance along the radial... 
@@ -60,6 +60,62 @@ inline int Worm::Direction(CvPoint const Start, CvPoint const First, CvPoint con
     // Calculate the cross product, but do it with both vectors translated back to the origin to make it work...
     return (((First.x - Start.x) * (Second.y - Start.y)) - 
             ((Second.x - Start.x) * (First.y - Start.y)));
+}
+
+// Discover the worm's metrics based on its new contour... (area, length, width, et cetera)
+inline void Worm::Discover(CvSeq const &NewContour, IplImage const &Image)
+{
+    // Forget the old contour if we have one yet. This works by restoring the old contour sequence blocks to 
+    //  the base storage pool. This is θ(1) running time, usually...
+    if(pContour)
+        cvClearSeq(pContour);
+
+    // Clone the new contour sequence into our storage pool...
+    pContour = cvCloneSeq(&NewContour, pStorage);
+
+    // Remember that how many times we have updated, which we need for calculating arithmetic means...
+  ++unUpdates;
+
+    // Update the approximate area from the area calculated in *this* image...
+    UpdateArea(fabs(cvContourArea(pContour));
+
+    // Update the approximate length from the length calculated in *this* image. The length is about half
+    //  the perimeter all the way around the worm...
+    float const fLengthAtThisMoment = cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
+    UpdateLength(fLengthAtThisMoment);
+
+    // Find both ends... (head and tail)
+ 
+        // Find an end, either will do... θ(n)
+        unsigned int const unMysteryVertexIndexEnd = PinchShiftForAnEnd(pContour); 
+        
+        // Find the other end of the worm which must be approximately the length of the worm away... O(n)
+        unsigned int const unOtherMysteryVertexIndexEnd = 
+            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, fLengthAtThisMoment);
+        
+        // Make a reasonably intelligent guess as to which end is which, based only on *this* image alone...
+            
+            // The first end we found was probably the head...
+            if(IsFirstProbablyHeadByCloisteredCheck(unMysteryVertexIndex, unOtherMysteryVertexIndexEnd, Image))
+                UpdateHeadAndTail(unMysteryVertexIndex, unOtherMysteryVertexIndexEnd);
+            
+            // Nope, it was the other way around...
+            else
+                UpdateHeadAndTail(unOtherMysteryVertexIndexEnd, unMysteryVertexIndex);
+
+    // Finally calculate the width of the worm...
+    
+        // Let us measure from approximately half way up the worm from either end, 1/2 the total length... O(n)
+        unsigned int const unVertexIndexOfMiddleSideA =
+            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndex, fLengthAtThisMoment / 2.0f);
+        
+        // Now find the middle on the other side by going the other way half the length... O(n)
+        unsigned int const unVertexIndexOfMiddleSideB =
+            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndex, -1.0f * fLengthAtThisMoment / 2.0f);
+        
+        // The distance between the two points is approximately the width of the worm...
+        UpdateWidth(DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
+                                             GetVertex(unVertexIndexOfMiddleSideB))); 
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
@@ -465,62 +521,6 @@ inline void &Worm::UpdateLength(float const &fLengthAtThisMoment)
     // Store the new arithmetic mean in constant space. Just multiply your old average by n, 
     //  add x_{n+1}, and then divide the whole thing by n+1...
     fLength = (((fLength * unUpdates) + fLengthAtThisMoment) / (unUpdates + 1);
-}           
-
-// Update the worm's metrics based on its new contour... (area, length, width, et cetera)
-inline void Worm::UpdateMetrics(CvSeq const &NewContour, IplImage const &Image)
-{
-    // Forget the old contour if we have one yet. This works by restoring the old contour sequence blocks to 
-    //  the base storage pool. This is θ(1) running time, usually...
-    if(pContour)
-        cvClearSeq(pContour);
-
-    // Clone the new contour sequence into our storage pool...
-    pContour = cvCloneSeq(&NewContour, pStorage);
-
-    // Remember that how many times we have updated, which we need for calculating arithmetic means...
-  ++unUpdates;
-
-    // Update the approximate area from the area calculated in *this* image...
-    UpdateArea(fabs(cvContourArea(pContour));
-
-    // Update the approximate length from the length calculated in *this* image. The length is about half
-    //  the perimeter all the way around the worm...
-    float const fLengthAtThisMoment = cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
-    UpdateLength(fLengthAtThisMoment);
-
-    // Find both ends... (head and tail)
- 
-        // Find an end, either will do... θ(n)
-        unsigned int const unMysteryVertexIndexEnd = PinchShiftForAnEnd(pContour); 
-        
-        // Find the other end of the worm which must be approximately the length of the worm away... O(n)
-        unsigned int const unOtherMysteryVertexIndexEnd = 
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, fLengthAtThisMoment);
-        
-        // Make a reasonably intelligent guess as to which end is which, based only on *this* image alone...
-            
-            // The first end we found was probably the head...
-            if(IsFirstProbablyHeadByCloisteredCheck(unMysteryVertexIndex, unOtherMysteryVertexIndexEnd, Image))
-                UpdateHeadAndTail(unMysteryVertexIndex, unOtherMysteryVertexIndexEnd);
-            
-            // Nope, it was the other way around...
-            else
-                UpdateHeadAndTail(unOtherMysteryVertexIndexEnd, unMysteryVertexIndex);
-
-    // Finally calculate the width of the worm...
-    
-        // Let us measure from approximately half way up the worm from either end, 1/2 the total length... O(n)
-        unsigned int const unVertexIndexOfMiddleSideA =
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndex, fLengthAtThisMoment / 2.0f);
-        
-        // Now find the middle on the other side by going the other way half the length... O(n)
-        unsigned int const unVertexIndexOfMiddleSideB =
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndex, -1.0f * fLengthAtThisMoment / 2.0f);
-        
-        // The distance between the two points is approximately the width of the worm...
-        UpdateWidth(DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
-                                             GetVertex(unVertexIndexOfMiddleSideB))); 
 }
 
 // Update the approximate width, based on the value at this moment in time. This will help us make a
