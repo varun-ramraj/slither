@@ -233,35 +233,43 @@ inline void Worm::GenerateOrthogonalToLineSegment(LineSegment const &A,
 }
 
 // Get the average brightness of the area within a contour...
-inline double const Worm::GetAverageBrightness(CvSeq *pContour) const
+inline double const Worm::GetAverageBrightness(CvSeq const *pContour) const
 {
-    // Create the candidate head mask...
+    // Variables...
+    IplImage   *pMaskImage  = NULL;
+
+    // Create a mask image from the contour...
     
         // Allocate...
-        pCandidateHeadMask = cvCreateImage(ImageSize, IPL_DEPTH_8U, 1);
-        
-        // To save time, just clear the portion that will contain the mask...
-        cvSetImageROI(pCandidateHeadMask, pCandidateHeadContour->rect);
+        pMaskImage = cvCreateImage(cvGetSize(pGrayImage), IPL_DEPTH_8U, 1);
+
+        // To save time, just clear the portion that could contain the mask...
+        cvSetImageROI(pMaskImage, pContour->rect);
         cvZero(pCandidateHeadMask);
-        cvResetImageROI(pCandidateHeadMask);
+        cvResetImageROI(pMaskImage);
 
         // Fill the candidate head's mask with all white...
         cvDrawContours(pCandidateHeadMask, pCandidateHeadContour, 
                        CV_RGB(255, 255, 255), CV_RGB(255, 255, 255), -1,
                        CV_FILLED, 8);
 
+    // Calculate the average brightness by using the contour mask like a cookie
+    //  cutter over the original gray image...
+
         // We can speed up luma value summation by just dealing with the region
         //  we care about...
         cvSetImageROI(pCandidateHeadMask, pCandidateHeadContour->rect);
         cvSetImageROI(pGrayImage, pCandidateHeadContour->rect);
 
-    // Compare candidate head and tail regions...
+        // Calculate the brightness...
+        CvScalar const AverageBrightness = cvAvg(pGrayImage, pMaskImage);
     
     // Cleanup...
-    cvClearSeq(pCandidateHeadContour);
-    cvReleaseImage(&pCandidateHeadMask);
-    cvClearSeq(pCandidateTailContour);
-    cvReleaseImage(&pCandidateTailMask);
+    cvResetImageROI(pGrayImage);
+    cvReleaseImage(&pMaskImage);
+
+    // Done...
+    return AverageBrightness.val[0];
 }
 
 // Get the index of the next vertex in the contour after the given index, O(1) average...
@@ -322,20 +330,6 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     unsigned int const &unCandidateHeadVertexIndex,
     unsigned int const &unCandidateTailVertexIndex) const
 {
-    /*
-        http://tech.groups.yahoo.com/group/OpenCV/message/22188
-        
-        CvScalar cvAvg( const CvArr* arr, const CvArr* mask=NULL );
-        void cvSetImageROI( IplImage* image, CvRect rect );
-        void cvResetImageROI( IplImage* image );
-        IplImage* cvCreateImage( CvSize size, int depth, int channels );
-        void cvReleaseImage( IplImage** image );
-        void cvSeqPushMulti( CvSeq* seq, void* elements, int count, int in_front=0 );
-        CvSeq* cvCreateSeq( int seq_flags, int header_size,
-                            int elem_size, CvMemStorage* storage );
-
-    */
-    
     // Variables...
     unsigned int    unStartVertexIndex          = 0;
     unsigned int    unVerticesTraversed         = 0;
@@ -386,7 +380,7 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     cvClearSeq(pCandidateHeadContour);
     cvClearSeq(pCandidateTailContour);
 
-    // If the candidate head really is the head, brighter than the tail we will
+    // If the candidate head truly is the head, brighter than the tail we shall
     //  find it to be...
     return (dCandidateHeadBrightness > dCandidateTailBrightness);
 }

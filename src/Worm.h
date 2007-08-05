@@ -84,7 +84,7 @@ class Worm
                                                                         unsigned int &unVerticesTraversed = 0) const;
 
             // Get the average brightness of the area within a contour...
-            double const        GetAverageBrightness(CvSeq *pContour) const;
+            double const        GetAverageBrightness(CvSeq const *pContour) const;
 
             // Get the index of the next vertex in the contour after the given index, O(1) average...
             unsigned int        GetNextVertexIndex(unsigned int const &unVertexIndex) const;
