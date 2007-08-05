@@ -33,7 +33,7 @@ class Worm
     public:
 
         // Worm constructor just needs to know it's contour and the image it rests on...
-        Worm(CvSeq const &Contour, IplImage const &Image);
+        Worm(CvSeq const &Contour, IplImage const &GrayImage);
 
         // Accessors...
 
@@ -56,7 +56,7 @@ class Worm
 
             // Discover the worm's metrics based on its new contour and image data...
             void                Discover(CvSeq const &NewContour, 
-                                         IplImage const &Image);
+                                         IplImage const &GrayImage);
 
         // Operators...
 
@@ -82,6 +82,9 @@ class Worm
             unsigned int const  FindNearestVertexIndexByPerimeterLength(unsigned int const &unStartVertexIndex, 
                                                                         float const &fPerimeterLength,
                                                                         unsigned int &unVerticesTraversed = 0) const;
+
+            // Get the average brightness of the area within a contour...
+            double const        GetAverageBrightness(CvSeq *pContour) const;
 
             // Get the index of the next vertex in the contour after the given index, O(1) average...
             unsigned int        GetNextVertexIndex(unsigned int const &unVertexIndex) const;
@@ -141,9 +144,9 @@ class Worm
 
             // Given only the two vertex indices, *this* image, and assuming they are opposite ends of the worm, 
             //  would the first of the two most likely be the head if we had but this image alone to consider?
-            bool                IsFirstProbablyHeadByCloisteredCheck(unsigned int const &unCandidateHeadVertexIndex,
-                                                                     unsigned int const &unCandidateTailVertexIndex,
-                                                                     IplImage const &Image) const;
+            bool                IsFirstProbablyHeadViaCloisterCheck(
+                                    unsigned int const &unCandidateHeadVertexIndex,
+                                    unsigned int const &unCandidateTailVertexIndex) const;
 
             // Check if two line segments intersect... θ(1)
             bool                IsLineSegmentsIntersect(LineSegment const &A, 
@@ -179,7 +182,7 @@ class Worm
             unsigned int        unUpdates;
             
             // Image size...
-            CvSize              ImageSize;
+            IplImage           *pGrayImage;
             
             // The worm's metrics...
             
