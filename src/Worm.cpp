@@ -142,7 +142,9 @@ inline float Worm::DistanceBetweenTwoPoints(CvPoint const &First, CvPoint const 
 
 // Find the vertex on the contour the given length away, starting in increasing order... O(n)
 inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
-    unsigned int const &unStartVertexIndex, float const &fPerimeterLength) const
+    unsigned int const &unStartVertexIndex, 
+    float const &fPerimeterLength,
+    unsigned int &unVerticesTraversed = 0) const
 {
     /* TODO: We can do much better than this right down to logarithmic time by 
              using a skip list some how. Deal with it later after we're sure 
@@ -186,6 +188,9 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
             // Next index now becomes the current...
             unCurrentVertexIndex = unNextVertexIndex;
         }
+        
+        // Remember how many vertices we have traversed...
+      ++unVerticesTraversed;
     }
     
     // We've gone far enough...
@@ -284,8 +289,65 @@ inline bool Worm::IsFirstProbablyHeadByCloisteredCheck(unsigned int const &unCan
                                                        unsigned int const &unCandidateTailVertexIndex,
                                                        IplImage const &Image) const
 {
-    /* TODO: Implement this. Perhaps try summing the YUV luma value in both regions and comparing? */
-    return false;
+    /*
+        http://tech.groups.yahoo.com/group/OpenCV/message/22188
+        
+        CvScalar cvAvg( const CvArr* arr, const CvArr* mask=NULL );
+        void cvSetImageROI( IplImage* image, CvRect rect );
+        void cvResetImageROI( IplImage* image );
+        IplImage* cvCreateImage( CvSize size, int depth, int channels );
+        void cvReleaseImage( IplImage** image );
+        void cvSeqPushMulti( CvSeq* seq, void* elements, int count, int in_front=0 );
+        CvSeq* cvCreateSeq( int seq_flags, int header_size,
+                            int elem_size, CvMemStorage* storage );
+
+    */
+    
+    // Variables...
+    unsigned int    unStartVertexIndex      = 0;
+    unsigned int    unVerticesTraversed     = 0;
+    CvSeq          *pCandidateHeadContour   = NULL;
+    CvSeq          *pCandidateTailContour   = NULL;
+
+    // Create a contour around the candidate head...
+    
+        // Allocate...
+        pCandidateHeadContour = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint),
+                                            pStorage);
+
+        // Enclose 1/8th of the worm's perimeter...
+        unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
+            unCandidateHeadVertexIndex, -1.0f * Length() / 4.0f);
+        FindNearestVertexIndexByPerimeterLength(unStartVertexIndex,
+                                                    Length() / 8.0f,
+                                                    unVerticesTraversed);
+                                        
+        // Assemble the vertices that enclose the head region...
+        cvSeqPushMulti(pCandidateHeadContour, 
+                       &GetVertex(unStartVertexIndex), unVerticesTraversed);
+
+    // Create a contour around the candidate tail...
+
+        // Allocate...
+        pCandidateTailContour = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint),
+                                            pStorage);
+
+        // Enclose 1/8th of the worm's perimeter...
+        unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
+            unCandidateTailVertexIndex, -1.0f * Length() / 4.0f);
+        FindNearestVertexIndexByPerimeterLength(unStartVertexIndex,
+                                                    Length() / 8.0f,
+                                                    unVerticesTraversed);
+                                        
+        // Assemble the vertices that enclose the head region...
+        cvSeqPushMulti(pCandidateTailContour, 
+                       &GetVertex(unStartVertexIndex), unVerticesTraversed);
+
+    // Compare candidate head and tail regions...
+    
+    // Cleanup...
+    cvClearSeq(pCandidateHeadContour);
+    cvClearSeq(pCandidateTailContour);
 }
 
 // Check if two line segments intersect... θ(1)

@@ -80,7 +80,8 @@ class Worm
 
             // Find the vertex on the contour the given length away, starting in increasing order... O(n)
             unsigned int const  FindNearestVertexIndexByPerimeterLength(unsigned int const &unStartVertexIndex, 
-                                                                        float const &fPerimeterLength) const;
+                                                                        float const &fPerimeterLength,
+                                                                        unsigned int &unVerticesTraversed = 0) const;
 
             // Get the index of the next vertex in the contour after the given index, O(1) average...
             unsigned int        GetNextVertexIndex(unsigned int const &unVertexIndex) const;
