@@ -33,7 +33,7 @@ class Worm
     public:
 
         // Worm constructor just needs to know it's contour and the image it rests on...
-        Worm(CvSeq const &Contour, IplImage const &GrayImage);
+        Worm(CvContour const &Contour, IplImage const &GrayImage);
 
         // Accessors...
 
@@ -55,7 +55,7 @@ class Worm
         // Mutators...
 
             // Discover the worm's metrics based on its new contour and image data...
-            void                Discover(CvSeq const &NewContour, 
+            void                Discover(CvContour const &NewContour, 
                                          IplImage const &GrayImage);
 
         // Operators...
@@ -73,24 +73,27 @@ class Worm
         // Deconstructor...
        ~Worm();
 
-    // Private methods...
-    private:
+    // Protected methods...
+    protected:
 
         // Accessors...
 
             // Find the vertex on the contour the given length away, starting in increasing order... O(n)
-            unsigned int const  FindNearestVertexIndexByPerimeterLength(unsigned int const &unStartVertexIndex, 
-                                                                        float const &fPerimeterLength,
-                                                                        unsigned int &unVerticesTraversed = 0) const;
+            unsigned int const  FindNearestVertexIndexByPerimeterLength(
+                                    unsigned int const &unStartVertexIndex, 
+                                    float const &fPerimeterLength,
+                                    unsigned int &unVerticesTraversed) const;
 
             // Get the average brightness of the area within a contour...
-            double const        GetAverageBrightness(CvSeq const *pContour) const;
+            double const        GetAverageBrightness(
+                                    CvContour const &Contour,
+                                    IplImage const &GrayImage) const;
 
             // Get the index of the next vertex in the contour after the given index, O(1) average...
             unsigned int        GetNextVertexIndex(unsigned int const &unVertexIndex) const;
             
             // Get the actual vertex of the given vertex index in the contour, O(1) average...
-            CvPoint const      &GetVertex(unsigned int const &unVertexIndex) const;
+            CvPoint            &GetVertex(unsigned int const &unVertexIndex) const;
             
             // Get the index of the previous vertex in the contour after the given index, O(1) average...
             unsigned int        GetPreviousVertexIndex(unsigned int const &unVertexIndex) const;
@@ -135,54 +138,58 @@ class Worm
                                           CvPoint const Second) const;
         
             // Generate orthogonal of unit length from middle of given line segment outwards... θ(1)
-            void                GenerateOrthogonalToLineSegment(LineSegment const &A, 
-                                                                LineSegment &Orthogonal) const;
+            void                GenerateOrthogonalToLineSegment(
+                                    LineSegment const &A, 
+                                    LineSegment &Orthogonal) const;
 
             // Can the collinear point be found on the line segment? θ(1)
-            bool                IsCollinearPointOnLineSegment(LineSegment const &A, 
-                                                              CvPoint const &CollinearPoint) const;
+            bool                IsCollinearPointOnLineSegment(
+                                    LineSegment const &A, 
+                                    CvPoint const &CollinearPoint) const;
 
             // Given only the two vertex indices, *this* image, and assuming they are opposite ends of the worm, 
             //  would the first of the two most likely be the head if we had but this image alone to consider?
             bool                IsFirstProbablyHeadViaCloisterCheck(
                                     unsigned int const &unCandidateHeadVertexIndex,
-                                    unsigned int const &unCandidateTailVertexIndex) const;
+                                    unsigned int const &unCandidateTailVertexIndex,
+                                    IplImage const     &GrayImage) const;
 
             // Check if two line segments intersect... θ(1)
-            bool                IsLineSegmentsIntersect(LineSegment const &A, 
-                                                        LineSegment const &B) const;
+            bool                IsLineSegmentsIntersect(
+                                    LineSegment const &A, 
+                                    LineSegment const &B) const;
 
             // Calculate the length of a line segment... θ(1)
             float               LengthOfLineSegment(LineSegment const &A) const;
             
             // Find the vertex index in the contour sequence that contains either end of the worm... θ(n)
-            unsigned int        PinchShiftForAnEnd() const;
+            unsigned int        PinchShiftForAnEnd(IplImage const &GrayImage) 
+                                    const;
 
             // Rotate a line segment about a point counterclockwise by an angle...
-            void                RotateLineSegmentAboutPoint(LineSegment &LineToRotate, 
-                                                            CvPoint const &Origin,
-                                                            float const &fRadians) const;
+            void                RotateLineSegmentAboutPoint(
+                                    LineSegment &LineToRotate, 
+                                    CvPoint const &Origin,
+                                    float const &fRadians) const;
 
             // Rotate a point around another to be used as the origin...
-            CvPoint            &RotatePointAboutAnother(CvPoint const &OldPointToRotate, 
-                                                        CvPoint const &Origin, 
-                                                        float const &fRadians, 
-                                                        CvPoint &NewPoint) const;
+            CvPoint            &RotatePointAboutAnother(
+                                    CvPoint const &OldPointToRotate,
+                                    CvPoint const &Origin,
+                                    float const &fRadians,
+                                    CvPoint &NewPoint) const;
 
-    // Private attributes...
-    private:
+    // Protected attributes...
+    protected:
 
             // Base storage to store contour sequence and any other dynamic OpenCV data structures...
             CvMemStorage       *pStorage;
 
                 // Contour around the worm...
-                CvSeq          *pContour;
+                CvContour      *pContour;
             
             // Some book keeping information that we use for computing arithmetic averages for the metrics...
             unsigned int        unUpdates;
-            
-            // Image size...
-            IplImage           *pGrayImage;
             
             // The worm's metrics...
             
@@ -195,8 +202,8 @@ class Worm
                 // Width of the worm...
                 float           fWidth;
 
-    // Private constants...
-    private:
+    // Protected constants...
+    protected:
     
             // The value of π...
             float const static  Pi                          = 3.1415926535897932384626433832795;

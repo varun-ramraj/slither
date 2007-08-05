@@ -12,11 +12,10 @@
 #include <cassert>
 
 // Worm construction requires to just know it's contour and a bit of information about the image it rests on...
-inline Worm::Worm(CvSeq const &Contour, IplImage const &GrayImage)
+inline Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
       unUpdates(0),
-      pGrayImage(&NewGrayImage),
       fArea(0.0f),
       fLength(0.0f), 
       fWidth(0.0f)
@@ -26,7 +25,7 @@ inline Worm::Worm(CvSeq const &Contour, IplImage const &GrayImage)
         throw std::bad_alloc();
 
     // Update the worm's metrics based on the contour...
-    Discover(Contour, Image);
+    Discover(Contour, GrayImage);
 }
 
 // Adjust the distance of the second vertex by the given distance along the radial... 
@@ -66,21 +65,22 @@ inline int Worm::Direction(CvPoint const Start, CvPoint const First, CvPoint con
 }
 
 // Discover the worm's metrics based on its new contour... (area, length, width, et cetera)
-inline void Worm::Discover(CvSeq const &NewContour, IplImage const &GrayImage)
+inline void Worm::Discover(CvContour const &NewContour, 
+                           IplImage const &GrayImage)
 {
+    // Variables...
+    unsigned int    unVerticesTraversed = 0;
+
     // Forget the old contour if we have one yet. This works by restoring the old contour sequence blocks to 
     //  the base storage pool. This is θ(1) running time, usually...
     if(pContour)
-        cvClearSeq(pContour);
+        cvClearSeq((CvSeq *) pContour);
 
     // Clone the new contour sequence into our storage pool...
-    pContour = cvCloneSeq(&NewContour, pStorage);
+    pContour = (CvContour *) cvCloneSeq((CvSeq *) &NewContour, pStorage);
 
     // Remember that how many times we have updated, which we need for calculating arithmetic means...
   ++unUpdates;
-
-    // Remember image location...
-    pGrayImage = &GrayImage; 
 
     // Update the approximate area from the area calculated in *this* image...
     UpdateArea(fabs(cvContourArea(pContour)));
@@ -91,37 +91,61 @@ inline void Worm::Discover(CvSeq const &NewContour, IplImage const &GrayImage)
     UpdateLength(fLengthAtThisMoment);
 
     // Find both ends... (head and tail)
- 
+
         // Find an end, either will do... θ(n)
-        unsigned int const unMysteryVertexIndexEnd = PinchShiftForAnEnd(); 
-        
-        // Find the other end of the worm which must be approximately the length of the worm away... O(n)
+        unsigned int const unMysteryVertexIndexEnd = 
+            PinchShiftForAnEnd(GrayImage);
+
+        // Find the other end of the worm which must be approximately the length 
+        //  of the worm away... O(n)
         unsigned int const unOtherMysteryVertexIndexEnd = 
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, fLengthAtThisMoment);
-        
-        // Make a reasonably intelligent guess as to which end is which, based only on *this* image alone...
-            
+            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, 
+                                                    fLengthAtThisMoment, 
+                                                    unVerticesTraversed);
+
+        // Make a reasonably intelligent guess as to which end is which, based 
+        //  only on *this* image alone...
+
             // The first end we found was probably the head...
-            if(IsFirstProbablyHeadViaCloisterCheck(unMysteryVertexIndexEnd, unOtherMysteryVertexIndexEnd, Image))
-                UpdateHeadAndTail(unMysteryVertexIndexEnd, unOtherMysteryVertexIndexEnd);
-            
+            if(IsFirstProbablyHeadViaCloisterCheck(unMysteryVertexIndexEnd, 
+                                                   unOtherMysteryVertexIndexEnd, 
+                                                   GrayImage))
+            {
+                // Remember for next time where approximately it was found...
+                UpdateHeadAndTail(unMysteryVertexIndexEnd, 
+                                  unOtherMysteryVertexIndexEnd);
+            }
+
             // Nope, it was the other way around...
             else
-                UpdateHeadAndTail(unOtherMysteryVertexIndexEnd, unMysteryVertexIndexEnd);
+            {
+                // Remember for next time where approximately it was found...
+                UpdateHeadAndTail(unOtherMysteryVertexIndexEnd, 
+                                  unMysteryVertexIndexEnd);
+            }
 
     // Finally calculate the width of the worm...
-    
-        // Let us measure from approximately half way up the worm from either end, 1/2 the total length... O(n)
+
+        // Let us measure from approximately half way up the worm from either 
+        //  end, 1/2 the total length... O(n)
         unsigned int const unVertexIndexOfMiddleSideA =
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, fLengthAtThisMoment / 2.0f);
-        
-        // Now find the middle on the other side by going the other way half the length... O(n)
+            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, 
+                                                    fLengthAtThisMoment / 2.0f,
+                                                    unVerticesTraversed);
+
+        // Now find the middle on the other side by going the other way half 
+        //  the length... O(n)
         unsigned int const unVertexIndexOfMiddleSideB =
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, -1.0f * fLengthAtThisMoment / 2.0f);
-        
-        // The distance between the two points is approximately the width of the worm...
-        UpdateWidth(DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
-                                             GetVertex(unVertexIndexOfMiddleSideB))); 
+            FindNearestVertexIndexByPerimeterLength(
+                unMysteryVertexIndexEnd, 
+                -1.0f * fLengthAtThisMoment / 2.0f,
+                unVerticesTraversed);
+
+        // The distance between the two points is approximately the width of
+        //  the worm...
+        UpdateWidth(
+            DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
+                                     GetVertex(unVertexIndexOfMiddleSideB))); 
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
@@ -144,7 +168,7 @@ inline float Worm::DistanceBetweenTwoPoints(CvPoint const &First, CvPoint const 
 inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
     unsigned int const &unStartVertexIndex, 
     float const &fPerimeterLength,
-    unsigned int &unVerticesTraversed = 0) const
+    unsigned int &unVerticesTraversed) const
 {
     /* TODO: We can do much better than this right down to logarithmic time by 
              using a skip list some how. Deal with it later after we're sure 
@@ -157,7 +181,7 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
 
     // Keep walking along the contour in the requested direction until we've gone far enough...
     unCurrentVertexIndex = unStartVertexIndex;
-    while(fDistanceWalkedAccumulator < abs(fPerimeterLength))
+    while(fDistanceWalkedAccumulator < fabs(fPerimeterLength))
     {
         // If the requested length is positive, use the next vertex...
         if(fPerimeterLength > 0)
@@ -233,39 +257,49 @@ inline void Worm::GenerateOrthogonalToLineSegment(LineSegment const &A,
 }
 
 // Get the average brightness of the area within a contour...
-inline double const Worm::GetAverageBrightness(CvSeq const *pContour) const
+inline double const Worm::GetAverageBrightness(CvContour const &Contour,
+                                               IplImage const &GrayImage) const
 {
     // Variables...
-    IplImage   *pMaskImage  = NULL;
+    IplImage   *pMaskImage          = NULL;
+    IplImage   *pMutableGrayImage   = NULL;
 
     // Create a mask image from the contour...
     
         // Allocate...
-        pMaskImage = cvCreateImage(cvGetSize(pGrayImage), IPL_DEPTH_8U, 1);
+        pMaskImage = cvCreateImage(cvGetSize(&GrayImage), IPL_DEPTH_8U, 1);
 
         // To save time, just clear the portion that could contain the mask...
-        cvSetImageROI(pMaskImage, pContour->rect);
-        cvZero(pCandidateHeadMask);
+        cvSetImageROI(pMaskImage, Contour.rect);
+        cvZero(pMaskImage);
         cvResetImageROI(pMaskImage);
 
         // Fill the candidate head's mask with all white...
-        cvDrawContours(pCandidateHeadMask, pCandidateHeadContour, 
-                       CV_RGB(255, 255, 255), CV_RGB(255, 255, 255), -1,
-                       CV_FILLED, 8);
+        cvDrawContours(pMaskImage, (CvSeq *) &Contour, CV_RGB(255, 255, 255), 
+                       CV_RGB(255, 255, 255), -1, CV_FILLED, 8);
 
     // Calculate the average brightness by using the contour mask like a cookie
     //  cutter over the original gray image...
 
         // We can speed up luma value summation by just dealing with the region
         //  we care about...
-        cvSetImageROI(pCandidateHeadMask, pCandidateHeadContour->rect);
-        cvSetImageROI(pGrayImage, pCandidateHeadContour->rect);
+        
+            // Set the region of interest for our mask...
+            cvSetImageROI(pMaskImage, Contour.rect);
+            
+            // The original gray image is read only, so we must make our own...
+            
+                // Clone...
+                pMutableGrayImage = cvCloneImage(&GrayImage);
+                
+                // Set region of interest...
+                cvSetImageROI(pMutableGrayImage, Contour.rect);
 
         // Calculate the brightness...
-        CvScalar const AverageBrightness = cvAvg(pGrayImage, pMaskImage);
+        CvScalar const AverageBrightness = cvAvg(pMutableGrayImage, pMaskImage);
     
     // Cleanup...
-    cvResetImageROI(pGrayImage);
+    cvReleaseImage(&pMutableGrayImage);
     cvReleaseImage(&pMaskImage);
 
     // Done...
@@ -283,13 +317,13 @@ inline unsigned int Worm::GetNextVertexIndex(unsigned int const &unVertexIndex) 
 }
 
 // Get the actual vertex of the given vertex index in the contour, O(1) average...
-CvPoint const &Worm::GetVertex(unsigned int const &unVertexIndex) const
+inline CvPoint &Worm::GetVertex(unsigned int const &unVertexIndex) const
 {
     // This should never happen, so we make sure...
     assert((int) unVertexIndex < pContour->total);
     
     // Find the actual vertex and return it...
-    return *((CvPoint const *) cvGetSeqElem(pContour, unVertexIndex));
+    return *((CvPoint *) cvGetSeqElem((CvSeq *) pContour, unVertexIndex));
 }
 
 // Get the index of the previous vertex in the contour after the given index, O(1) average...
@@ -328,57 +362,79 @@ inline bool Worm::IsCollinearPointOnLineSegment(LineSegment const &A, CvPoint co
 //  head if we had but this image alone to consider?
 inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     unsigned int const &unCandidateHeadVertexIndex,
-    unsigned int const &unCandidateTailVertexIndex) const
+    unsigned int const &unCandidateTailVertexIndex,
+    IplImage const     &GrayImage) const
 {
     // Variables...
     unsigned int    unStartVertexIndex          = 0;
     unsigned int    unVerticesTraversed         = 0;
-    CvSeq          *pCandidateHeadContour       = NULL;
-    CvSeq          *pCandidateTailContour       = NULL;
 
     // Create a contour around the candidate head...
 
         // Allocate...
-        pCandidateHeadContour = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint),
-                                            pStorage);
+        CvContour &CandidateHeadContour = 
+            *((CvContour *) cvCreateSeq(0, sizeof(CvContour), sizeof(CvPoint), 
+                                      pStorage));
 
         // Enclose 1/8th of the worm's perimeter...
-        unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
-            unCandidateHeadVertexIndex, -1.0f * Length() / 8.0f);
-        FindNearestVertexIndexByPerimeterLength(
-            unStartVertexIndex, Length() / 4.0f, unVerticesTraversed);
+        
+            // Backtrack an 1/8th from the candidate head...
+            unStartVertexIndex  = 
+                FindNearestVertexIndexByPerimeterLength(
+                    unCandidateHeadVertexIndex, 
+                    -1.0f * Length() / 8.0f,
+                    unVerticesTraversed);
+
+            // Now to encompass a full 1/8th, we go 1/8th forward twice...
+            FindNearestVertexIndexByPerimeterLength(
+                unStartVertexIndex, 
+                Length() / 4.0f, 
+                unVerticesTraversed);
 
         // Assemble the vertices that enclose the candidate head region...
-        cvSeqPushMulti(pCandidateHeadContour, &GetVertex(unStartVertexIndex), 
-                       unVerticesTraversed);
+        cvSeqPushMulti((CvSeq *) &CandidateHeadContour, 
+                       &GetVertex(unStartVertexIndex), 
+                       unVerticesTraversed,
+                       CV_BACK);
 
     // Create a contour around the candidate tail...
 
         // Allocate...
-        pCandidateTailContour = cvCreateSeq(0, sizeof(CvSeq), sizeof(CvPoint),
-                                            pStorage);
+        CvContour &CandidateTailContour = 
+            *((CvContour *) cvCreateSeq(0, sizeof(CvContour), sizeof(CvPoint), 
+                                        pStorage));
 
         // Enclose 1/8th of the worm's perimeter...
-        unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
-            unCandidateTailVertexIndex, -1.0f * Length() / 8.0f);
-        FindNearestVertexIndexByPerimeterLength(
-            unStartVertexIndex, Length() / 4.0f, unVerticesTraversed);
+        
+            // Backtrack an 1/8th from the candidate head...
+            unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
+                unCandidateTailVertexIndex, 
+                -1.0f * Length() / 8.0f,
+                unVerticesTraversed);
+            
+            // Now to encompass a full 1/8th, we go 1/8th forward twice...
+            FindNearestVertexIndexByPerimeterLength(
+                unStartVertexIndex, 
+                Length() / 4.0f, 
+                unVerticesTraversed);
 
         // Assemble the vertices that enclose the candidate tail region...
-        cvSeqPushMulti(pCandidateTailContour, &GetVertex(unStartVertexIndex), 
-                       unVerticesTraversed);
+        cvSeqPushMulti((CvSeq *) &CandidateTailContour, 
+                       &GetVertex(unStartVertexIndex), 
+                       unVerticesTraversed,
+                       CV_BACK);
 
     // Calculate the average brightness of the candidate head blob...
     double const dCandidateHeadBrightness = 
-        GetAverageBrightness(pCandidateHeadContour);
+        GetAverageBrightness(CandidateHeadContour, GrayImage);
 
     // Calculate the average brightness of the candidate tail blob...
-    double const dCandidateTailBrightnes =
-        GetAverageBrightness(pCandidateTailContour);
+    double const dCandidateTailBrightness =
+        GetAverageBrightness(CandidateTailContour, GrayImage);
 
     // Cleanup...
-    cvClearSeq(pCandidateHeadContour);
-    cvClearSeq(pCandidateTailContour);
+    cvClearSeq((CvSeq *) &CandidateHeadContour);
+    cvClearSeq((CvSeq *) &CandidateTailContour);
 
     // If the candidate head truly is the head, brighter than the tail we shall
     //  find it to be...
@@ -386,7 +442,8 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
 }
 
 // Check if two line segments intersect... θ(1)
-inline bool Worm::IsLineSegmentsIntersect(LineSegment const &A, LineSegment const &B) const
+inline bool Worm::IsLineSegmentsIntersect(LineSegment const &A, 
+                                          LineSegment const &B) const
 {
     // Calculate the relative orientation of each endpoint with respect to the other segment...
     int nDirection1 = Direction(B.first, B.second, A.first);
@@ -466,7 +523,7 @@ inline bool Worm::operator==(Worm &RightWorm) const
 }
 
 // Find the vertex index in the contour sequence that contains either end of the worm... θ(n)
-inline unsigned int Worm::PinchShiftForAnEnd() const
+inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 {
     // Variables...
     unsigned int const  unStartVertexIndex                                      = 0;
@@ -497,7 +554,9 @@ inline unsigned int Worm::PinchShiftForAnEnd() const
 
     // Extend the directed orthogonal line segment out very far and clip to the very edge of the image...
     AdjustDirectedLineSegmentLength(OrthogonalLineSegment, Infinity);
-    cvClipLine(ImageSize, &OrthogonalLineSegment.first, &OrthogonalLineSegment.second);
+    cvClipLine(cvGetSize(&GrayImage), 
+               &OrthogonalLineSegment.first, 
+               &OrthogonalLineSegment.second);
 
     // Now find the closest line segment that this orthogonal, which serves us as a guide, pierces on the
     //  other side. Although the worm may be in some peculiar shape, it will not matter since the first 
@@ -674,7 +733,7 @@ inline float const &Worm::Width() const
 }
     
 // Deconstructor...
-Worm::~Worm()
+inline Worm::~Worm()
 {
     // Deallocate storage pool...
     cvReleaseMemStorage(&pStorage);
