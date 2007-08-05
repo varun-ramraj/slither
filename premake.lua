@@ -227,7 +227,9 @@ package.name            = "slither"
         "src/SlitherApp.cpp",
         "src/SlitherApp.h",
         "src/VideosGridDropTarget.cpp",
-        "src/VideosGridDropTarget.h"}
+        "src/VideosGridDropTarget.h",
+        "src/Worm.cpp",
+        "src/Worm.h"}
 
 -- Configure Slither for wxWidgets and OpenCV...
 ConfigureForWxWidgets(package)

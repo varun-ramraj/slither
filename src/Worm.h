@@ -27,7 +27,7 @@ class Worm
     public:
     
         // Line segment...
-        typedef pair<CvPoint, CvPoint> LineSegment;
+        typedef std::pair<CvPoint, CvPoint> LineSegment;
     
     // Public methods...
     public:
@@ -41,13 +41,13 @@ class Worm
             float const        &Area() const;
 
             // Best guess as to the head's position at this moment in time, since it changes...
-            CvPoint             Head() const;
+            CvPoint const      &Head() const;
 
             // Best guess of the length from head to tail, considering everything we've seen thus far...
             float const        &Length() const;
 
             // Best guess as to the tail's position at this moment in time, since it changes...
-            CvPoint             Tail() const;
+            CvPoint const      &Tail() const;
 
             // Best guess of the area, considering everything we've seen thus far...
             float const        &Width() const;
@@ -55,19 +55,20 @@ class Worm
         // Mutators...
 
             // Discover the worm's metrics based on its new contour and image data...
-            void                Discover(CvSeq const &NewContour, IplImage const &Image);
+            void                Discover(CvSeq const &NewContour, 
+                                         IplImage const &Image);
 
         // Operators...
 
             // Show some info of what we know about this worm...
             friend std::ostream &operator<<(std::ostream &Output, 
-                                            Worm &RequestedWorm) const;
+                                            Worm &RequestedWorm);
 
-            // Candidate is not similar enough... (see below)
-            friend bool         operator<(Worm &CandidateWorm) const;
+            // Candidates are not similar enough...
+            bool                operator<(Worm &RightWorm) const;
 
-            // Candidate meets the minimum required similarity... (see below)
-            friend bool         operator==(Worm &CandidateWorm) const;
+            // Candidates meet the minimum required similarity...
+            bool                operator==(Worm &RightWorm) const;
 
         // Deconstructor...
        ~Worm();
@@ -78,7 +79,7 @@ class Worm
         // Accessors...
 
             // Find the vertex on the contour the given length away, starting in increasing order... O(n)
-            unsigned int const  FindNearestVertexIndexByPerimeterLength(unsigned int const &unStartVertex, 
+            unsigned int const  FindNearestVertexIndexByPerimeterLength(unsigned int const &unStartVertexIndex, 
                                                                         float const &fPerimeterLength) const;
 
             // Get the index of the next vertex in the contour after the given index, O(1) average...
@@ -88,7 +89,7 @@ class Worm
             CvPoint const      &GetVertex(unsigned int const &unVertexIndex) const;
             
             // Get the index of the previous vertex in the contour after the given index, O(1) average...
-            CvPoint const      &GetPreviousVertexIndex(unsigned int const &unVertexIndex) const;
+            unsigned int        GetPreviousVertexIndex(unsigned int const &unVertexIndex) const;
 
         // Mutators...
 
@@ -138,7 +139,7 @@ class Worm
                                                               CvPoint const &CollinearPoint) const;
 
             // Given only the two vertex indices, *this* image, and assuming they are opposite ends of the worm, 
-            //  would the first of the two most likely be the head if we had only this image to consider?
+            //  would the first of the two most likely be the head if we had but this image alone to consider?
             bool                IsFirstProbablyHeadByCloisteredCheck(unsigned int const &unCandidateHeadVertexIndex,
                                                                      unsigned int const &unCandidateTailVertexIndex,
                                                                      IplImage const &Image) const;
@@ -176,6 +177,9 @@ class Worm
             // Some book keeping information that we use for computing arithmetic averages for the metrics...
             unsigned int        unUpdates;
             
+            // Image size...
+            CvSize              ImageSize;
+            
             // The worm's metrics...
             
                 // Area...
@@ -191,13 +195,13 @@ class Worm
     private:
     
             // The value of π...
-            float const     Pi                          = 3.1415926535897932384626433832795;
+            float const static  Pi                          = 3.1415926535897932384626433832795;
             
             // Infinity... (kind of)
-            float const     Infinity                    = FLT_MAX;
+            float const static  Infinity                    = FLT_MAX;
             
             // The minimum required similarity needed for worm equivalency... (0.0 < percentage <= 100.0) 
-            float const     fMinimumRequiredSimilarity  = 95.0;
+            float const static  fMinimumRequiredSimilarity  = 95.0;
 
 };
 
