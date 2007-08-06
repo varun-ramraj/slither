@@ -11,6 +11,22 @@
 #include <cfloat>
 #include <cassert>
 
+// Default constructor...
+Worm::Worm()
+    : pStorage(cvCreateMemStorage(0)),
+      pContour(NULL),
+      unUpdates(0),
+      fArea(0.0f),
+      fLength(0.0f), 
+      fWidth(0.0f),
+      TerminalA(cvPoint(0, 0), 0),
+      TerminalB(cvPoint(0, 0), 0)
+{
+    // Allocatation of base storage for contour and anything else we need failed...
+    if(!pStorage)
+        throw std::bad_alloc();
+}
+
 // Worm construction requires to just know it's contour and a bit of information about the image it rests on...
 Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     : pStorage(cvCreateMemStorage(0)),
@@ -34,16 +50,15 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
 inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A, float fLength) const
 {
     // Create vector from directed line segment...
-    CvPoint Vector;
-    Vector.x = A.second.x - A.first.x;
-    Vector.y = A.second.y - A.first.y;
+    CvPoint2D32f Vector = cvPoint2D32f(A.second.x - A.first.x, 
+                                       A.second.y - A.first.y);
     
     // Compute angle of vector in degrees, then convert to radians...
     float const fThetaRadians = cvFastArctan(Vector.x, Vector.y) * (Pi / 180);
     
     // Adjust vector length to given...
-    Vector.x = (int) (fLength * cos(fThetaRadians));
-    Vector.y = (int) (fLength * sin(fThetaRadians));
+    Vector.x = (fLength * cos(fThetaRadians));
+    Vector.y = (fLength * sin(fThetaRadians));
     
     // Translate back again...
     A.second.x = A.first.x + Vector.x;
@@ -57,13 +72,30 @@ inline float const &Worm::Area() const
     return fArea;
 }
 
+// Clip line against the image rectangle...
+void Worm::ClipLine(CvSize Size, LineSegment &A) const
+{
+    // Convert to integral values for intel...
+    CvPoint Start   = cvPointFrom32f(A.first);
+    CvPoint End     = cvPointFrom32f(A.second);
+
+    // Clip...
+    cvClipLine(Size, &Start, &End);
+    
+    // Copy back to caller's floats...
+    A.first     = cvPointTo32f(Start);
+    A.second    = cvPointTo32f(End);
+}
+
 // Is directed line segment Start->Second clockwise (> 0), counterclockwise (< 0), or collinear with respect to
 //  the directed line segment Start->First? θ(1)
-inline int Worm::Direction(CvPoint const Start, CvPoint const First, CvPoint const Second) const
+inline int Worm::Direction(CvPoint2D32f const Start, 
+                           CvPoint2D32f const First, 
+                           CvPoint2D32f const Second) const
 {
     // Calculate the cross product, but do it with both vectors translated back to the origin to make it work...
-    return (((First.x - Start.x) * (Second.y - Start.y)) - 
-            ((Second.x - Start.x) * (First.y - Start.y)));
+    return (int) (((First.x - Start.x) * (Second.y - Start.y)) - 
+                  ((Second.x - Start.x) * (First.y - Start.y)));
 }
 
 // Discover the worm's metrics based on its new contour... (area, length, width, et cetera)
@@ -158,12 +190,21 @@ inline float Worm::DistanceBetweenLineSegments(LineSegment const &A, LineSegment
 {
     // Just measure the length of the imaginary line segment joining both segment's middles...
     return LengthOfLineSegment(
-        LineSegment(cvPoint((A.second.x - A.first.x) / 2, (A.second.y - A.first.y) / 2), 
-                    cvPoint((B.second.x - B.first.x) / 2, (B.second.y - B.first.y) / 2)));
+        LineSegment(cvPoint2D32f((A.second.x - A.first.x) / 2, (A.second.y - A.first.y) / 2), 
+                    cvPoint2D32f((B.second.x - B.first.x) / 2, (B.second.y - B.first.y) / 2)));
 }
 
 // Calculate the absolute distance between two points...
-inline float Worm::DistanceBetweenTwoPoints(CvPoint const &First, CvPoint const &Second) const
+inline float Worm::DistanceBetweenTwoPoints(CvPoint const &First, 
+                                            CvPoint const &Second) const
+{
+    // Return it...
+    return cvSqrt(pow(Second.x - First.x, 2) + pow(Second.y - First.y, 2));
+} 
+
+// Calculate the absolute distance between two points...
+inline float Worm::DistanceBetweenTwoPoints(CvPoint2D32f const &First, 
+                                            CvPoint2D32f const &Second) const
 {
     // Return it...
     return cvSqrt(pow(Second.x - First.x, 2) + pow(Second.y - First.y, 2));
@@ -231,8 +272,8 @@ inline void Worm::GenerateOrthogonalToLineSegment(LineSegment const &A,
                                                   LineSegment &Orthogonal) const
 {
     // The orthogonal start is just the middle of the given line segment since that is where it begins...
-    Orthogonal.first.x = (A.second.x - A.first.x) / 2;
-    Orthogonal.first.y = (A.second.y - A.first.y) / 2;
+    Orthogonal.first.x = A.first.x + ((A.second.x - A.first.x) / 2);
+    Orthogonal.first.y = A.first.y + ((A.second.y - A.first.y) / 2);
     
     // The orthogonal end is a little more complicated...
     
@@ -257,8 +298,8 @@ inline void Worm::GenerateOrthogonalToLineSegment(LineSegment const &A,
         float const fPartialCalculation = fSlope / cvSqrt((fSlope * fSlope) + 1);
 
         // Now calculate the X and Y coordinates...
-        Orthogonal.second.x = (int) (float(A.second.x + A.first.x) / 2.0 + fPartialCalculation);
-        Orthogonal.second.y = (int) (float(A.second.y + A.first.y) / 2.0 - fPartialCalculation);
+        Orthogonal.second.x = (float(A.second.x + A.first.x) / 2.0 + fPartialCalculation);
+        Orthogonal.second.y = (float(A.second.y + A.first.y) / 2.0 - fPartialCalculation);
 }
 
 // Get the average brightness of the area within a contour...
@@ -357,7 +398,9 @@ inline CvPoint const &Worm::Head() const
 }
 
 // Can the collinear point be found on the line segment? θ(1)
-inline bool Worm::IsCollinearPointOnLineSegment(LineSegment const &A, CvPoint const &CollinearPoint) const
+inline bool Worm::IsCollinearPointOnLineSegment(
+                        LineSegment const &A, 
+                        CvPoint2D32f const &CollinearPoint) const
 {
     // Found...
     if(((std::min(A.first.x, A.second.x) <= CollinearPoint.x) && 
@@ -536,7 +579,8 @@ inline bool Worm::operator==(Worm &RightWorm) const
     return false;
 }
 
-// Find the vertex index in the contour sequence that contains either end of the worm... θ(n)
+// Find the vertex index in the contour sequence that contains either end of 
+//  the worm... θ(n)
 inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 {
     // Variables...
@@ -544,12 +588,19 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
     unsigned int        unCurrentOppositeVertexIndex                            = 0;
     unsigned int        unClosestOppositeVertexIndexFound                       = 0;    
     float               fClosestOppositeVertexDistanceFound                     = Infinity;
-    LineSegment         StartingLineSegment(cvPoint(0, 0), cvPoint(0, 0));
-    LineSegment         OrthogonalLineSegment(cvPoint(0, 0), cvPoint(0, 0));
+    LineSegment         StartingLineSegment(
+                            cvPoint2D32f(0.0f, 0.0f), 
+                            cvPoint2D32f(0.0f, 0.0f));
+    LineSegment         OrthogonalLineSegment(
+                            cvPoint2D32f(0.0f, 0.0f), 
+                            cvPoint2D32f(0.0f, 0.0f));
 
-    // We begin by forming a line segment from an arbitrary point on the contour to its neighbour...
-    StartingLineSegment.first   = GetVertex(unStartVertexIndex);
-    StartingLineSegment.second  = GetVertex(GetNextVertexIndex(unStartVertexIndex));
+    // We begin by forming a line segment from an arbitrary point on the 
+    //  contour to its neighbour...
+    StartingLineSegment.first   = 
+        cvPointTo32f(GetVertex(unStartVertexIndex));
+    StartingLineSegment.second  = 
+        cvPointTo32f(GetVertex(GetNextVertexIndex(unStartVertexIndex)));
 
     // Generate an orthogonal for the starting line segment...
     GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
@@ -560,17 +611,15 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
         AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 0.1f);
         
         // If it isn't pointing into the worm, flip it so that it is...
-        if(cvPointPolygonTest(pContour, cvPointTo32f(OrthogonalLineSegment.second), 0) < 0.0f)
+        if(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) < 0.0f)
             AdjustDirectedLineSegmentLength(OrthogonalLineSegment, -0.1f);
 
         // The orthogonal directed segment's other side should always be within the worm...
-        assert(cvPointPolygonTest(pContour, cvPointTo32f(OrthogonalLineSegment.second), 0) == 1.0f);
+        assert(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) == 1.0f);
 
     // Extend the directed orthogonal line segment out very far and clip to the very edge of the image...
     AdjustDirectedLineSegmentLength(OrthogonalLineSegment, Infinity);
-    cvClipLine(cvGetSize(&GrayImage), 
-               &OrthogonalLineSegment.first, 
-               &OrthogonalLineSegment.second);
+    ClipLine(cvGetSize(&GrayImage), OrthogonalLineSegment);
 
     // Now find the closest line segment that this orthogonal, which serves us as a guide, pierces on the
     //  other side. Although the worm may be in some peculiar shape, it will not matter since the first 
@@ -583,8 +632,10 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
         while(unStartVertexIndex != GetNextVertexIndex(unCurrentOppositeVertexIndex))
         {
             // The line segment we are going to test...
-            LineSegment CandidateLineSegment(GetVertex(unCurrentOppositeVertexIndex), 
-                                             GetVertex(GetNextVertexIndex(unCurrentOppositeVertexIndex)));
+            LineSegment CandidateLineSegment(
+                            cvPointTo32f(GetVertex(unCurrentOppositeVertexIndex)), 
+                            cvPointTo32f(GetVertex(
+                                GetNextVertexIndex(unCurrentOppositeVertexIndex))));
             
             // Ah ha! We have found a segment that intersects the orthogonal...
             if(IsLineSegmentsIntersect(OrthogonalLineSegment, CandidateLineSegment))
@@ -644,11 +695,11 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 
 // Rotate a line segment about a point counterclockwise by an angle...
 inline void Worm::RotateLineSegmentAboutPoint(LineSegment &LineToRotate, 
-                                              CvPoint const &Origin, 
+                                              CvPoint2D32f const &Origin, 
                                               float const &fRadians) const
 {
     // Variables...
-    CvPoint NewPoint = {0, 0};
+    CvPoint2D32f NewPoint = {0.0f, 0.0f};
     
     // Apply rotation about the specified origin for the first coordinate...
     LineToRotate.first  = RotatePointAboutAnother(LineToRotate.first, Origin, 
@@ -660,10 +711,11 @@ inline void Worm::RotateLineSegmentAboutPoint(LineSegment &LineToRotate,
 }
 
 // Rotate a point around another to be used as the origin...
-inline CvPoint &Worm::RotatePointAboutAnother(CvPoint const &OldPointToRotate, 
-                                              CvPoint const &Origin, 
-                                              float const &fRadians, 
-                                              CvPoint &NewPoint) const
+inline CvPoint2D32f &Worm::RotatePointAboutAnother(
+                                CvPoint2D32f const &OldPointToRotate, 
+                                CvPoint2D32f const &Origin, 
+                                float const &fRadians, 
+                                CvPoint2D32f &NewPoint) const
 {
     /* This is the decomposed form of the combined linear transformation that translates back to origin, rotates 
        about the origin, then translates back again to the starting point, built from this transformation...
@@ -682,16 +734,16 @@ inline CvPoint &Worm::RotatePointAboutAnother(CvPoint const &OldPointToRotate,
     */
 
         // Calculate new x-coordinate... 
-        NewPoint.x = (int) ((cos(fRadians) * OldPointToRotate.x) -
-                            (sin(fRadians) * OldPointToRotate.y) +
-                            (Origin.x * (1 - cos(fRadians))) +
-                            (Origin.y * sin(fRadians)));
+        NewPoint.x = ((cos(fRadians) * OldPointToRotate.x) -
+                      (sin(fRadians) * OldPointToRotate.y) +
+                      (Origin.x * (1 - cos(fRadians))) +
+                      (Origin.y * sin(fRadians)));
                
         // Calculate new y-coordinate...
-        NewPoint.y = (int) ((sin(fRadians) * OldPointToRotate.x) +
-                            (cos(fRadians) * OldPointToRotate.y) +
-                            (Origin.y * (1 - cos(fRadians))) -
-                            (Origin.x * sin(fRadians)));
+        NewPoint.y = ((sin(fRadians) * OldPointToRotate.x) +
+                      (cos(fRadians) * OldPointToRotate.y) +
+                      (Origin.y * (1 - cos(fRadians))) -
+                      (Origin.x * sin(fRadians)));
 
     // Done...
     return NewPoint;                

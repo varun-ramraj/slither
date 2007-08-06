@@ -23,6 +23,9 @@ class Worm
     // Public methods...
     public:
 
+        // Default constructor...
+        Worm();
+        
         // Worm constructor just needs to know it's contour and the image it rests on...
         Worm(CvContour const &Contour, IplImage const &GrayImage);
 
@@ -68,7 +71,7 @@ class Worm
     protected:
     
         // Line segment...
-        typedef std::pair<CvPoint, CvPoint>
+        typedef std::pair<CvPoint2D32f, CvPoint2D32f>
             LineSegment;
         
         // Terminal end scores are used to award terminal ends (head or tail)
@@ -153,6 +156,9 @@ class Worm
                                     LineSegment &A, 
                                     float fLength) const;
             
+            // Clip line against the image rectangle...
+            void                ClipLine(CvSize Size, LineSegment &A) const;
+            
             // Calculate the distance between the midpoints of two segments... 
             //  θ(1)
             float               DistanceBetweenLineSegments(
@@ -162,14 +168,17 @@ class Worm
             // Calculate the absolute distance between two points...
             float               DistanceBetweenTwoPoints(
                                     CvPoint const &First, 
-                                    CvPoint const &Second) const; 
+                                    CvPoint const &Second) const;
+            float               DistanceBetweenTwoPoints(
+                                    CvPoint2D32f const &First, 
+                                    CvPoint2D32f const &Second) const;
 
             // Is directed line segment Start->Second clockwise (> 0), 
             //  counterclockwise (< 0), or collinear with respect to the
             //  directed line segment Start->First? θ(1)
-            int                 Direction(CvPoint const Start, 
-                                          CvPoint const First, 
-                                          CvPoint const Second) const;
+            int                 Direction(CvPoint2D32f const Start, 
+                                          CvPoint2D32f const First, 
+                                          CvPoint2D32f const Second) const;
         
             // Generate orthogonal of unit length from middle of given line 
             //  segment outwards... θ(1)
@@ -180,7 +189,7 @@ class Worm
             // Can the collinear point be found on the line segment? θ(1)
             bool                IsCollinearPointOnLineSegment(
                                     LineSegment const &A, 
-                                    CvPoint const &CollinearPoint) const;
+                                    CvPoint2D32f const &CollinearPoint) const;
 
             // Given only the two vertex indices, *this* image, and assuming 
             //  they are opposite ends of the worm, would the first of the two
@@ -209,15 +218,15 @@ class Worm
             //  angle...
             void                RotateLineSegmentAboutPoint(
                                     LineSegment &LineToRotate, 
-                                    CvPoint const &Origin,
+                                    CvPoint2D32f const &Origin,
                                     float const &fRadians) const;
 
             // Rotate a point around another to be used as the origin...
-            CvPoint            &RotatePointAboutAnother(
-                                    CvPoint const &OldPointToRotate,
-                                    CvPoint const &Origin,
+            CvPoint2D32f       &RotatePointAboutAnother(
+                                    CvPoint2D32f const &OldPointToRotate,
+                                    CvPoint2D32f const &Origin,
                                     float const &fRadians,
-                                    CvPoint &NewPoint) const;
+                                    CvPoint2D32f &NewPoint) const;
 
     // Protected attributes...
     protected:

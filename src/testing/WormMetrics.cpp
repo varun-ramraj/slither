@@ -34,6 +34,9 @@ int main(int nArguments, char *ppszArguments[])
     // Create some base storage...
     CvMemStorage *pStorage  = cvCreateMemStorage(0);
     
+    // Create a worm object...
+    Worm Nematode;
+    
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
     cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
@@ -81,8 +84,13 @@ int main(int nArguments, char *ppszArguments[])
                 if((dArea < 400.0) || (1000.0 < dArea))
                     continue;
 
-                cout << "\tFound a contour" << endl;
-            
+                cout << "\tFound a contour: " << pCurrentContour->total 
+                     << " vertices... ";
+
+            // Discover worm's new state...
+            Nematode.Discover(*pCurrentContour, *pGrayImage);
+            cout << "discovery complete" << endl;
+
             // Pick a random colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);
             
