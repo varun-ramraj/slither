@@ -18,7 +18,9 @@ inline Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
       unUpdates(0),
       fArea(0.0f),
       fLength(0.0f), 
-      fWidth(0.0f)
+      fWidth(0.0f),
+      TerminalA(cvPoint(0, 0), 0),
+      TerminalB(cvPoint(0, 0), 0)
 {    
     // Allocatation of base storage for contour and anything else we need failed...
     if(!pStorage)
@@ -87,19 +89,20 @@ inline void Worm::Discover(CvContour const &NewContour,
 
     // Update the approximate length from the length calculated in *this* image. The length is about half
     //  the perimeter all the way around the worm...
-    float const fLengthAtThisMoment = cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
+    float const fLengthAtThisMoment = 
+        cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
     UpdateLength(fLengthAtThisMoment);
 
     // Find both ends... (head and tail)
 
         // Find an end, either will do... θ(n)
-        unsigned int const unMysteryVertexIndexEnd = 
+        unsigned int const unMysteryEndVertexIndex = 
             PinchShiftForAnEnd(GrayImage);
 
         // Find the other end of the worm which must be approximately the length 
         //  of the worm away... O(n)
-        unsigned int const unOtherMysteryVertexIndexEnd = 
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, 
+        unsigned int const unOtherMysteryEndVertexIndex = 
+            FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
                                                     fLengthAtThisMoment, 
                                                     unVerticesTraversed);
 
@@ -107,21 +110,21 @@ inline void Worm::Discover(CvContour const &NewContour,
         //  only on *this* image alone...
 
             // The first end we found was probably the head...
-            if(IsFirstProbablyHeadViaCloisterCheck(unMysteryVertexIndexEnd, 
-                                                   unOtherMysteryVertexIndexEnd, 
+            if(IsFirstProbablyHeadViaCloisterCheck(unMysteryEndVertexIndex, 
+                                                   unOtherMysteryEndVertexIndex, 
                                                    GrayImage))
             {
                 // Remember for next time where approximately it was found...
-                UpdateHeadAndTail(unMysteryVertexIndexEnd, 
-                                  unOtherMysteryVertexIndexEnd);
+                UpdateHeadAndTail(unMysteryEndVertexIndex, 
+                                  unOtherMysteryEndVertexIndex);
             }
 
             // Nope, it was the other way around...
             else
             {
                 // Remember for next time where approximately it was found...
-                UpdateHeadAndTail(unOtherMysteryVertexIndexEnd, 
-                                  unMysteryVertexIndexEnd);
+                UpdateHeadAndTail(unOtherMysteryEndVertexIndex, 
+                                  unMysteryEndVertexIndex);
             }
 
     // Finally calculate the width of the worm...
@@ -129,7 +132,7 @@ inline void Worm::Discover(CvContour const &NewContour,
         // Let us measure from approximately half way up the worm from either 
         //  end, 1/2 the total length... O(n)
         unsigned int const unVertexIndexOfMiddleSideA =
-            FindNearestVertexIndexByPerimeterLength(unMysteryVertexIndexEnd, 
+            FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
                                                     fLengthAtThisMoment / 2.0f,
                                                     unVerticesTraversed);
 
@@ -137,7 +140,7 @@ inline void Worm::Discover(CvContour const &NewContour,
         //  the length... O(n)
         unsigned int const unVertexIndexOfMiddleSideB =
             FindNearestVertexIndexByPerimeterLength(
-                unMysteryVertexIndexEnd, 
+                unMysteryEndVertexIndex, 
                 -1.0f * fLengthAtThisMoment / 2.0f,
                 unVerticesTraversed);
 
@@ -336,11 +339,20 @@ inline unsigned int Worm::GetPreviousVertexIndex(unsigned int const &unVertexInd
     return (unVertexIndex == 0) ? (pContour->total - 1) : (unVertexIndex - 1);
 }
 
-/* Best guess as to the head's position at this moment in time, since it changes...
+// Best guess as to the head's position at this moment in time, since it changes...
 inline CvPoint const &Worm::Head() const
 {
-    // TODO: Implement this. 
-}*/
+    // We'll make a reasonably informed guess by returning the more likely of
+    //  the two terminal ends that received the higher head hits...
+    
+        // Terminal end A...
+        if(TerminalA.unHeadScore > TerminalB.unHeadScore)
+            return TerminalA.LastSeenLocus;
+        
+        // Terminal end B...
+        else
+            return TerminalB.LastSeenLocus;
+}
 
 // Can the collinear point be found on the line segment? θ(1)
 inline bool Worm::IsCollinearPointOnLineSegment(LineSegment const &A, CvPoint const &CollinearPoint) const
@@ -683,11 +695,20 @@ inline CvPoint &Worm::RotatePointAboutAnother(CvPoint const &OldPointToRotate,
     return NewPoint;                
 }
 
-/* Best guess as to the tail's position at this moment in time, since it changes...
+// Best guess as to the tail's position at this moment in time, since it changes...
 inline CvPoint const &Worm::Tail() const
 {
-    // TODO: Implement this.
-}*/
+    // We'll make a reasonably informed guess by returning the more likely of
+    //  the two terminal ends that received the lesser head hits...
+    
+        // Terminal end A...
+        if(TerminalA.unHeadScore < TerminalB.unHeadScore)
+            return TerminalA.LastSeenLocus;
+        
+        // Terminal end B...
+        else
+            return TerminalB.LastSeenLocus;
+}
 
 // Update the approximate area, based on the value at this moment in time. This will help us make a
 //  more informed answer when asked via Area() for the size. θ(1) space and time...
@@ -698,13 +719,44 @@ inline void Worm::UpdateArea(float const &fAreaAtThisMoment)
     fArea = ((fArea * unUpdates) + fAreaAtThisMoment) / (unUpdates + 1);
 }
 
-// Update the approximate head and tail position, based on the value at this moment in time. This will
-//  help us make a more informed answer when asked via Head() or Tail() for the actual coordinates.
-//  θ(1) space and time...
+// Update the approximate head and tail position, based on the value at this 
+//  moment in time. This will help us make a more informed answer when asked 
+//  via Head() or Tail() for the actual coordinates θ(1) space and time...
 inline void Worm::UpdateHeadAndTail(unsigned int const &unHeadVertexIndex,
-                                     unsigned int const &unTailVertexIndex)
+                                    unsigned int const &unTailVertexIndex)
 {
-    /* TODO: Implement this. */
+    // Get the location of the supposed head and tail in this frame...
+    CvPoint    &CurrentHeadVertex = GetVertex(unHeadVertexIndex);
+    CvPoint    &CurrentTailVertex = GetVertex(unTailVertexIndex);
+
+    // Head is closer to terminal end A than B in this frame...
+    if(DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalA.LastSeenLocus) <
+       DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalB.LastSeenLocus))
+    {
+        // Make a note of where it was right now for next time...
+        TerminalA.LastSeenLocus = CurrentHeadVertex;
+        
+        // Also note that terminal A gets one more point for looking like the
+        //  head in this frame...
+      ++TerminalA.unHeadScore;
+        
+        // Assume the tail was the other terminal end...
+        TerminalB.LastSeenLocus = CurrentTailVertex;
+    }
+
+    // Head is closer to terminal end B than A in this frame...
+    else
+    {
+        // Make a note of where it was right now for next time...
+        TerminalB.LastSeenLocus = CurrentHeadVertex;
+        
+        // Also note that terminal B gets one more point for looking like the
+        //  head in this frame...
+      ++TerminalB.unHeadScore;
+      
+        // Assume the tail was the other terminal end...
+        TerminalA.LastSeenLocus = CurrentTailVertex;
+    }
 }
 
 // Update the approximate length, based on the value at this moment in time. This will help us make a
