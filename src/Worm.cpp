@@ -12,7 +12,7 @@
 #include <cassert>
 
 // Worm construction requires to just know it's contour and a bit of information about the image it rests on...
-inline Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
+Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
       unUpdates(0),
@@ -73,22 +73,24 @@ inline void Worm::Discover(CvContour const &NewContour,
     // Variables...
     unsigned int    unVerticesTraversed = 0;
 
-    // Forget the old contour if we have one yet. This works by restoring the old contour sequence blocks to 
-    //  the base storage pool. This is θ(1) running time, usually...
+    // Forget the old contour if we have one yet. This works by restoring the 
+    //  old contour sequence blocks to the base storage pool. This is θ(1) 
+    //  running time, usually...
     if(pContour)
         cvClearSeq((CvSeq *) pContour);
 
     // Clone the new contour sequence into our storage pool...
     pContour = (CvContour *) cvCloneSeq((CvSeq *) &NewContour, pStorage);
 
-    // Remember that how many times we have updated, which we need for calculating arithmetic means...
+    // Remember that how many times we have updated, which we need for 
+    //  calculating arithmetic means...
   ++unUpdates;
 
     // Update the approximate area from the area calculated in *this* image...
     UpdateArea(fabs(cvContourArea(pContour)));
 
-    // Update the approximate length from the length calculated in *this* image. The length is about half
-    //  the perimeter all the way around the worm...
+    // Update the approximate length from the length calculated in *this* image.
+    //  The length is about half the perimeter all the way around the worm...
     float const fLengthAtThisMoment = 
         cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
     UpdateLength(fLengthAtThisMoment);
@@ -99,8 +101,8 @@ inline void Worm::Discover(CvContour const &NewContour,
         unsigned int const unMysteryEndVertexIndex = 
             PinchShiftForAnEnd(GrayImage);
 
-        // Find the other end of the worm which must be approximately the length 
-        //  of the worm away... O(n)
+        // Find the other end of the worm which must be approximately the 
+        //  length of the worm away... O(n)
         unsigned int const unOtherMysteryEndVertexIndex = 
             FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
                                                     fLengthAtThisMoment, 
@@ -729,9 +731,12 @@ inline void Worm::UpdateHeadAndTail(unsigned int const &unHeadVertexIndex,
     CvPoint    &CurrentHeadVertex = GetVertex(unHeadVertexIndex);
     CvPoint    &CurrentTailVertex = GetVertex(unTailVertexIndex);
 
-    // Head is closer to terminal end A than B in this frame...
-    if(DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalA.LastSeenLocus) <
-       DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalB.LastSeenLocus))
+    // Either we have no previous data to compare by, and so we assume initial
+    //  data to be correct for starting, or, we have data already. In the latter
+    //  case, the head is closer to terminal end A than B in this frame...
+    if((unUpdates <= 1) || 
+       (DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalA.LastSeenLocus) <
+        DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalB.LastSeenLocus)))
     {
         // Make a note of where it was right now for next time...
         TerminalA.LastSeenLocus = CurrentHeadVertex;
@@ -785,7 +790,7 @@ inline float const &Worm::Width() const
 }
     
 // Deconstructor...
-inline Worm::~Worm()
+Worm::~Worm()
 {
     // Deallocate storage pool...
     cvReleaseMemStorage(&pStorage);

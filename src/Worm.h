@@ -10,9 +10,6 @@
 
 // Includes...
 
-    // wxWidgets...
-    #include <wx/wx.h>
-    
     // OpenCV...
     #include <opencv/cv.h>
     

@@ -106,7 +106,7 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
     IplImage       *pGrayImage          = NULL;
     IplImage       *pThresholdImage     = NULL;
     CvMemStorage   *pContourStorage     = NULL;
-    CvSeq          *pFirstContour       = NULL;
+    CvContour      *pFirstContour       = NULL;
     IplImage       *pFinalImage         = NULL;
 
     // Make it grayscale...
@@ -119,19 +119,20 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
     // Create a blank final image...
     pFinalImage = cvCreateImage(cvGetSize(pGrayImage), 8, 3);
 
-    // Convert image from one colour space to another...
+    // Convert image from gray colour space to colour for final image...
     cvCvtColor(pGrayImage, pFinalImage, CV_GRAY2BGR);
 
     // To find the contours, we must first threshold the image...
     cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
 
     // Find the image contours...
-    
+
         // Allocate storage space for the contours...
         pContourStorage = cvCreateMemStorage(0);
 
         // Find the contours...
-        cvFindContours(pThresholdImage, pContourStorage, &pFirstContour, 
+        cvFindContours(pThresholdImage, pContourStorage, 
+                       (CvSeq **) &pFirstContour, 
                        sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
                        cvPoint(0, 0));
 
@@ -139,49 +140,26 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
     cvZero(pThresholdImage);
 
     // Examine each contour and make note of ones of possible worm size...
-    for(CvSeq *pCurrentContour = pFirstContour; 
+    for(CvContour *pCurrentContour = pFirstContour; 
         pCurrentContour;
-        pCurrentContour = pCurrentContour->h_next)
+        pCurrentContour = (CvContour *) pCurrentContour->h_next)
     {
         // Too few vertices...
         if(pCurrentContour->total < 6)
             continue;
 
-        // Create row vector matrix of all of the worm's vertices...
-
-            // Create an empty row matrix...
-            CvPoint *pVertexArray = new CvPoint[pCurrentContour->total];
-
-            // Convert the vertex sequence to array form...
-            cvCvtSeqToArray(pCurrentContour, pVertexArray, 
-                            cvSlice(0, CV_WHOLE_SEQ_END_INDEX));
-        
-        // How big is the bounding rectangle?
-
-            /* Convert matrix array to bounding rectangle...
-            CvRect BoundingRectangle = cvBoundingRect(pCurrentContour, 0);
-            
-                // Cleanup...
-                delete [] pVertexArray;
-
-            // Compute the area...
-            nArea = BoundingRectangle.width * BoundingRectangle.height;
-
-            // Too small or too big...
-            if((nArea < 150) || (100000 < nArea))
-                continue;*/
-
+        // Calculate the area of the worm...
         double dArea = fabs(cvContourArea(pCurrentContour));
 
-        // Too small or too big to be a worm...
-        if((dArea < 400.0) || (1000.0 < dArea))
-            continue;
+            // Too small / too big to be a worm, discard...
+            if((dArea < 400.0) || (1000.0 < dArea))
+                continue;
 
 //printf("Worm area: %.0f\r", dArea);
 
         // Draw it, if enabled...
         if(Frame.ShowVisualsCheckBox->IsChecked())
-            cvDrawContours(pFinalImage, pCurrentContour, 
+            cvDrawContours(pFinalImage, (CvSeq *) pCurrentContour, 
                            CV_RGB(239, 34, 0),     /* external colour */
                            CV_RGB(239, 34, 0),     /* hole colour */
                            0,                      /* maximum level */
