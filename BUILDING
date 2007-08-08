@@ -69,7 +69,8 @@ Mac OS X Building
     - cd into the base directory
     - mkdir build; cd build
     - This is what I used to build OpenCV on my OS X system...
-    - Get rid of -march=prescott and other -mtune / -mcpu stuff from CXXFLAGS in ./configure, it breaks compile
+    - Get rid of -march=prescott and other -mtune / -mcpu stuff from CXXFLAGS in
+      ./configure, it breaks compile on my lab's old PPC PowerBook G4.
     - Get rid of ldconfig from Makefile.am under the install-exec-hook. There is
       no ldconfig under OS X. Who writes this shit?
     - ../configure CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386" CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386 -I/sw/include" LDFLAGS="-L/sw/lib -framework Foundation -framework CoreFoundation -framework ApplicationServices -framework Carbon -framework QuartzCore -arch i386 -arch ppc" --disable-shared --disable-dependency-tracking --prefix=<some local folder, eg. ~/local>

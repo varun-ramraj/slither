@@ -68,7 +68,7 @@ class Worm
        ~Worm();
 
     // Protected types...
-    protected:
+//    protected:
     
         // Line segment...
         typedef std::pair<CvPoint2D32f, CvPoint2D32f>
@@ -96,7 +96,7 @@ class Worm
         }TerminalEndNotes;
 
     // Protected methods...
-    protected:
+//    protected:
 
         // Accessors...
 
@@ -152,9 +152,9 @@ class Worm
 
             // Adjust the distance of the second vertex by the given distance 
             //  along the radial... 
-            void                AdjustDirectedLineSegmentLength(
+            static void                AdjustDirectedLineSegmentLength(
                                     LineSegment &A, 
-                                    float fLength) const;
+                                    float fLength);
             
             // Clip line against the image rectangle...
             void                ClipLine(CvSize Size, LineSegment &A) const;
@@ -182,9 +182,9 @@ class Worm
         
             // Generate orthogonal of unit length from middle of given line 
             //  segment outwards... θ(1)
-            void                GenerateOrthogonalToLineSegment(
+            static void                GenerateOrthogonalToLineSegment(
                                     LineSegment const &A, 
-                                    LineSegment &Orthogonal) const;
+                                    LineSegment &Orthogonal);
 
             // Can the collinear point be found on the line segment? θ(1)
             bool                IsCollinearPointOnLineSegment(
@@ -222,14 +222,14 @@ class Worm
                                     float const &fRadians) const;
 
             // Rotate a point around another to be used as the origin...
-            CvPoint2D32f       &RotatePointAboutAnother(
+            static CvPoint2D32f       &RotatePointAboutAnother(
                                     CvPoint2D32f const &OldPointToRotate,
                                     CvPoint2D32f const &Origin,
                                     float const &fRadians,
-                                    CvPoint2D32f &NewPoint) const;
+                                    CvPoint2D32f &NewPoint);
 
     // Protected attributes...
-    protected:
+//    protected:
 
             // Base storage to store contour sequence and any other dynamic 
             //  OpenCV data structures...
@@ -258,7 +258,7 @@ class Worm
             TerminalEndNotes    TerminalB;
 
     // Protected constants...
-    protected:
+//    protected:
     
             // The value of π...
             float const static  Pi                          = 3.1415926535897932384626433832795;

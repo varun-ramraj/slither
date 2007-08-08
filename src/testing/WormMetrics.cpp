@@ -2,8 +2,7 @@
   Name:         WormMetrics.cpp (implementation)
   Author:       Kip Warner (Kip@TheVertigo.com)
   Description:  Tests out the Worm class...
-  Quick Start:  g++ WormMetrics.cpp ../Worm.cpp -o WormMetrics -Wall -Werror 
-                    -lcxcore -lcv -lhighgui -lcvaux
+  Quick Debug:  g++ WormMetrics.cpp ../Worm.cpp -g3 -o WormMetrics -Wall -Werror -lcxcore -lcv -lhighgui -lcvaux && insight --readnow --args ./WormMetrics WormFrame1.png WormFrame2.png WormFrame3.png WormFrame4.png
 */
 
 // Includes...
@@ -16,12 +15,119 @@
 // Using the standard namespace...
 using namespace std;
 
-// Entry point...
+// Line segment...
+typedef std::pair<CvPoint2D32f, CvPoint2D32f> LineSegment;
+
+
+/*
+    Test directed line segment length adjustment.
+*/
+
+/* Entry point...
+int main()
+{
+    LineSegment A;
+    
+    while(true)
+    {
+        cout << "Line segment start: ";
+        cin >> A.first.x >> A.first.y;
+        cout << "Line segment end: ";
+        cin >> A.second.x >> A.second.y;
+        
+        Worm::AdjustDirectedLineSegmentLength(A, 4.0f);
+        
+        cout << "New Line of length 4.0: (" 
+             << A.first.x << ", " << A.first.y << ") ("
+             << A.second.x << ", " << A.second.y << ")"
+             << endl << endl;
+    }
+    
+    return 0;
+}*/
+
+/*
+    Test rotation about another point.
+*/
+
+/* Entry point...
+int main()
+{
+    CvPoint2D32f OriginalPoint = cvPoint2D32f(0.0f, 0.0f);
+    
+    while(true)
+    {
+        cout << "Old point: ";
+        cin >> OriginalPoint.x >> OriginalPoint.y;
+        
+        Worm::RotatePointAboutAnother(OriginalPoint, cvPoint2D32f(4.5f, 7.0f),
+                                      Worm::Pi / 2.0f, OriginalPoint);
+
+        cout << "New point: " << OriginalPoint.x << " " << OriginalPoint.y 
+             << endl << endl;
+    }
+    
+    return 0;
+}*/
+
+
+/*
+    Test orthogonal generation.
+*/
+
+/* Entry point...
 int main(int nArguments, char *ppszArguments[])
 {
+    LineSegment A;
+    LineSegment Orthogonal;
+    
+    while(true)
+    {
+        cout << "Line segment start: ";
+        cin >> A.first.x >> A.first.y;
+        cout << "Line segment end: ";
+        cin >> A.second.x >> A.second.y;
+        
+        Worm::GenerateOrthogonalToLineSegment(A, Orthogonal);
+        
+        cout << "Orthogonal: (" 
+             << Orthogonal.first.x << ", " << Orthogonal.first.y << ") ("
+             << Orthogonal.second.x << ", " << Orthogonal.second.y << ")"
+             << endl << endl;
+    }
+    
+    return 0;
+}*/
+
+
+/*
+    Test Pinch-Shift and all the rest of it.
+*/
+
     // Variables...
     CvContour  *pFirstContour   = NULL;
 
+// Mouse left click callback...
+void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
+{
+    if(!pFirstContour)
+        return;
+
+    switch(nEvent)
+    {
+        case CV_EVENT_LBUTTONDOWN:
+        {
+            cout << "Point polygon test: " 
+                 << cvPointPolygonTest(pFirstContour, cvPoint2D32f(x, y), 0) 
+                 << endl;
+            break;
+        }
+    }
+}
+
+// Entry point...
+int main(int nArguments, char *ppszArguments[])
+{
     // Print usage...
     if(nArguments <= 1)
     {
@@ -35,12 +141,13 @@ int main(int nArguments, char *ppszArguments[])
     CvMemStorage *pStorage  = cvCreateMemStorage(0);
     
     // Create a worm object...
-    Worm Nematode;
+//    Worm Nematode;
     
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
-    cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
-    
+    cvNamedWindow("Analysis", 0);
+    cvSetMouseCallback("Analysis", OnMouse);
+
     // Process and display each image in sequence...
     for(int nCurrentFrame = 0; 
         nCurrentFrame < (nArguments - 1);
@@ -69,7 +176,7 @@ int main(int nArguments, char *ppszArguments[])
         cvZero(pThresholdImage);
         
         // Examine each contour and make note of ones of possible worm size...
-        for(CvContour *pCurrentContour = pFirstContour; 
+        for(CvSeq *pCurrentContour = pFirstContour; 
             pCurrentContour;
             pCurrentContour = (CvContour *) pCurrentContour->h_next)
         {
@@ -85,31 +192,57 @@ int main(int nArguments, char *ppszArguments[])
                     continue;
 
                 cout << "\tFound a contour: " << pCurrentContour->total 
-                     << " vertices... ";
+                     << " vertices... " << endl;
+                flush(cout);
 
             // Discover worm's new state...
-            Nematode.Discover(*pCurrentContour, *pGrayImage);
-            cout << "discovery complete" << endl;
+//            Nematode.Discover(*pCurrentContour, *pGrayImage);
+//            cout << "discovery complete" << endl;
+//            flush(cout);
 
             // Pick a random colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);
             
             // Draw the contour...
             cvDrawContours(pThresholdImage, (CvSeq *) pCurrentContour, 
-                Color,                  /* external colour */
-                Color,                  /* hole colour */
-                0,                      /* maximum level */
-                2,                      /* thickness */
-                8,                      /* line type */
-                cvPoint(0, 0));         /* offset */
+                Color,                  // external colour
+                Color,                  // hole colour
+                0,                      // maximum level
+                1,                      // thickness
+                8,                      // line type
+                cvPoint(0, 0));         // offset
 
-            /*
-                TODO: Run the analysis here.
-            */
+
+            // TODO: Run the analysis here.
+/*
+cout << Nematode << endl;
+*/
 
             // Show it...
             cvShowImage("Analysis", pThresholdImage);
-            cvWaitKey(0);
+            CvSize Size = cvGetSize(pThresholdImage);
+            cvResizeWindow("Analysis", int(Size.width * 1.5), 
+                                       int(Size.height * 1.5));
+            
+            // Wait for key press...
+            while(true)
+            {
+                int nKey = cvWaitKey(500);
+
+                if(nKey == 27)      // Escape exits...
+                {
+                    // Cleanup...
+                    cvReleaseMemStorage(&pStorage);
+                    cvDestroyAllWindows();
+                    
+                    // Done...
+                    return 0;
+                }
+                else if(nKey == 32) // Space is next frame...
+                    break;
+                else                // Anything else is ignored...
+                    continue;
+            }
         }
         
         // Cleanup...
@@ -119,7 +252,9 @@ int main(int nArguments, char *ppszArguments[])
     
     // Cleanup...
     cvReleaseMemStorage(&pStorage);
+    cvDestroyAllWindows();
     
     // Done...
     return 0;
 }
+

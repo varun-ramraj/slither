@@ -11,6 +11,8 @@
 #include <cfloat>
 #include <cassert>
 
+#include <iostream>
+
 // Default constructor...
 Worm::Worm()
     : pStorage(cvCreateMemStorage(0)),
@@ -47,14 +49,14 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
 }
 
 // Adjust the distance of the second vertex by the given distance along the radial... 
-inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A, float fLength) const
+inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A, float fLength)
 {
     // Create vector from directed line segment...
     CvPoint2D32f Vector = cvPoint2D32f(A.second.x - A.first.x, 
                                        A.second.y - A.first.y);
     
     // Compute angle of vector in degrees, then convert to radians...
-    float const fThetaRadians = cvFastArctan(Vector.x, Vector.y) * (Pi / 180);
+    float const fThetaRadians = cvFastArctan(Vector.y, Vector.x) * (Pi / 180);
     
     // Adjust vector length to given...
     Vector.x = (fLength * cos(fThetaRadians));
@@ -269,37 +271,21 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
 
 // Generate orthogonal of unit length from middle of given line segment outwards... θ(1)
 inline void Worm::GenerateOrthogonalToLineSegment(LineSegment const &A, 
-                                                  LineSegment &Orthogonal) const
+                                                  LineSegment &Orthogonal)
 {
-    // The orthogonal start is just the middle of the given line segment since that is where it begins...
-    Orthogonal.first.x = A.first.x + ((A.second.x - A.first.x) / 2);
-    Orthogonal.first.y = A.first.y + ((A.second.y - A.first.y) / 2);
+    // Start with the given line...
+    Orthogonal = A;
     
-    // The orthogonal end is a little more complicated...
+    // Adjust so first point begins midway into given...
+    Orthogonal.first.x  += (A.second.x - A.first.x) / 2.0f;
+    Orthogonal.first.y  += (A.second.y - A.first.y) / 2.0f;
     
-        // Calculate the slope of the given line segment...
-        float const fSlope = 
-            (A.second.y - A.first.y) / (float) (A.second.x - A.first.x);
-        
-            // Given line is perfectly horizontal, correct for divide by zero...
-            if(fSlope == 0.0f)
-            {
-                // End point's x-coordinate will have the same x-coordinate as its own start point's...
-                Orthogonal.second.x = Orthogonal.first.x;
-                
-                // The end point will be directly one unit up from the given line... 
-                Orthogonal.second.y = A.first.y + 1;
+    // Pivot the second point 90 degrees about the first...
+    RotatePointAboutAnother(Orthogonal.second, Orthogonal.first, 
+                            Pi / 2.0f, Orthogonal.second);
 
-                // Done...
-                return;
-            }
-        
-        // Both require the ratio of the given line's slope to the square root of the sum of its square and one...
-        float const fPartialCalculation = fSlope / cvSqrt((fSlope * fSlope) + 1);
-
-        // Now calculate the X and Y coordinates...
-        Orthogonal.second.x = (float(A.second.x + A.first.x) / 2.0 + fPartialCalculation);
-        Orthogonal.second.y = (float(A.second.y + A.first.y) / 2.0 - fPartialCalculation);
+    // Make it of unit length...
+    AdjustDirectedLineSegmentLength(Orthogonal, 1.0f);
 }
 
 // Get the average brightness of the area within a contour...
@@ -604,18 +590,28 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 
     // Generate an orthogonal for the starting line segment...
     GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
-    
-    // Ensure that the orthogonal is directed into the worm, rather than outwards...
-    
-        // Make it really short so that its other end won't accidentally extend right through the other side...
+
+    // Ensure that orthogonal is directed into the worm, rather than outwards...
+
+        // Make it really short so that its other end won't accidentally extend 
+        //  right through the other side...
         AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 0.1f);
         
-        // If it isn't pointing into the worm, flip it so that it is...
+        // If it isn't pointing into the worm, flip it correctly so it is...
         if(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) < 0.0f)
-            AdjustDirectedLineSegmentLength(OrthogonalLineSegment, -0.1f);
+        {
+            // How far off were we?
+            double const dCorrectionDelta = 
+                cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 1);
+            std::cout << "Delta correction: " << dCorrectionDelta << std::endl;
+            AdjustDirectedLineSegmentLength(OrthogonalLineSegment, -dCorrectionDelta + 0.01);
+        }
 
         // The orthogonal directed segment's other side should always be within the worm...
-        assert(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) == 1.0f);
+        double dTemp = cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0);
+        std::cout << "Point polygon test on second point: " << dTemp << std::endl;
+        std::flush(std::cout);
+        assert(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) > 0.0f);
 
     // Extend the directed orthogonal line segment out very far and clip to the very edge of the image...
     AdjustDirectedLineSegmentLength(OrthogonalLineSegment, Infinity);
@@ -715,10 +711,11 @@ inline CvPoint2D32f &Worm::RotatePointAboutAnother(
                                 CvPoint2D32f const &OldPointToRotate, 
                                 CvPoint2D32f const &Origin, 
                                 float const &fRadians, 
-                                CvPoint2D32f &NewPoint) const
+                                CvPoint2D32f &NewPoint)
 {
-    /* This is the decomposed form of the combined linear transformation that translates back to origin, rotates 
-       about the origin, then translates back again to the starting point, built from this transformation...
+    /* This is the decomposed form of the combined linear transformation that 
+       translates back to origin, rotates about the origin, then translates 
+       back again to the starting point, built from this transformation...
       
             | 1  0  r_x |     | cos(θ)  -sin(θ)   0 |     | 1  0 -r_x |   | x |
             | 0  1  r_y |  *  | sin(θ)   cos(θ)   0 |  *  | 0  1 -r_y | * | y |
@@ -733,20 +730,24 @@ inline CvPoint2D32f &Worm::RotatePointAboutAnother(
             Note: Transforms are applied in reverse order, like a stack.
     */
 
+        // Variables...
+        CvPoint2D32f TempPoint;
+
         // Calculate new x-coordinate... 
-        NewPoint.x = ((cos(fRadians) * OldPointToRotate.x) -
-                      (sin(fRadians) * OldPointToRotate.y) +
-                      (Origin.x * (1 - cos(fRadians))) +
-                      (Origin.y * sin(fRadians)));
+        TempPoint.x = ((cos(fRadians) * OldPointToRotate.x) -
+                       (sin(fRadians) * OldPointToRotate.y) +
+                       (Origin.x * (1 - cos(fRadians))) +
+                       (Origin.y * sin(fRadians)));
                
         // Calculate new y-coordinate...
-        NewPoint.y = ((sin(fRadians) * OldPointToRotate.x) +
-                      (cos(fRadians) * OldPointToRotate.y) +
-                      (Origin.y * (1 - cos(fRadians))) -
-                      (Origin.x * sin(fRadians)));
+        TempPoint.y = ((sin(fRadians) * OldPointToRotate.x) +
+                       (cos(fRadians) * OldPointToRotate.y) +
+                       (Origin.y * (1 - cos(fRadians))) -
+                       (Origin.x * sin(fRadians)));
 
     // Done...
-    return NewPoint;                
+    NewPoint = TempPoint;
+    return NewPoint;
 }
 
 // Best guess as to the tail's position at this moment in time, since it changes...
