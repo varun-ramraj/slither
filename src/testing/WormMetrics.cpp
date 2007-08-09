@@ -105,12 +105,12 @@ int main(int nArguments, char *ppszArguments[])
 */
 
     // Variables...
-    CvContour  *pFirstContour   = NULL;
+    CvContour *pCurrentContour  = NULL;
 
 // Mouse left click callback...
 void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
 {
-    if(!pFirstContour)
+    if(!pCurrentContour)
         return;
 
     switch(nEvent)
@@ -118,7 +118,7 @@ void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
         case CV_EVENT_LBUTTONDOWN:
         {
             cout << "Point polygon test: " 
-                 << cvPointPolygonTest(pFirstContour, cvPoint2D32f(x, y), 0) 
+                 << cvPointPolygonTest(pCurrentContour, cvPoint2D32f(x, y), 0) 
                  << endl;
             break;
         }
@@ -128,6 +128,9 @@ void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
 // Entry point...
 int main(int nArguments, char *ppszArguments[])
 {
+    // Variables...
+    CvContour  *pFirstContour   = NULL;
+
     // Print usage...
     if(nArguments <= 1)
     {
@@ -141,7 +144,7 @@ int main(int nArguments, char *ppszArguments[])
     CvMemStorage *pStorage  = cvCreateMemStorage(0);
     
     // Create a worm object...
-//    Worm Nematode;
+    Worm Nematode;
     
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
@@ -160,9 +163,6 @@ int main(int nArguments, char *ppszArguments[])
         IplImage *pGrayImage = cvLoadImage(ppszArguments[nCurrentFrame + 1],
                                            CV_LOAD_IMAGE_GRAYSCALE);
 
-        // Show it...
-        cvShowImage("Original", pGrayImage);
-
         // Create threshold...
         IplImage *pThresholdImage = cvCloneImage(pGrayImage);
         cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
@@ -176,7 +176,7 @@ int main(int nArguments, char *ppszArguments[])
         cvZero(pThresholdImage);
         
         // Examine each contour and make note of ones of possible worm size...
-        for(CvSeq *pCurrentContour = pFirstContour; 
+        for(pCurrentContour = pFirstContour; 
             pCurrentContour;
             pCurrentContour = (CvContour *) pCurrentContour->h_next)
         {
@@ -196,9 +196,10 @@ int main(int nArguments, char *ppszArguments[])
                 flush(cout);
 
             // Discover worm's new state...
-//            Nematode.Discover(*pCurrentContour, *pGrayImage);
-//            cout << "discovery complete" << endl;
-//            flush(cout);
+            Nematode.Discover(*pCurrentContour, *pGrayImage);
+
+            // Show it...
+            cvShowImage("Original", pGrayImage);
 
             // Pick a random colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);
@@ -212,11 +213,25 @@ int main(int nArguments, char *ppszArguments[])
                 8,                      // line type
                 cvPoint(0, 0));         // offset
 
+            /* Show contour bounding rectangle...
+            cvRectangle(pThresholdImage, 
+                        cvPoint(pCurrentContour->rect.x, 
+                                pCurrentContour->rect.y),
+                        cvPoint(pCurrentContour->rect.x + pCurrentContour->rect.width, 
+                                pCurrentContour->rect.y + pCurrentContour->rect.height),
+                        CV_RGB(0xF0, 0xF0, 0xF0));*/
 
-            // TODO: Run the analysis here.
-/*
-cout << Nematode << endl;
-*/
+            cvCircle(pThresholdImage, 
+                     Nematode.Head(),
+                     10,
+                     CV_RGB(0xFF, 0xFF, 0xFF));
+            cvCircle(pThresholdImage, 
+                     Nematode.Tail(),
+                     10,
+                     CV_RGB(0xFF, 0xFF, 0xFF));
+
+            cout << Nematode << endl;
+
 
             // Show it...
             cvShowImage("Analysis", pThresholdImage);

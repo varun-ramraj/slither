@@ -68,7 +68,7 @@ class Worm
        ~Worm();
 
     // Protected types...
-//    protected:
+    protected:
     
         // Line segment...
         typedef std::pair<CvPoint2D32f, CvPoint2D32f>
@@ -96,7 +96,7 @@ class Worm
         }TerminalEndNotes;
 
     // Protected methods...
-//    protected:
+    protected:
 
         // Accessors...
 
@@ -104,7 +104,8 @@ class Worm
             unsigned int const  FindNearestVertexIndexByPerimeterLength(
                                     unsigned int const &unStartVertexIndex, 
                                     float const &fPerimeterLength,
-                                    unsigned int &unVerticesTraversed) const;
+                                    unsigned int &unVerticesTraversed = unDummy) 
+                                    const;
 
             // Get the average brightness of the area within a contour...
             double const        GetAverageBrightness(
@@ -152,12 +153,13 @@ class Worm
 
             // Adjust the distance of the second vertex by the given distance 
             //  along the radial... 
-            static void                AdjustDirectedLineSegmentLength(
+            void                AdjustDirectedLineSegmentLength(
                                     LineSegment &A, 
-                                    float fLength);
+                                    float fLength) const;
             
             // Clip line against the image rectangle...
-            void                ClipLine(CvSize Size, LineSegment &A) const;
+            void                ClipLineSegment(CvSize Size, 
+                                                LineSegment &A) const;
             
             // Calculate the distance between the midpoints of two segments... 
             //  θ(1)
@@ -182,9 +184,9 @@ class Worm
         
             // Generate orthogonal of unit length from middle of given line 
             //  segment outwards... θ(1)
-            static void                GenerateOrthogonalToLineSegment(
+            void                GenerateOrthogonalToLineSegment(
                                     LineSegment const &A, 
-                                    LineSegment &Orthogonal);
+                                    LineSegment &Orthogonal) const;
 
             // Can the collinear point be found on the line segment? θ(1)
             bool                IsCollinearPointOnLineSegment(
@@ -222,14 +224,14 @@ class Worm
                                     float const &fRadians) const;
 
             // Rotate a point around another to be used as the origin...
-            static CvPoint2D32f       &RotatePointAboutAnother(
+            CvPoint2D32f       &RotatePointAboutAnother(
                                     CvPoint2D32f const &OldPointToRotate,
                                     CvPoint2D32f const &Origin,
                                     float const &fRadians,
-                                    CvPoint2D32f &NewPoint);
+                                    CvPoint2D32f &NewPoint) const;
 
     // Protected attributes...
-//    protected:
+    protected:
 
             // Base storage to store contour sequence and any other dynamic 
             //  OpenCV data structures...
@@ -256,9 +258,12 @@ class Worm
             // Terminal end scores...
             TerminalEndNotes    TerminalA;
             TerminalEndNotes    TerminalB;
+            
+            // Dummy default argument parameters...
+            static unsigned int unDummy;
 
     // Protected constants...
-//    protected:
+    protected:
     
             // The value of π...
             float const static  Pi                          = 3.1415926535897932384626433832795;
