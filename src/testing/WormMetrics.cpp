@@ -11,6 +11,8 @@
 #include <opencv/highgui.h>
 #include <cassert>
 #include <iostream>
+#include <stdlib.h>
+#include <math.h>
 
 // Using the standard namespace...
 using namespace std;
@@ -46,30 +48,60 @@ int main()
     return 0;
 }*/
 
-/*
-    Test rotation about another point.
-*/
-
-/* Entry point...
-int main()
+/* Mouse left click callback...
+void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
 {
-    CvPoint2D32f OriginalPoint = cvPoint2D32f(0.0f, 0.0f);
-    
-    while(true)
+    static bool         bGotFirstPoint      = false;
+    static LineSegment  A;
+    IplImage           *pOrthogonalImage    = (IplImage *) pParameter;
+
+    switch(nEvent)
     {
-        cout << "Old point: ";
-        cin >> OriginalPoint.x >> OriginalPoint.y;
-        
-        Worm::RotatePointAboutAnother(OriginalPoint, cvPoint2D32f(4.5f, 7.0f),
-                                      Worm::Pi / 2.0f, OriginalPoint);
+        case CV_EVENT_RBUTTONDOWN:
+            cvZero(pOrthogonalImage);
+            cvShowImage("Orthogonal", pOrthogonalImage);
+            break;
+            
+        case CV_EVENT_LBUTTONDOWN:
+        {
+            if(bGotFirstPoint)
+            {
+                A.second.x = x;
+                A.second.y = y;
+                bGotFirstPoint = false;
 
-        cout << "New point: " << OriginalPoint.x << " " << OriginalPoint.y 
-             << endl << endl;
+                cvCircle(pOrthogonalImage, cvPointFrom32f(A.second), 5, 
+                         CV_RGB(255, 255, 255));
+                
+                cvLine(pOrthogonalImage, cvPointFrom32f(A.first), 
+                       cvPointFrom32f(A.second), CV_RGB(255, 255, 255));
+
+                LineSegment Orthogonal;
+                GenerateOrthogonalToLineSegment(A, Orthogonal);
+
+                AdjustDirectedLineSegmentLength(Orthogonal, 200.0f);
+
+                cvLine(pOrthogonalImage, cvPointFrom32f(Orthogonal.first), 
+                       cvPointFrom32f(Orthogonal.second),
+                       CV_RGB(255, 255, 255));
+
+                cvShowImage("Orthogonal", pOrthogonalImage);
+            }
+
+            else
+            {
+                A.first.x = x;
+                A.first.y = y;
+                bGotFirstPoint = true;
+                
+                cvCircle(pOrthogonalImage, cvPointFrom32f(A.first), 5, 
+                         CV_RGB(255, 255, 255));
+            }
+            
+            break;
+        }
     }
-    
-    return 0;
 }*/
-
 
 /*
     Test orthogonal generation.
@@ -77,24 +109,35 @@ int main()
 
 /* Entry point...
 int main(int nArguments, char *ppszArguments[])
-{
-    LineSegment A;
-    LineSegment Orthogonal;
+{   
+    CvSize Size = {800, 600};
     
+    IplImage   *pOrthogonalImage = cvCreateImage(Size, 
+                                                 IPL_DEPTH_8S, 1);
+    cvZero(pOrthogonalImage);
+    
+    cvNamedWindow("Orthogonal", CV_WINDOW_AUTOSIZE);
+    cvSetMouseCallback("Orthogonal", OnMouse, pOrthogonalImage);
+    cvShowImage("Orthogonal", pOrthogonalImage);
+
+    // Wait for key press...
     while(true)
     {
-        cout << "Line segment start: ";
-        cin >> A.first.x >> A.first.y;
-        cout << "Line segment end: ";
-        cin >> A.second.x >> A.second.y;
-        
-        Worm::GenerateOrthogonalToLineSegment(A, Orthogonal);
-        
-        cout << "Orthogonal: (" 
-             << Orthogonal.first.x << ", " << Orthogonal.first.y << ") ("
-             << Orthogonal.second.x << ", " << Orthogonal.second.y << ")"
-             << endl << endl;
+        int nKey = cvWaitKey(500);
+
+        if(nKey == 27)      // Escape exits...
+        {
+            // Cleanup...
+            cvDestroyAllWindows();
+            
+            // Done...
+            break;
+        }
+
+        else                // Anything else is ignored...
+            continue;
     }
+
     
     return 0;
 }*/
@@ -106,24 +149,6 @@ int main(int nArguments, char *ppszArguments[])
 
     // Variables...
     CvContour *pCurrentContour  = NULL;
-
-// Mouse left click callback...
-void OnMouse(int nEvent, int x, int y, int nFlags, void *pParameter)
-{
-    if(!pCurrentContour)
-        return;
-
-    switch(nEvent)
-    {
-        case CV_EVENT_LBUTTONDOWN:
-        {
-            cout << "Point polygon test: " 
-                 << cvPointPolygonTest(pCurrentContour, cvPoint2D32f(x, y), 0) 
-                 << endl;
-            break;
-        }
-    }
-}
 
 // Entry point...
 int main(int nArguments, char *ppszArguments[])
@@ -149,7 +174,7 @@ int main(int nArguments, char *ppszArguments[])
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
     cvNamedWindow("Analysis", 0);
-    cvSetMouseCallback("Analysis", OnMouse);
+//    cvSetMouseCallback("Analysis", OnMouse);
 
     // Process and display each image in sequence...
     for(int nCurrentFrame = 0; 
@@ -166,7 +191,7 @@ int main(int nArguments, char *ppszArguments[])
         // Create threshold...
         IplImage *pThresholdImage = cvCloneImage(pGrayImage);
         cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
-        
+
         // Find the contours in the threshold image...
         cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
                        sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
@@ -201,7 +226,7 @@ int main(int nArguments, char *ppszArguments[])
             // Show it...
             cvShowImage("Original", pGrayImage);
 
-            // Pick a random colour for the contour outline...
+            // Pick a colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);
             
             // Draw the contour...
@@ -213,22 +238,14 @@ int main(int nArguments, char *ppszArguments[])
                 8,                      // line type
                 cvPoint(0, 0));         // offset
 
-            /* Show contour bounding rectangle...
-            cvRectangle(pThresholdImage, 
-                        cvPoint(pCurrentContour->rect.x, 
-                                pCurrentContour->rect.y),
-                        cvPoint(pCurrentContour->rect.x + pCurrentContour->rect.width, 
-                                pCurrentContour->rect.y + pCurrentContour->rect.height),
-                        CV_RGB(0xF0, 0xF0, 0xF0));*/
-
             cvCircle(pThresholdImage, 
                      Nematode.Head(),
-                     10,
-                     CV_RGB(0xFF, 0xFF, 0xFF));
+                     5,
+                     CV_RGB(0xFF, 0xFF, 0xFF), 8, 2);
             cvCircle(pThresholdImage, 
                      Nematode.Tail(),
-                     10,
-                     CV_RGB(0xFF, 0xFF, 0xFF));
+                     5,
+                     CV_RGB(0xFF, 0xFF, 0xFF), 8, 2);
 
             cout << Nematode << endl;
 

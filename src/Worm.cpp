@@ -12,6 +12,8 @@
 #include <cassert>
 #include <ostream>
 
+#include <iostream>
+
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
 
@@ -20,9 +22,9 @@ Worm::Worm()
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
       unUpdates(0),
-      fArea(0.0f),
-      fLength(0.0f), 
-      fWidth(0.0f),
+      dArea(0.0f),
+      dLength(0.0f), 
+      dWidth(0.0f),
       TerminalA(cvPoint(0, 0), 0),
       TerminalB(cvPoint(0, 0), 0)
 {
@@ -36,9 +38,9 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
       unUpdates(0),
-      fArea(0.0f),
-      fLength(0.0f), 
-      fWidth(0.0f),
+      dArea(0.0f),
+      dLength(0.0f), 
+      dWidth(0.0f),
       TerminalA(cvPoint(0, 0), 0),
       TerminalB(cvPoint(0, 0), 0)
 {    
@@ -52,29 +54,30 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
 
 // Adjust the distance of the second vertex by the given distance along the radial... 
 inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A, 
-                                                  float fLength) const
+                                                  double dLength) const
 {
     // Create vector from directed line segment...
     CvPoint2D32f Vector = cvPoint2D32f(A.second.x - A.first.x, 
                                        A.second.y - A.first.y);
     
     // Compute angle of vector in degrees, then convert to radians...
-    float const fThetaRadians = cvFastArctan(Vector.y, Vector.x) * (Pi / 180);
+    double const dThetaRadians = cvFastArctan(Vector.y, Vector.x) * 
+                                    (Pi / 180.0f);
     
     // Adjust vector length to given...
-    Vector.x = (fLength * cos(fThetaRadians));
-    Vector.y = (fLength * sin(fThetaRadians));
+    Vector.x = (dLength * cos(dThetaRadians));
+    Vector.y = (dLength * sin(dThetaRadians));
     
     // Translate back again...
     A.second.x = A.first.x + Vector.x;
     A.second.y = A.first.y + Vector.y;
-}       
+}
 
 // Best guess of the area, considering everything we've seen thus far...
-inline float const &Worm::Area() const
+inline double const &Worm::Area() const
 {
     // Return it...
-    return fArea;
+    return dArea;
 }
 
 // Clip line against the image rectangle...
@@ -142,9 +145,9 @@ inline void Worm::Discover(CvContour const &NewContour,
 
     // Update the approximate length from the length calculated in *this* image.
     //  The length is about half the perimeter all the way around the worm...
-    float const fLengthAtThisMoment = 
+    double const dLengthAtThisMoment = 
         cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
-    UpdateLength(fLengthAtThisMoment);
+    UpdateLength(dLengthAtThisMoment);
 
     // Find both ends... (head and tail)
 
@@ -156,7 +159,7 @@ inline void Worm::Discover(CvContour const &NewContour,
         //  length of the worm away... O(n)
         unsigned int const unOtherMysteryEndVertexIndex = 
             FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
-                                                    fLengthAtThisMoment);
+                                                    dLengthAtThisMoment);
 
         // Make a reasonably intelligent guess as to which end is which, based 
         //  only on *this* image alone...
@@ -185,14 +188,14 @@ inline void Worm::Discover(CvContour const &NewContour,
         //  end, 1/2 the total length... O(n)
         unsigned int const unVertexIndexOfMiddleSideA =
             FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
-                                                    fLengthAtThisMoment / 2.0f);
+                                                    dLengthAtThisMoment / 2.0f);
 
         // Now find the middle on the other side by going the other way half 
         //  the length... O(n)
         unsigned int const unVertexIndexOfMiddleSideB =
             FindNearestVertexIndexByPerimeterLength(
                 unMysteryEndVertexIndex, 
-                -1.0f * fLengthAtThisMoment / 2.0f);
+                -1.0f * dLengthAtThisMoment / 2.0f);
 
         // The distance between the two points is approximately the width of
         //  the worm...
@@ -202,8 +205,8 @@ inline void Worm::Discover(CvContour const &NewContour,
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
-inline float Worm::DistanceBetweenLineSegments(LineSegment const &A, 
-                                               LineSegment const &B) const
+inline double Worm::DistanceBetweenLineSegments(LineSegment const &A, 
+                                                LineSegment const &B) const
 {
     // Just measure the length of the imaginary line segment joining both 
     //  segment's middles...
@@ -215,16 +218,16 @@ inline float Worm::DistanceBetweenLineSegments(LineSegment const &A,
 }
 
 // Calculate the absolute distance between two points...
-inline float Worm::DistanceBetweenTwoPoints(CvPoint const &First, 
-                                            CvPoint const &Second) const
+inline double Worm::DistanceBetweenTwoPoints(CvPoint const &First, 
+                                             CvPoint const &Second) const
 {
     // Return it...
     return cvSqrt(pow(Second.x - First.x, 2) + pow(Second.y - First.y, 2));
 } 
 
 // Calculate the absolute distance between two points...
-inline float Worm::DistanceBetweenTwoPoints(CvPoint2D32f const &First, 
-                                            CvPoint2D32f const &Second) const
+inline double Worm::DistanceBetweenTwoPoints(CvPoint2D32f const &First, 
+                                             CvPoint2D32f const &Second) const
 {
     // Return it...
     return cvSqrt(pow(Second.x - First.x, 2) + pow(Second.y - First.y, 2));
@@ -234,7 +237,7 @@ inline float Worm::DistanceBetweenTwoPoints(CvPoint2D32f const &First,
 //  order... O(n)
 inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
     unsigned int const &unStartVertexIndex, 
-    float const &fPerimeterLength,
+    double const &dPerimeterLength,
     unsigned int &unVerticesTraversed) const
 {
     /* TODO: We can do much better than this right down to logarithmic time by 
@@ -242,23 +245,23 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
              this one even works properly at all. */
 
     // Variables...
-    register    float           fDistanceWalkedAccumulator  = 0.0f;
+    register    double          dDistanceWalkedAccumulator  = 0.0f;
                 unsigned int    unCurrentVertexIndex        = 0;
                 unsigned int    unNextVertexIndex           = 0;
 
     // Keep walking along the contour in the requested direction until we've 
     //  gone far enough...
     unCurrentVertexIndex = unStartVertexIndex;
-    while(fDistanceWalkedAccumulator < fabs(fPerimeterLength))
+    while(dDistanceWalkedAccumulator < fabs(dPerimeterLength))
     {
         // If the requested length is positive, use the next vertex...
-        if(fPerimeterLength > 0)
+        if(dPerimeterLength > 0)
         {
             // Grab the next index...
             unNextVertexIndex = GetNextVertexIndex(unCurrentVertexIndex);
             
             // Remember how far we've walked...
-            fDistanceWalkedAccumulator += 
+            dDistanceWalkedAccumulator += 
                 DistanceBetweenTwoPoints(GetVertex(unCurrentVertexIndex), 
                                          GetVertex(unNextVertexIndex));
 
@@ -273,7 +276,7 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
             unNextVertexIndex = GetPreviousVertexIndex(unCurrentVertexIndex);
             
             // Remember how far we've walked...
-            fDistanceWalkedAccumulator += 
+            dDistanceWalkedAccumulator += 
                 DistanceBetweenTwoPoints(GetVertex(unCurrentVertexIndex), 
                                          GetVertex(unNextVertexIndex));
             
@@ -297,16 +300,18 @@ inline void Worm::GenerateOrthogonalToLineSegment(
     // Start with the given line...
     Orthogonal = A;
     
-    // Adjust so first point begins midway into given...
+    /* Adjust so first point begins midway into given...
     Orthogonal.first.x  += (A.second.x - A.first.x) / 2.0f;
-    Orthogonal.first.y  += (A.second.y - A.first.y) / 2.0f;
+    Orthogonal.first.y  += (A.second.y - A.first.y) / 2.0f;*/
+    Orthogonal.first.x = A.first.x;
+    Orthogonal.first.y = A.first.y;
     
     // Pivot the second point 90 degrees about the first...
     RotatePointAboutAnother(Orthogonal.second, Orthogonal.first, 
                             Pi / 2.0f, Orthogonal.second);
 
     // Make it of unit length...
-    AdjustDirectedLineSegmentLength(Orthogonal, 1.0f);
+ //   AdjustDirectedLineSegmentLength(Orthogonal, 10.0f);
 }
 
 // Get the average brightness of the area within a contour...
@@ -572,14 +577,14 @@ inline bool Worm::IsLineSegmentsIntersect(LineSegment const &A,
 
 // Best guess of the length from head to tail, considering everything we've 
 //  seen thus far...
-inline float const &Worm::Length() const
+inline double const &Worm::Length() const
 {
     // Return it...
-    return fLength;
+    return dLength;
 }
 
 // Calculate the length of a line segment... θ(1)
-inline float Worm::LengthOfLineSegment(LineSegment const &A) const
+inline double Worm::LengthOfLineSegment(LineSegment const &A) const
 {
     // Calculate...
     return cvSqrt(((A.second.x - A.first.x) * (A.second.x - A.first.x)) + 
@@ -590,9 +595,9 @@ inline float Worm::LengthOfLineSegment(LineSegment const &A) const
 std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
 {
     // Output attributes of note...
-    Output << "Area:\t"     << RequestedWorm.fArea    << std::endl
-           << "Length:\t"   << RequestedWorm.fLength  << std::endl
-           << "Width:\t"    << RequestedWorm.fWidth   << std::endl
+    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
+           << "Length:\t"   << RequestedWorm.dLength  << std::endl
+           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
            << "Head:\t("    << RequestedWorm.Head().x << ", " 
                             << RequestedWorm.Head().y << ")" << std::endl
            << "Tail:\t("    << RequestedWorm.Tail().x << ", " 
@@ -624,13 +629,16 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
     unsigned int const  unStartVertexIndex                  = 0;
     unsigned int        unCurrentOppositeVertexIndex        = 0;
     unsigned int        unClosestOppositeVertexIndexFound   = 0;
-    float               fClosestOppositeVertexDistanceFound = Infinity;
+    double              dClosestOppositeVertexDistanceFound = Infinity;
     LineSegment         StartingLineSegment(
                             cvPoint2D32f(0.0f, 0.0f), 
                             cvPoint2D32f(0.0f, 0.0f));
     LineSegment         OrthogonalLineSegment(
                             cvPoint2D32f(0.0f, 0.0f), 
                             cvPoint2D32f(0.0f, 0.0f));
+    LineSegment         CorrectedOrthogonal(
+                            cvPoint2D32f(0.0f, 0.0f), 
+                            cvPoint2D32f(0.0f, 0.0f));;
 
     // We begin by forming a line segment from an arbitrary point on the 
     //  contour to its neighbour...
@@ -639,20 +647,40 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
     StartingLineSegment.second  = 
 //        cvPointTo32f(GetVertex(GetNextVertexIndex(unStartVertexIndex)));
         cvPointTo32f(GetVertex(
-            FindNearestVertexIndexByPerimeterLength(unStartVertexIndex, 2.0f)));
+            FindNearestVertexIndexByPerimeterLength(unStartVertexIndex, 5.0f)));
+
+    // Make the starting line segment now a tangent to the curve...
+    AdjustDirectedLineSegmentLength(StartingLineSegment, 30.0f);
+
+cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(StartingLineSegment.first), 
+       cvPointFrom32f(StartingLineSegment.second),
+       CV_RGB(0xFF, 0xFF, 0xFF));
 
     // Generate an orthogonal for the starting line segment...
     GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
 
     // Ensure that orthogonal is directed into the worm, rather than outwards...
+    CorrectedOrthogonal = OrthogonalLineSegment;
+    for(unsigned int unOrthogonalCorrection = 0;
+        cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) <= 0.0f;
+        unOrthogonalCorrection++)
+    {
+        // Preserve precision by starting with the original orthogonal...
+        CorrectedOrthogonal = OrthogonalLineSegment;
 
-        // Make it really short so that its other end won't accidentally extend 
-        //  right through the other side...
-        AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 0.1f);
+        // Compute new length to try...
+        double dNewLength = (unOrthogonalCorrection / 10.0f);
         
-        // If it isn't pointing into the worm, flip it correctly so it is...
-        if(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) < 0.0f)
-            AdjustDirectedLineSegmentLength(OrthogonalLineSegment, -0.1f);
+        // Alternate its direction for every other correction...
+        if(unOrthogonalCorrection % 2 == 0)
+            dNewLength *= -1.0f;
+
+        // Alternate between pointing in either direction...
+        AdjustDirectedLineSegmentLength(CorrectedOrthogonal, dNewLength);
+    }
+
+    // Use corrected orthogonal now...
+    OrthogonalLineSegment = CorrectedOrthogonal;
 
         // The orthogonal directed segment's other side should always be within 
         //  the worm...
@@ -661,7 +689,7 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 
     // Extend the directed orthogonal line segment out very far and clip to the 
     //  very edge of the image...
-    AdjustDirectedLineSegmentLength(OrthogonalLineSegment, Infinity);
+    AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 10000.0f);
     ClipLineSegment(cvGetSize(&GrayImage), OrthogonalLineSegment);
 
 cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.first), 
@@ -694,19 +722,19 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.
                                        CandidateLineSegment))
             {
                 // How far away were they?
-                float const fDistanceBetweenMiddleOfLineSegments = 
+                double const dDistanceBetweenMiddleOfLineSegments = 
                     DistanceBetweenLineSegments(StartingLineSegment, 
                                                 CandidateLineSegment);
                 
                 // Was distance closer than anything encountered thus far?
-                if(fDistanceBetweenMiddleOfLineSegments < 
-                   fClosestOppositeVertexDistanceFound)
+                if(dDistanceBetweenMiddleOfLineSegments < 
+                   dClosestOppositeVertexDistanceFound)
                 {
                     // Make a note of where it was and how far away it was...
                     unClosestOppositeVertexIndexFound   = 
                         unCurrentOppositeVertexIndex;
-                    fClosestOppositeVertexDistanceFound = 
-                        fDistanceBetweenMiddleOfLineSegments;
+                    dClosestOppositeVertexDistanceFound = 
+                        dDistanceBetweenMiddleOfLineSegments;
                 }
             }
             
@@ -732,19 +760,19 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.
         //  minimal...
         
             // If we shift vertex of side A, how far apart would the two be?
-            float const fDistanceBetweenIfShiftA = 
+            double const dDistanceBetweenIfShiftA = 
                 DistanceBetweenTwoPoints(
                     GetVertex(GetPreviousVertexIndex(unVertexIndexSideA)),
                     GetVertex(unVertexIndexSideB));
                                                                            
             // If we shift vertex of side B, how far apart would the two be?
-            float const fDistanceBetweenIfShiftB = 
+            double const dDistanceBetweenIfShiftB = 
                 DistanceBetweenTwoPoints(
                     GetVertex(unVertexIndexSideA),
                     GetVertex(GetNextVertexIndex(unVertexIndexSideB)));
         
             // Shifting side A is the best choice to make, so do it...
-            if(fDistanceBetweenIfShiftA <= fDistanceBetweenIfShiftB)
+            if(dDistanceBetweenIfShiftA <= dDistanceBetweenIfShiftB)
                 unVertexIndexSideA = GetPreviousVertexIndex(unVertexIndexSideA);
         
             // Shifting side B is the best choice to make, so do it...
@@ -760,25 +788,25 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.
 // Rotate a line segment about a point counterclockwise by an angle...
 inline void Worm::RotateLineSegmentAboutPoint(LineSegment &LineToRotate, 
                                               CvPoint2D32f const &Origin, 
-                                              float const &fRadians) const
+                                              double const &dRadians) const
 {
     // Variables...
     CvPoint2D32f NewPoint = {0.0f, 0.0f};
     
     // Apply rotation about the specified origin for the first coordinate...
     LineToRotate.first  = RotatePointAboutAnother(LineToRotate.first, Origin, 
-                                                  fRadians, NewPoint);
+                                                  dRadians, NewPoint);
     
     // Apply rotation about the specified origin for the second coordinate...
     LineToRotate.second = RotatePointAboutAnother(LineToRotate.second, Origin, 
-                                                  fRadians, NewPoint);
+                                                  dRadians, NewPoint);
 }
 
 // Rotate a point around another to be used as the origin...
 inline CvPoint2D32f &Worm::RotatePointAboutAnother(
                                 CvPoint2D32f const &OldPointToRotate, 
                                 CvPoint2D32f const &Origin, 
-                                float const &fRadians, 
+                                double const &dRadians, 
                                 CvPoint2D32f &NewPoint) const
 {
     /* This is the decomposed form of the combined linear transformation that 
@@ -802,16 +830,16 @@ inline CvPoint2D32f &Worm::RotatePointAboutAnother(
         CvPoint2D32f TempPoint;
 
         // Calculate new x-coordinate... 
-        TempPoint.x = ((cos(fRadians) * OldPointToRotate.x) -
-                       (sin(fRadians) * OldPointToRotate.y) +
-                       (Origin.x * (1 - cos(fRadians))) +
-                       (Origin.y * sin(fRadians)));
+        TempPoint.x = ((cos(dRadians) * OldPointToRotate.x) -
+                       (sin(dRadians) * OldPointToRotate.y) +
+                       (Origin.x * (1 - cos(dRadians))) +
+                       (Origin.y * sin(dRadians)));
                
         // Calculate new y-coordinate...
-        TempPoint.y = ((sin(fRadians) * OldPointToRotate.x) +
-                       (cos(fRadians) * OldPointToRotate.y) +
-                       (Origin.y * (1 - cos(fRadians))) -
-                       (Origin.x * sin(fRadians)));
+        TempPoint.y = ((sin(dRadians) * OldPointToRotate.x) +
+                       (cos(dRadians) * OldPointToRotate.y) +
+                       (Origin.y * (1 - cos(dRadians))) -
+                       (Origin.x * sin(dRadians)));
 
     // Done...
     NewPoint = TempPoint;
@@ -837,11 +865,11 @@ CvPoint const &Worm::Tail() const
 // Update the approximate area, based on the value at this moment in time. This 
 //  will help us make a more informed answer when asked via Area() for the size. 
 //  θ(1) space and time...
-inline void Worm::UpdateArea(float const &fAreaAtThisMoment)
+inline void Worm::UpdateArea(double const &dAreaAtThisMoment)
 {
     // Store the new arithmetic mean in constant space. Just multiply your old
     //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    fArea = ((fArea * unUpdates) + fAreaAtThisMoment) / (unUpdates + 1);
+    dArea = ((dArea * unUpdates) + dAreaAtThisMoment) / (unUpdates + 1);
 }
 
 // Update the approximate head and tail position, based on the value at this 
@@ -890,28 +918,28 @@ inline void Worm::UpdateHeadAndTail(unsigned int const &unHeadVertexIndex,
 // Update the approximate length, based on the value at this moment in time. 
 //  This will help us make a more informed answer when asked via Length() for
 //  the length. θ(1) space and time...
-inline void Worm::UpdateLength(float const &fLengthAtThisMoment)
+inline void Worm::UpdateLength(double const &dLengthAtThisMoment)
 {
     // Store the new arithmetic mean in constant space. Just multiply your old
     //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    fLength = ((fLength * unUpdates) + fLengthAtThisMoment) / (unUpdates + 1);
+    dLength = ((dLength * unUpdates) + dLengthAtThisMoment) / (unUpdates + 1);
 }
 
 // Update the approximate width, based on the value at this moment in time. 
 //  This will help us make a more informed answer when asked via Width() for
 //  the width. θ(1) space and time...
-inline void Worm::UpdateWidth(float const &fWidthAtThisMoment)
+inline void Worm::UpdateWidth(double const &dWidthAtThisMoment)
 {
     // Store the new arithmetic mean in constant space. Just multiply your old 
     //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    fWidth = ((fWidth * unUpdates) + fWidthAtThisMoment) / (unUpdates + 1);
+    dWidth = ((dWidth * unUpdates) + dWidthAtThisMoment) / (unUpdates + 1);
 }
 
 // Best guess of the area, considering everything we've seen thus far...
-inline float const &Worm::Width() const
+inline double const &Worm::Width() const
 {
     // Return it...
-    return fWidth;
+    return dWidth;
 }
     
 // Deconstructor...

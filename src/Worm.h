@@ -32,19 +32,19 @@ class Worm
         // Accessors...
 
             // Best guess of the area, considering everything we've seen thus far...
-            float const        &Area() const;
+            double const       &Area() const;
 
             // Best guess as to the head's position at this moment in time, since it changes...
             CvPoint const      &Head() const;
 
             // Best guess of the length from head to tail, considering everything we've seen thus far...
-            float const        &Length() const;
+            double const       &Length() const;
 
             // Best guess as to the tail's position at this moment in time, since it changes...
             CvPoint const      &Tail() const;
 
             // Best guess of the area, considering everything we've seen thus far...
-            float const        &Width() const;
+            double const       &Width() const;
 
         // Mutators...
 
@@ -103,7 +103,7 @@ class Worm
             // Find the vertex on the contour the given length away, starting in increasing order... O(n)
             unsigned int const  FindNearestVertexIndexByPerimeterLength(
                                     unsigned int const &unStartVertexIndex, 
-                                    float const &fPerimeterLength,
+                                    double const &dPerimeterLength,
                                     unsigned int &unVerticesTraversed = unDummy) 
                                     const;
 
@@ -129,7 +129,7 @@ class Worm
             // Update the approximate area, based on the value at this moment in
             //  time. This will help us make a more informed answer when asked 
             //  via Area() for the size. θ(1) space and time...
-            void                UpdateArea(float const &fAreaAtThisMoment);
+            void                UpdateArea(double const &dAreaAtThisMoment);
 
             // Update the approximate head and tail position, based on the value 
             //  at this moment in time. This will help us make a more informed 
@@ -142,12 +142,12 @@ class Worm
             // Update the approximate length, based on the value at this moment
             //  in time. This will help us make a more informed answer when
             //  asked via Length() for the length. θ(1) space and time...
-            void                UpdateLength(float const &fLengthAtThisMoment);
+            void                UpdateLength(double const &dLengthAtThisMoment);
             
             // Update the approximate width, based on the value at this moment 
             //  in time. This will help us make a more informed answer when
             //  asked via Width() for the width. θ(1) space and time...
-            void                UpdateWidth(float const &fWidthAtThisMoment);
+            void                UpdateWidth(double const &dWidthAtThisMoment);
 
         // Mutationless math and computational geometry helpers...
 
@@ -155,7 +155,7 @@ class Worm
             //  along the radial... 
             void                AdjustDirectedLineSegmentLength(
                                     LineSegment &A, 
-                                    float fLength) const;
+                                    double dLength) const;
             
             // Clip line against the image rectangle...
             void                ClipLineSegment(CvSize Size, 
@@ -163,15 +163,15 @@ class Worm
             
             // Calculate the distance between the midpoints of two segments... 
             //  θ(1)
-            float               DistanceBetweenLineSegments(
+            double              DistanceBetweenLineSegments(
                                     LineSegment const &A, 
                                     LineSegment const &B) const;
 
             // Calculate the absolute distance between two points...
-            float               DistanceBetweenTwoPoints(
+            double              DistanceBetweenTwoPoints(
                                     CvPoint const &First, 
                                     CvPoint const &Second) const;
-            float               DistanceBetweenTwoPoints(
+            double              DistanceBetweenTwoPoints(
                                     CvPoint2D32f const &First, 
                                     CvPoint2D32f const &Second) const;
 
@@ -208,7 +208,7 @@ class Worm
                                     LineSegment const &B) const;
 
             // Calculate the length of a line segment... θ(1)
-            float               LengthOfLineSegment(
+            double              LengthOfLineSegment(
                                     LineSegment const &A) const;
             
             // Find the vertex index in the contour sequence that contains 
@@ -221,13 +221,13 @@ class Worm
             void                RotateLineSegmentAboutPoint(
                                     LineSegment &LineToRotate, 
                                     CvPoint2D32f const &Origin,
-                                    float const &fRadians) const;
+                                    double const &dRadians) const;
 
             // Rotate a point around another to be used as the origin...
             CvPoint2D32f       &RotatePointAboutAnother(
                                     CvPoint2D32f const &OldPointToRotate,
                                     CvPoint2D32f const &Origin,
-                                    float const &fRadians,
+                                    double const &dRadians,
                                     CvPoint2D32f &NewPoint) const;
 
     // Protected attributes...
@@ -247,13 +247,13 @@ class Worm
             // The worm's metrics...
             
                 // Area...
-                float           fArea;
+                double          dArea;
                 
                 // Length of the worm...
-                float           fLength;
+                double          dLength;
                 
                 // Width of the worm...
-                float           fWidth;
+                double          dWidth;
 
             // Terminal end scores...
             TerminalEndNotes    TerminalA;
@@ -266,13 +266,14 @@ class Worm
     protected:
     
             // The value of π...
-            float const static  Pi                          = 3.1415926535897932384626433832795;
+            double const static Pi                          = 3.1415926535897932384626433832795f;
             
             // Infinity... (kind of)
-            float const static  Infinity                    = FLT_MAX;
+            double const static Infinity                    = FLT_MAX;
             
-            // The minimum required similarity needed for worm equivalency... (0.0 < percentage <= 100.0) 
-            float const static  fMinimumRequiredSimilarity  = 95.0;
+            // The minimum required similarity needed for worm equivalency... 
+            //  (0.0 < percentage <= 100.0) 
+            double const static dMinimumRequiredSimilarity  = 95.0f;
 
 };
 
