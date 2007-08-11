@@ -371,6 +371,9 @@ cvDrawContours(const_cast<IplImage *>(&GrayImage),
     cvReleaseImage(&pMutableGrayImage);
     cvReleaseImage(&pMaskImage);
 
+if(AverageBrightness.val[0] == 0.0f)
+    std::cout << "Warning: Dead brightness code..." << std::endl;
+
     // Done...
     return AverageBrightness.val[0];
 }
@@ -455,8 +458,78 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     IplImage const     &GrayImage) const
 {
     // Variables...
-    unsigned int    unStartVertexIndex          = 0;
-    unsigned int    unVerticesTraversed         = 0;
+    CvPoint const  &CandidateHeadStart          = 
+        GetVertex(unCandidateHeadVertexIndex);
+//    CvPoint const  &CandidateTailStart          = 
+        GetVertex(unCandidateTailVertexIndex);
+    unsigned int    unTempIndexOne              = 0;
+    unsigned int    unTempIndexTwo              = 0;
+    CvPoint         EndPoint                    = cvPoint(0, 0);
+    CvLineIterator  LineIterator;
+    int             nPixels                     = 0;
+    double          dCandidateHeadBrightness    = 0.0f;
+
+    // Find an end point to the head line...
+
+        // Find one side of the contour...
+        unTempIndexOne = 
+            FindNearestVertexIndexByPerimeterLength(unCandidateHeadVertexIndex, 
+                                                    Length() / -16.0f);
+
+        // Find other side on the contour...
+        unTempIndexTwo = 
+            FindNearestVertexIndexByPerimeterLength(unCandidateHeadVertexIndex, 
+                                                    Length() / 16.0f);
+
+        // The midpoint between the two sides we will use as the other end...
+        EndPoint.x = int((GetVertex(unTempIndexTwo).x - 
+                          GetVertex(unTempIndexOne).x) / 2.0f)
+                        + GetVertex(unTempIndexOne).x;
+        EndPoint.y = int((GetVertex(unTempIndexTwo).y - 
+                          GetVertex(unTempIndexOne).y) / 2.0f)
+                        + GetVertex(unTempIndexOne).y;
+
+    // Calculate brightness of candidate head line...
+    
+        // Initialize pixel iterator...
+        nPixels = cvInitLineIterator(&GrayImage, CandidateHeadStart, EndPoint, 
+                                     &LineIterator, 8, 0);
+
+        // Better be 8-bit unsigned grayscale image...
+        assert(GrayImage.depth == IPL_DEPTH_8U);
+
+        // Scan each pixel, totaling as we go...
+        dCandidateHeadBrightness = 0.0f;
+        for(int nPixelIndex = 0; nPixelIndex < nPixels; ++nPixelIndex)
+        {
+            /*
+                Idea: Discard points that fail point polygon test.
+            */
+
+            // Store the new mean brightness. Just multiply your old average by
+            //  n, add x_{n+1}, and then divide the whole thing by n+1...
+            dCandidateHeadBrightness = 
+                ((dCandidateHeadBrightness * nPixelIndex) + LineIterator.ptr[0]) 
+                    / (nPixelIndex + 1);
+
+            // Seek to next point...
+            CV_NEXT_LINE_POINT(LineIterator);
+        }
+Finish this
+    return true;
+}
+
+/* Given only the two vertex indices, *this* image, and assuming they are 
+//  opposite ends of the worm, would the first of the two most likely be the 
+//  head if we had but this image alone to consider?
+inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
+    unsigned int const &unCandidateHeadVertexIndex,
+    unsigned int const &unCandidateTailVertexIndex,
+    IplImage const     &GrayImage) const
+{
+    // Variables...
+    unsigned int    unStartVertexIndex  = 0;
+    unsigned int    unVerticesTraversed = 0;
 
     // Create a contour around the candidate head...
 
@@ -473,8 +546,7 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
             unStartVertexIndex  = 
                 FindNearestVertexIndexByPerimeterLength(
                     unCandidateHeadVertexIndex, 
-                    -1.0f * Length() / 8.0f,
-                    unVerticesTraversed);
+                    -1.0f * Length() / 8.0f);
 
             // Now to encompass a full 1/8th, we go 1/8th forward twice...
             FindNearestVertexIndexByPerimeterLength(
@@ -503,8 +575,7 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
             // Backtrack an 1/8th from the candidate head...
             unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
                 unCandidateTailVertexIndex, 
-                -1.0f * Length() / 8.0f,
-                unVerticesTraversed);
+                -1.0f * Length() / 8.0f);
             
             // Now to encompass a full 1/8th, we go 1/8th forward twice...
             FindNearestVertexIndexByPerimeterLength(
@@ -525,8 +596,8 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     double const dCandidateHeadBrightness = 
         GetAverageBrightness(CandidateHeadContour, GrayImage);
 
-/*double dTemp = GetAverageBrightness(*pContour, GrayImage);
-dTemp = dTemp;*/
+double dTemp = GetAverageBrightness(*pContour, GrayImage);
+dTemp = dTemp;
 
     // Calculate the average brightness of the candidate tail blob...
     double const dCandidateTailBrightness =
@@ -539,7 +610,7 @@ dTemp = dTemp;*/
     // If the candidate head truly is the head, brighter than the tail we shall
     //  find it to be...
     return (dCandidateHeadBrightness > dCandidateTailBrightness);
-}
+}*/
 
 // Check if two line segments intersect... θ(1)
 inline bool Worm::IsLineSegmentsIntersect(LineSegment const &A, 
