@@ -173,7 +173,7 @@ int main(int nArguments, char *ppszArguments[])
     
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
-    cvNamedWindow("Analysis", 0);
+    cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
 //    cvSetMouseCallback("Analysis", OnMouse);
 
     // Process and display each image in sequence...
@@ -241,20 +241,20 @@ int main(int nArguments, char *ppszArguments[])
             cvCircle(pThresholdImage, 
                      Nematode.Head(),
                      5,
-                     CV_RGB(0xFF, 0xFF, 0xFF), 8, 2);
+                     CV_RGB(0xFF, 0xFF, 0xFF), 2, 2);
             cvCircle(pThresholdImage, 
                      Nematode.Tail(),
                      5,
-                     CV_RGB(0xFF, 0xFF, 0xFF), 8, 2);
+                     CV_RGB(0xFF, 0xFF, 0xFF), 1);
 
             cout << Nematode << endl;
 
 
             // Show it...
             cvShowImage("Analysis", pThresholdImage);
-            CvSize Size = cvGetSize(pThresholdImage);
-            cvResizeWindow("Analysis", int(Size.width * 1.5), 
-                                       int(Size.height * 1.5));
+//            CvSize Size = cvGetSize(pThresholdImage);
+//            cvResizeWindow("Analysis", int(Size.width * 1.5f), 
+//                                       int(Size.height * 1.5f));
             
             // Wait for key press...
             while(true)

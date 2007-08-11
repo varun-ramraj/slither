@@ -1495,12 +1495,14 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Beta Testers:"));
         AboutDialogInfo.AddDeveloper(wxT("\tAaron Dowler <adowlerb@shaw.ca>"));
+        AboutDialogInfo.AddDeveloper(wxT("\tMike Butterfield <butter@interchange.ubc.ca>"));
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Thanks:"));
         AboutDialogInfo.AddDeveloper(wxT("\tAaron Dowler <adowlerb@shaw.ca> (hardware)"));
         AboutDialogInfo.AddDeveloper(wxT("\tCatharine Rankin <crankin@psych.ubc.ca> (the opportunity)"));
-        AboutDialogInfo.AddDeveloper(wxT("\tThomas L. Adelman <tadelman2@yahoo.com> (ideas)"));
-        AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <silverballer47@gmail.com> (ideas)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tEd Knorr <knorr@cs.ubc.ca> (criticisms)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tThomas L. Adelman <tadelman2@yahoo.com> (guidance)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <silverballer47@gmail.com> (criticisms)"));
         
         // Documentation writers...
         AboutDialogInfo.AddDocWriter(wxT("Kip Warner <Kip@TheVertigo.com>"));

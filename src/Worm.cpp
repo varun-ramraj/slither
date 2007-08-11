@@ -249,10 +249,14 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
                 unsigned int    unCurrentVertexIndex        = 0;
                 unsigned int    unNextVertexIndex           = 0;
 
+    // Reset vertices traversed...
+    unVerticesTraversed = 0;
+
     // Keep walking along the contour in the requested direction until we've 
     //  gone far enough...
-    unCurrentVertexIndex = unStartVertexIndex;
-    while(dDistanceWalkedAccumulator < fabs(dPerimeterLength))
+    for(unCurrentVertexIndex = unStartVertexIndex;
+        dDistanceWalkedAccumulator < fabs(dPerimeterLength);
+      ++unVerticesTraversed)
     {
         // If the requested length is positive, use the next vertex...
         if(dPerimeterLength > 0)
@@ -283,9 +287,6 @@ inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
             // Next index now becomes the current...
             unCurrentVertexIndex = unNextVertexIndex;
         }
-        
-        // Remember how many vertices we have traversed...
-      ++unVerticesTraversed;
     }
     
     // We've gone far enough...
@@ -331,6 +332,16 @@ inline double const Worm::GetAverageBrightness(CvContour const &Contour,
         cvSetImageROI(pMaskImage, Contour.rect);
         cvZero(pMaskImage);
         cvResetImageROI(pMaskImage);
+
+cvRectangle(const_cast<IplImage *>(&GrayImage), 
+               cvPoint(Contour.rect.x, Contour.rect.y),
+               cvPoint(Contour.rect.x + Contour.rect.width,
+                       Contour.rect.y + Contour.rect.height),
+               CV_RGB(255, 255, 255), 1, 8);
+
+cvDrawContours(const_cast<IplImage *>(&GrayImage), 
+               (CvSeq *) &Contour, CV_RGB(255, 255, 255), 
+               CV_RGB(255, 255, 255), 0, CV_FILLED, 8);
 
         // Fill the candidate head's mask with all white...
         cvDrawContours(pMaskImage, (CvSeq *) &Contour, CV_RGB(255, 255, 255), 
@@ -449,6 +460,8 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
 
     // Create a contour around the candidate head...
 
+//We are building the contour wrong here. That's why luma calculation is wrong.
+
         // Allocate...
         CvContour &CandidateHeadContour = 
             *((CvContour *) cvCreateSeq(CV_SEQ_ELTYPE_POINT, sizeof(CvContour), 
@@ -511,6 +524,9 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     // Calculate the average brightness of the candidate head blob...
     double const dCandidateHeadBrightness = 
         GetAverageBrightness(CandidateHeadContour, GrayImage);
+
+/*double dTemp = GetAverageBrightness(*pContour, GrayImage);
+dTemp = dTemp;*/
 
     // Calculate the average brightness of the candidate tail blob...
     double const dCandidateTailBrightness =
