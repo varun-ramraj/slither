@@ -12,10 +12,33 @@
 #include <cassert>
 #include <ostream>
 
-#include <iostream>
-
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
+
+// Output a point...
+std::ostream & operator<<(std::ostream &Output, CvPoint Point)
+{
+    // Output
+    Output << "(" << Point.x << ", " << Point.y << ")";
+
+    // Return the stream...
+    return Output;
+}
+
+// Output some info of what we know about this worm...
+std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
+{
+    // Output attributes of note...
+    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
+           << "Centre:\t"   << RequestedWorm.Centre() << std::endl
+           << "Length:\t"   << RequestedWorm.dLength  << std::endl
+           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
+           << "Head:\t"     << RequestedWorm.Head()   << std::endl
+           << "Tail:\t"     << RequestedWorm.Tail()   << std::endl;
+
+    // Return the stream...
+    return Output;
+}
 
 // Default constructor...
 Worm::Worm()
@@ -83,7 +106,7 @@ inline double const &Worm::Area() const
 }
 
 // Best guess of the worm's centre...
-inline CvPoint const &Worm::Centre() const
+CvPoint const &Worm::Centre() const
 {
     // Return it...
     return GravitationalCentre;
@@ -814,22 +837,6 @@ inline double Worm::LengthOfLineSegment(LineSegment const &A) const
                   ((A.second.y - A.first.y) * (A.second.y - A.first.y)));
 }
 
-// Show some info of what we know about this worm...
-std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
-{
-    // Output attributes of note...
-    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
-           << "Length:\t"   << RequestedWorm.dLength  << std::endl
-           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
-           << "Head:\t("    << RequestedWorm.Head().x << ", " 
-                            << RequestedWorm.Head().y << ")" << std::endl
-           << "Tail:\t("    << RequestedWorm.Tail().x << ", " 
-                            << RequestedWorm.Tail().y << ")" << std::endl;
-
-    // Return the stream...
-    return Output;
-}
-
 // Candidates are not similar enough... (see below)
 inline bool Worm::operator<(Worm &RightWorm) const
 {
@@ -840,6 +847,10 @@ inline bool Worm::operator<(Worm &RightWorm) const
 // Candidate meet the minimum required similarity...
 inline bool Worm::operator==(Worm &RightWorm) const
 {
+    // Hmm, we have no information about our own worm just yet...
+    if(unUpdates == 0)
+        return false;
+
     /* TODO: Perhaps cvMeanShift could be useful here? */
     return false;
 }
@@ -870,7 +881,6 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     StartingLineSegment.first   = 
         cvPointTo32f(GetVertex(unStartVertexIndex));
     StartingLineSegment.second  = 
-//        cvPointTo32f(GetVertex(GetNextVertexIndex(unStartVertexIndex)));
         cvPointTo32f(GetVertex(
             FindVertexIndexByLength(unStartVertexIndex, 5.0f)));
 
@@ -912,8 +922,8 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     //  very edge of the image...
     AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 10000.0f);
     ClipLineSegment(cvGetSize(&GrayImage), OrthogonalLineSegment);
-/*
-cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.first), 
+
+/*cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.first), 
        cvPointFrom32f(OrthogonalLineSegment.second),
        CV_RGB(0xFF, 0xFF, 0xFF));*/
 
@@ -965,14 +975,14 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.
         }
 
     // We now have both the start and opposite side vertex of the worm. This is
-    //  all we need now...
+    //  all we need now for the shifting...
     unsigned int unVertexIndexSideA = unStartVertexIndex;
     unsigned int unVertexIndexSideB = unClosestOppositeVertexIndexFound;
 
-/*cvLine(const_cast<IplImage *>(&GrayImage), 
+cvLine(const_cast<IplImage *>(&GrayImage), 
        GetVertex(unVertexIndexSideA),
        GetVertex(unVertexIndexSideB),
-       CV_RGB(0xFF, 0xFF, 0xFF));*/
+       CV_RGB(0xFF, 0xFF, 0xFF));
        
     // Pinch-Shift doesn't always pick the best two pinch vertices. However, 
     // the line segment formed between the two will probably have an upper 
@@ -1150,19 +1160,16 @@ inline void Worm::UpdateGravitationalCentre()
 {
     // Variables...
     CvMoments   CurrentMoment;
-    CvPoint     Centre          = cvPoint(0, 0);
 
     // Calculate all moments of the contour...
     cvMoments(pContour, &CurrentMoment);
 
     // Extract the centre of gravity...
-    Centre.x = int(CurrentMoment.m10 / CurrentMoment.m00);
-    Centre.y = int(CurrentMoment.m01 / CurrentMoment.m00);
+    GravitationalCentre.x = int(CurrentMoment.m10 / CurrentMoment.m00);
+    GravitationalCentre.y = int(CurrentMoment.m01 / CurrentMoment.m00);
 
 /*cvCircle(&GrayImage, Centre, 4,
             CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);*/
-
-    /* WARNING: I am not certain if calling cvMoments requires deallocation. */
 }
 
 // Update the approximate head and tail position, based on the value at this 

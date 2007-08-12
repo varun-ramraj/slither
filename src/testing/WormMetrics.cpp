@@ -223,9 +223,6 @@ int main(int nArguments, char *ppszArguments[])
             // Discover worm's new state...
             Nematode.Discover(*pCurrentContour, *pGrayImage);
 
-            // Show it...
-            cvShowImage("Original", pGrayImage);
-
             // Pick a colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);
             
@@ -240,8 +237,12 @@ int main(int nArguments, char *ppszArguments[])
 
             cvCircle(pThresholdImage, 
                      Nematode.Head(),
-                     6,
-                     CV_RGB(0xFF, 0xFF, 0xFF), 2, 2);
+                     5,
+                     CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
+            cvCircle(pGrayImage, 
+                     Nematode.Centre(),
+                     4,
+                     CV_RGB(0xFF, 0xFF, 0xFF), -1);
             cvCircle(pThresholdImage, 
                      Nematode.Tail(),
                      5,
@@ -251,6 +252,7 @@ int main(int nArguments, char *ppszArguments[])
 
 
             // Show it...
+            cvShowImage("Original", pGrayImage);
             cvShowImage("Analysis", pThresholdImage);
 //            CvSize Size = cvGetSize(pThresholdImage);
 //            cvResizeWindow("Analysis", int(Size.width * 1.5f), 
