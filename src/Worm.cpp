@@ -545,10 +545,12 @@ inline unsigned int Worm::GetPreviousVertexIndex(
 CvPoint const &Worm::Head() const
 {
     // We'll make a reasonably informed guess by returning the more likely of
-    //  the two terminal ends that received the higher head hits...
+    //  the two terminal ends that received the higher head hits. In the
+    //  boundary condition that they've both received the same hits, use the
+    //  first...
     
         // Terminal end A...
-        if(TerminalA.unHeadScore > TerminalB.unHeadScore)
+        if(TerminalA.unHeadScore >= TerminalB.unHeadScore)
             return TerminalA.LastSeenLocus;
         
         // Terminal end B...
@@ -1119,15 +1121,17 @@ inline CvPoint2D32f &Worm::RotatePointAboutAnother(
 CvPoint const &Worm::Tail() const
 {
     // We'll make a reasonably informed guess by returning the more likely of
-    //  the two terminal ends that received the lesser head hits...
+    //  the two terminal ends that received the lesser score. In the
+    //  boundary condition that they've both received the same hits, use the
+    //  second...
     
-        // Terminal end A...
-        if(TerminalA.unHeadScore < TerminalB.unHeadScore)
-            return TerminalA.LastSeenLocus;
-        
         // Terminal end B...
-        else
+        if(TerminalA.unHeadScore >= TerminalB.unHeadScore)
             return TerminalB.LastSeenLocus;
+        
+        // Terminal end A...
+        else
+            return TerminalA.LastSeenLocus;
 }
 
 // Update the approximate area, based on the value at this moment in time. This 
