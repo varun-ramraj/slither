@@ -34,6 +34,9 @@ class Worm
             // Best guess of the area, considering everything we've seen thus far...
             double const       &Area() const;
 
+            // Best guess of the worm's centre...
+            CvPoint const      &Centre() const;
+
             // Best guess as to the head's position at this moment in time, since it changes...
             CvPoint const      &Head() const;
 
@@ -66,6 +69,27 @@ class Worm
 
         // Deconstructor...
        ~Worm();
+
+    // Protected constants...
+    protected:
+    
+            // Pinch-Shift iteration directions...
+            enum IterationDirection
+            {
+                Forwards,
+                Backwards
+            };
+
+            // The value of π...
+            double const static Pi                          
+                = 3.1415926535897932384626433832795f;
+            
+            // Infinity... (kind of)
+            double const static Infinity                    = FLT_MAX;
+            
+            // The minimum required similarity needed for worm equivalency... 
+            //  (0.0 < percentage <= 100.0) 
+            double const static dMinimumRequiredSimilarity  = 95.0f;
 
     // Protected types...
     protected:
@@ -149,6 +173,9 @@ class Worm
             //  via Area() for the size. θ(1) space and time...
             void                UpdateArea(double const &dAreaAtThisMoment);
 
+            // Update the gravitational centre from this image...
+            void                UpdateGravitationalCentre();
+
             // Update the approximate head and tail position, based on the value 
             //  at this moment in time. This will help us make a more informed 
             //  answer when asked via Head() or Tail() for the actual 
@@ -215,7 +242,7 @@ class Worm
             //  they are opposite ends of the worm, would the first of the two
             //  most likely be the head if we had but this image alone to
             //  consider?
-            bool                IsFirstProbablyHeadViaCloisterCheck(
+            bool                IsFirstHeadCloisterCheck(
                                     unsigned int const &unCandidateHeadVertexIndex,
                                     unsigned int const &unCandidateTailVertexIndex,
                                     IplImage const     &GrayImage) const;
@@ -230,9 +257,11 @@ class Worm
                                     LineSegment const &A) const;
             
             // Find the vertex index in the contour sequence that contains 
-            //  either end of the worm... θ(n)
-            unsigned int        PinchShiftForAnEnd(IplImage const &GrayImage) 
-                                    const;
+            //  either end of the worm, and update width while we're at it... 
+            //  θ(n)
+            unsigned int        PinchShiftForAnEnd(
+                                    IplImage const &GrayImage,
+                                    IterationDirection Direction = Forwards);
 
             // Rotate a line segment about a point counterclockwise by an 
             //  angle...
@@ -267,6 +296,9 @@ class Worm
                 // Area...
                 double          dArea;
                 
+                // Centre...
+                CvPoint         GravitationalCentre;
+                
                 // Length of the worm...
                 double          dLength;
                 
@@ -279,20 +311,6 @@ class Worm
             
             // Dummy default argument parameters...
             static unsigned int unDummy;
-
-    // Protected constants...
-    protected:
-    
-            // The value of π...
-            double const static Pi                          
-                = 3.1415926535897932384626433832795f;
-            
-            // Infinity... (kind of)
-            double const static Infinity                    = FLT_MAX;
-            
-            // The minimum required similarity needed for worm equivalency... 
-            //  (0.0 < percentage <= 100.0) 
-            double const static dMinimumRequiredSimilarity  = 95.0f;
 
 };
 

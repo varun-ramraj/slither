@@ -12,6 +12,8 @@
 #include <cassert>
 #include <ostream>
 
+#include <iostream>
+
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
 
@@ -21,6 +23,7 @@ Worm::Worm()
       pContour(NULL),
       unUpdates(0),
       dArea(0.0f),
+      GravitationalCentre(cvPoint(0, 0)),
       dLength(0.0f), 
       dWidth(0.0f),
       TerminalA(cvPoint(0, 0), 0),
@@ -37,6 +40,7 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
       pContour(NULL),
       unUpdates(0),
       dArea(0.0f),
+      GravitationalCentre(cvPoint(0, 0)),
       dLength(0.0f), 
       dWidth(0.0f),
       TerminalA(cvPoint(0, 0), 0),
@@ -76,6 +80,13 @@ inline double const &Worm::Area() const
 {
     // Return it...
     return dArea;
+}
+
+// Best guess of the worm's centre...
+inline CvPoint const &Worm::Centre() const
+{
+    // Return it...
+    return GravitationalCentre;
 }
 
 // Clip line against the image rectangle...
@@ -127,6 +138,10 @@ inline void Worm::Discover(CvContour const &NewContour,
     // Image must not have a region of interest set...
     assert(GrayImage.roi == NULL);
 
+    // Remember that how many times we have updated, which we need for 
+    //  calculating arithmetic means...
+  ++unUpdates;
+
     // Forget the old contour if we have one yet. This works by restoring the 
     //  old contour sequence blocks to the base storage pool. This is θ(1) 
     //  running time, usually...
@@ -140,11 +155,10 @@ inline void Worm::Discover(CvContour const &NewContour,
         //  Intel bug?
         pContour->rect = NewContour.rect;
 
-    // Remember that how many times we have updated, which we need for 
-    //  calculating arithmetic means...
-  ++unUpdates;
+    // Update the gravitational centre from this image...
+    UpdateGravitationalCentre();
 
-    // Update the approximate area from the area calculated in *this* image...
+    // Update the approximate area from the area calculated in this image...
     UpdateArea(fabs(cvContourArea(pContour)));
 
     // Update the approximate length from the length calculated in *this* image.
@@ -157,21 +171,23 @@ inline void Worm::Discover(CvContour const &NewContour,
 
         // Find an end, either will do... θ(n)
         unsigned int const unMysteryEndVertexIndex = 
-            PinchShiftForAnEnd(GrayImage);
+            PinchShiftForAnEnd(GrayImage, Forwards);
 
         // Find the other end of the worm which must be approximately the 
         //  length of the worm away... O(n)
-        unsigned int const unOtherMysteryEndVertexIndex = 
+        /*unsigned int const unOtherMysteryEndVertexIndex = 
             FindVertexIndexByLength(unMysteryEndVertexIndex, 
-                                    dLengthAtThisMoment);
+                                    dLengthAtThisMoment);*/
+        unsigned int const unOtherMysteryEndVertexIndex = 
+            PinchShiftForAnEnd(GrayImage, Backwards);
 
         // Make a reasonably intelligent guess as to which end is which, based 
         //  only on *this* image alone...
 
             // The first end we found was probably the head...
-            if(IsFirstProbablyHeadViaCloisterCheck(unMysteryEndVertexIndex, 
-                                                   unOtherMysteryEndVertexIndex, 
-                                                   GrayImage))
+            if(IsFirstHeadCloisterCheck(unMysteryEndVertexIndex, 
+                                        unOtherMysteryEndVertexIndex, 
+                                        GrayImage))
             {
                 // Remember for next time where approximately it was found...
                 UpdateHeadAndTail(unMysteryEndVertexIndex, 
@@ -186,7 +202,7 @@ inline void Worm::Discover(CvContour const &NewContour,
                                   unMysteryEndVertexIndex);
             }
 
-    // Finally calculate the width of the worm...
+    /* Finally calculate the width of the worm...
 
         // Let us measure from approximately half way up the worm from either 
         //  end, 1/2 the total length... O(n)
@@ -200,11 +216,18 @@ inline void Worm::Discover(CvContour const &NewContour,
             FindVertexIndexByLength(unMysteryEndVertexIndex, 
                                     -1.0f * dLengthAtThisMoment / 2.0f);
 
+cvCircle(const_cast<IplImage *>(&GrayImage), 
+            GetVertex(unVertexIndexOfMiddleSideA), 3,
+            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
+cvCircle(const_cast<IplImage *>(&GrayImage), 
+         GetVertex(unVertexIndexOfMiddleSideB), 3,
+            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
+
         // The distance between the two points is approximately the width of
         //  the worm...
         UpdateWidth(
             DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
-                                     GetVertex(unVertexIndexOfMiddleSideB))); 
+                                     GetVertex(unVertexIndexOfMiddleSideB)));*/
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
@@ -440,6 +463,7 @@ inline double const Worm::GetLineBrightness(
         /* Add pixel to accumulator...      
         dTotalBrightness += LineIterator.ptr[0];*/
         
+        // We want the brightest pixel we can find...
         MaxBrightness = std::max(MaxBrightness, LineIterator.ptr[0]);
 
 /*cvLine(const_cast<IplImage *>(&GrayImage), CurrentPoint, CurrentPoint,
@@ -534,8 +558,8 @@ CvPoint const &Worm::Head() const
 
 // Can the collinear point be found on the line segment? θ(1)
 inline bool Worm::IsCollinearPointOnLineSegment(
-                        LineSegment const &A, 
-                        CvPoint2D32f const &CollinearPoint) const
+    LineSegment const &A, 
+    CvPoint2D32f const &CollinearPoint) const
 {
     // Found...
     if(((std::min(A.first.x, A.second.x) <= CollinearPoint.x) && 
@@ -552,7 +576,7 @@ inline bool Worm::IsCollinearPointOnLineSegment(
 // Given only the two vertex indices, *this* image, and assuming they are 
 //  opposite ends of the worm, would the first of the two most likely be the 
 //  head if we had but this image alone to consider?
-inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
+inline bool Worm::IsFirstHeadCloisterCheck(
     unsigned int const &unCandidateHeadVertexIndex,
     unsigned int const &unCandidateTailVertexIndex,
     IplImage const     &GrayImage) const
@@ -766,7 +790,7 @@ inline bool Worm::IsLineSegmentsIntersect(LineSegment const &A,
                                     LineSegment(A.first, A.second), B.second))
         return true;
     
-    // Every necessary and sufficient condition for two line segments to 
+    // The necessary and sufficient condition for two line segments to 
     //  intersect has not been satisfied...
     else
         return false;
@@ -819,8 +843,10 @@ inline bool Worm::operator==(Worm &RightWorm) const
 }
 
 // Find the vertex index in the contour sequence that contains either end of 
-//  the worm... θ(n)
-inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
+//  the worm, and update width while we're at it... θ(n)
+inline unsigned int Worm::PinchShiftForAnEnd(
+    IplImage const &GrayImage, 
+    IterationDirection Direction)
 {
     // Variables...
     unsigned int const  unStartVertexIndex                  = 0;
@@ -848,10 +874,6 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
 
     // Make the starting line segment now a tangent to the curve...
     AdjustDirectedLineSegmentLength(StartingLineSegment, 30.0f);
-
-cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(StartingLineSegment.first), 
-       cvPointFrom32f(StartingLineSegment.second),
-       CV_RGB(0xFF, 0xFF, 0xFF));
 
     // Generate an orthogonal for the starting line segment...
     GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
@@ -888,10 +910,10 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(StartingLineSegment.fi
     //  very edge of the image...
     AdjustDirectedLineSegmentLength(OrthogonalLineSegment, 10000.0f);
     ClipLineSegment(cvGetSize(&GrayImage), OrthogonalLineSegment);
-
+/*
 cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.first), 
        cvPointFrom32f(OrthogonalLineSegment.second),
-       CV_RGB(0xFF, 0xFF, 0xFF));
+       CV_RGB(0xFF, 0xFF, 0xFF));*/
 
     // Now find the closest line segment that this orthogonal, which serves us
     //  as a guide, pierces on the other side. Although the worm may be in some 
@@ -940,41 +962,90 @@ cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(OrthogonalLineSegment.
                 GetNextVertexIndex(unCurrentOppositeVertexIndex);
         }
 
-    // We now have both the start and opposite vertex of the worm. This is all 
-    //  we need now...
+    // We now have both the start and opposite side vertex of the worm. This is
+    //  all we need now...
     unsigned int unVertexIndexSideA = unStartVertexIndex;
     unsigned int unVertexIndexSideB = unClosestOppositeVertexIndexFound;
 
+/*cvLine(const_cast<IplImage *>(&GrayImage), 
+       GetVertex(unVertexIndexSideA),
+       GetVertex(unVertexIndexSideB),
+       CV_RGB(0xFF, 0xFF, 0xFF));*/
+       
+    // Pinch-Shift doesn't always pick the best two pinch vertices. However, 
+    // the line segment formed between the two will probably have an upper 
+    // bound of the worm's actual width. Having said that, while we're at it,
+    // update the vermiform width from the width of the pinch line segment...
+
+        // Calculate...
+        double const &dWidthAtThisMoment = 
+            DistanceBetweenTwoPoints(GetVertex(unVertexIndexSideA),
+                                     GetVertex(unVertexIndexSideB));
+
+        // Update...
+        UpdateWidth(dWidthAtThisMoment);
+
     // Keep shifting the two points along the worm's body. When the two 
     //  vertices finally coalesce into one (they have the same coordinates), we 
-    //  have found an end...
+    //  have found an end... (hopefully)
     while(unVertexIndexSideA != unVertexIndexSideB)
     {
+        // Variables...
+        unsigned int    unShiftedVertexIndexSideA   = 0;
+        unsigned int    unShiftedVertexIndexSideB   = 0;
+
+        // Depending on which direction we were requested to iterate, we need to
+        //  decide what constitutes the "next" vertex on either side...
+            
+            // Iterating forwards...
+            if(Direction == Forwards)
+            {
+                // Remember what the next vertex on side A is...
+                unShiftedVertexIndexSideA = 
+                    GetPreviousVertexIndex(unVertexIndexSideA);
+                
+                // Remember what the next vertex on side B is...
+                unShiftedVertexIndexSideB = 
+                    GetNextVertexIndex(unVertexIndexSideB);
+            }
+            
+            // Iterating backwards...
+            else
+            {
+                // Remember what the next vertex on side A is...
+                unShiftedVertexIndexSideA = 
+                    GetNextVertexIndex(unVertexIndexSideA);
+                
+                // Remember what the next vertex on side B is...
+                unShiftedVertexIndexSideB = 
+                    GetPreviousVertexIndex(unVertexIndexSideB);            
+            }
+
         // Since the vertex density per area of space may differ on either side
         //  of the worm, we cannot simply shuffle both sides together at the
         //  same rate. To solve this problem, assuming one of the sides has to
         //  move, move the side that keeps the closure distance between the two
-        //  minimal...
+        //  minimized at each iteration...
         
             // If we shift vertex of side A, how far apart would the two be?
             double const dDistanceBetweenIfShiftA = 
                 DistanceBetweenTwoPoints(
-                    GetVertex(GetPreviousVertexIndex(unVertexIndexSideA)),
+                    GetVertex(unShiftedVertexIndexSideA),
                     GetVertex(unVertexIndexSideB));
                                                                            
             // If we shift vertex of side B, how far apart would the two be?
             double const dDistanceBetweenIfShiftB = 
                 DistanceBetweenTwoPoints(
                     GetVertex(unVertexIndexSideA),
-                    GetVertex(GetNextVertexIndex(unVertexIndexSideB)));
+                    GetVertex(unShiftedVertexIndexSideB));
         
             // Shifting side A is the best choice to make, so do it...
             if(dDistanceBetweenIfShiftA <= dDistanceBetweenIfShiftB)
-                unVertexIndexSideA = GetPreviousVertexIndex(unVertexIndexSideA);
+                unVertexIndexSideA = unShiftedVertexIndexSideA;
         
             // Shifting side B is the best choice to make, so do it...
             else
-                unVertexIndexSideB = GetNextVertexIndex(unVertexIndexSideB);
+                unVertexIndexSideB = unShiftedVertexIndexSideB;
     }
 
     // The index of the vertex of the head / tail is either vertex, since they 
@@ -1064,9 +1135,30 @@ CvPoint const &Worm::Tail() const
 //  θ(1) space and time...
 inline void Worm::UpdateArea(double const &dAreaAtThisMoment)
 {
-    // Store the new arithmetic mean in constant space. Just multiply your old
-    //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    dArea = ((dArea * unUpdates) + dAreaAtThisMoment) / (unUpdates + 1);
+    // Not all contours are created equal. However, each contour always 
+    //  encompassing less than or equal to the entire vermiform. It is best 
+    //  then to forget averages and just store the greatest we find then...
+    dArea = std::max(dArea, dAreaAtThisMoment);
+}
+
+// Update the gravitational centre from this image...
+inline void Worm::UpdateGravitationalCentre()
+{
+    // Variables...
+    CvMoments   CurrentMoment;
+    CvPoint     Centre          = cvPoint(0, 0);
+
+    // Calculate all moments of the contour...
+    cvMoments(pContour, &CurrentMoment);
+
+    // Extract the centre of gravity...
+    Centre.x = int(CurrentMoment.m10 / CurrentMoment.m00);
+    Centre.y = int(CurrentMoment.m01 / CurrentMoment.m00);
+
+/*cvCircle(&GrayImage, Centre, 4,
+            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);*/
+
+    /* WARNING: I am not certain if calling cvMoments requires deallocation. */
 }
 
 // Update the approximate head and tail position, based on the value at this 
@@ -1127,9 +1219,10 @@ inline void Worm::UpdateLength(double const &dLengthAtThisMoment)
 //  the width. θ(1) space and time...
 inline void Worm::UpdateWidth(double const &dWidthAtThisMoment)
 {
-    // Store the new arithmetic mean in constant space. Just multiply your old 
-    //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    dWidth = ((dWidth * unUpdates) + dWidthAtThisMoment) / (unUpdates + 1);
+    // Pinch-Shift doesn't always pick the best two pinch vertices. However, 
+    // the line segment formed between the two will probably have an upper 
+    // bound of the worm's actual width...
+    dWidth = std::max(dWidth, dWidthAtThisMoment);
 }
 
 // Best guess of the area, considering everything we've seen thus far...
