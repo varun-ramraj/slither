@@ -12,8 +12,6 @@
 #include <cassert>
 #include <ostream>
 
-#include <iostream>
-
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
 
@@ -123,6 +121,12 @@ inline int Worm::Direction(CvPoint2D32f const Start,
 inline void Worm::Discover(CvContour const &NewContour, 
                            IplImage const &GrayImage)
 {
+    // Image must be a 8-bit, unsigned, grayscale...
+    assert(GrayImage.depth == IPL_DEPTH_8U);
+
+    // Image must not have a region of interest set...
+    assert(GrayImage.roi == NULL);
+
     // Forget the old contour if we have one yet. This works by restoring the 
     //  old contour sequence blocks to the base storage pool. This is θ(1) 
     //  running time, usually...
@@ -158,8 +162,8 @@ inline void Worm::Discover(CvContour const &NewContour,
         // Find the other end of the worm which must be approximately the 
         //  length of the worm away... O(n)
         unsigned int const unOtherMysteryEndVertexIndex = 
-            FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
-                                                    dLengthAtThisMoment);
+            FindVertexIndexByLength(unMysteryEndVertexIndex, 
+                                    dLengthAtThisMoment);
 
         // Make a reasonably intelligent guess as to which end is which, based 
         //  only on *this* image alone...
@@ -187,15 +191,14 @@ inline void Worm::Discover(CvContour const &NewContour,
         // Let us measure from approximately half way up the worm from either 
         //  end, 1/2 the total length... O(n)
         unsigned int const unVertexIndexOfMiddleSideA =
-            FindNearestVertexIndexByPerimeterLength(unMysteryEndVertexIndex, 
-                                                    dLengthAtThisMoment / 2.0f);
+            FindVertexIndexByLength(unMysteryEndVertexIndex, 
+                                    dLengthAtThisMoment / 2.0f);
 
         // Now find the middle on the other side by going the other way half 
         //  the length... O(n)
         unsigned int const unVertexIndexOfMiddleSideB =
-            FindNearestVertexIndexByPerimeterLength(
-                unMysteryEndVertexIndex, 
-                -1.0f * dLengthAtThisMoment / 2.0f);
+            FindVertexIndexByLength(unMysteryEndVertexIndex, 
+                                    -1.0f * dLengthAtThisMoment / 2.0f);
 
         // The distance between the two points is approximately the width of
         //  the worm...
@@ -235,7 +238,7 @@ inline double Worm::DistanceBetweenTwoPoints(CvPoint2D32f const &First,
 
 // Find the vertex on the contour the given length away, starting in increasing 
 //  order... O(n)
-inline unsigned int const Worm::FindNearestVertexIndexByPerimeterLength(
+inline unsigned int const Worm::FindVertexIndexByLength(
     unsigned int const &unStartVertexIndex, 
     double const &dPerimeterLength,
     unsigned int &unVerticesTraversed) const
@@ -315,7 +318,7 @@ inline void Worm::GenerateOrthogonalToLineSegment(
  //   AdjustDirectedLineSegmentLength(Orthogonal, 10.0f);
 }
 
-// Get the average brightness of the area within a contour...
+/* Get the average brightness of the area within a contour...
 inline double const Worm::GetAverageBrightness(CvContour const &Contour,
                                                IplImage const &GrayImage) const
 {
@@ -376,6 +379,78 @@ if(AverageBrightness.val[0] == 0.0f)
 
     // Done...
     return AverageBrightness.val[0];
+}*/
+
+// Get the total brightness of a line...
+inline double const Worm::GetLineBrightness(
+    LineSegment const &A,
+    IplImage const &GrayImage) const
+{
+    // Variables...
+    CvLineIterator      LineIterator;
+    int                 nPixelIndex         = 0;
+    //register double     dTotalBrightness    = 0.0f;
+    unsigned char       MaxBrightness       = 0x00;
+    CvPoint             CurrentPoint        = cvPoint(0, 0);
+
+    // Initialize pixel iterator...
+    int const nPixels = cvInitLineIterator(&GrayImage, cvPointFrom32f(A.first), 
+                                           cvPointFrom32f(A.second), 
+                                           &LineIterator, 8, 0);
+
+/*cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(A.first), 
+       cvPointFrom32f(A.second), CV_RGB(0xFF, 0xFF, 0xFF));*/
+
+    // Scan each pixel, totaling as we go...
+    for(nPixelIndex = 0; nPixelIndex < nPixels; ++nPixelIndex)
+    {
+        // Discard those points that are not on the vermiform contour...
+        
+            // Calculate where the current point falls on the image plane...
+
+                // Calculate pixel offset into image data...
+                unsigned int const unOffset = 
+                    LineIterator.ptr - (unsigned char *)(GrayImage.imageData);
+
+                // Y-coordinate is the ratio of image offset to the size of 
+                //  aligned image row in bytes...
+                CurrentPoint.y  = unOffset / GrayImage.widthStep;
+                
+                // X-coordinate is a bit more complicated, with the divisor
+                //  being the size of a pixel. One byte for unsigned 8-bit 
+                //  grayscale...
+                CurrentPoint.x = 
+                    (unOffset - CurrentPoint.y * GrayImage.widthStep) / 
+                    (1 * sizeof(unsigned char));
+        
+            // Point does not lie on the vermiform...
+            if(cvPointPolygonTest(pContour, cvPointTo32f(CurrentPoint), 0) < 0)
+            {
+                // Discard and seek to next point...
+                CV_NEXT_LINE_POINT(LineIterator);
+                continue;
+            }
+
+        /* Store the new mean brightness. Just multiply your old average by
+        //  n, add x_{n+1}, and then divide the whole thing by n+1...
+        dTotalBrightness = 
+            ((dTotalBrightness * nPixelIndex) + LineIterator.ptr[0]) 
+                / (nPixelIndex + 1);*/
+
+        /* Add pixel to accumulator...      
+        dTotalBrightness += LineIterator.ptr[0];*/
+        
+        MaxBrightness = std::max(MaxBrightness, LineIterator.ptr[0]);
+
+/*cvLine(const_cast<IplImage *>(&GrayImage), CurrentPoint, CurrentPoint,
+       CV_RGB(0xFF, 0xFF, 0xFF));*/
+
+        // Seek to next point...
+        CV_NEXT_LINE_POINT(LineIterator);
+    }
+
+    // Return the average brightness...
+    return (double) MaxBrightness;
 }
 
 // Get the index of the next vertex in the contour after the given index, 
@@ -390,6 +465,31 @@ inline unsigned int Worm::GetNextVertexIndex(unsigned int const &unVertexIndex)
     //  it jumps back to the beginning...
     return ((int) unVertexIndex + 1 < pContour->total) ? (unVertexIndex + 1) 
                                                        : 0;
+}
+
+// Get the total surrounding brightness of a central point ...
+inline double const Worm::GetSurroundingBrightness(
+    CvPoint Centre, 
+    IplImage const &GrayImage) const
+{
+    // Constants...
+    unsigned int const  unRadius            = 10;
+
+    // Create a cross over the given centre point...
+    
+        // Form the vertical component...
+        LineSegment const
+            Vertical(cvPoint2D32f(Centre.x, Centre.y - unRadius),
+                     cvPoint2D32f(Centre.x, Centre.y + unRadius));
+        
+        // Form the horizontal component...
+        LineSegment const 
+            Horizontal(cvPoint2D32f(Centre.x - unRadius, Centre.y),
+                       cvPoint2D32f(Centre.x + unRadius, Centre.y));
+
+    // Return the total brightness of the cross...
+    return GetLineBrightness(Vertical, GrayImage) +
+           GetLineBrightness(Horizontal, GrayImage);
 }
 
 // Get the actual vertex of the given vertex index in the contour, O(1) 
@@ -458,30 +558,28 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
     IplImage const     &GrayImage) const
 {
     // Variables...
-    CvPoint const  &CandidateHeadStart          = 
-        GetVertex(unCandidateHeadVertexIndex);
-//    CvPoint const  &CandidateTailStart          = 
-        GetVertex(unCandidateTailVertexIndex);
-    unsigned int    unTempIndexOne              = 0;
-    unsigned int    unTempIndexTwo              = 0;
-    CvPoint         EndPoint                    = cvPoint(0, 0);
-    CvLineIterator  LineIterator;
-    int             nPixels                     = 0;
-    double          dCandidateHeadBrightness    = 0.0f;
+    CvPoint const  &CandidateHeadStart  = GetVertex(unCandidateHeadVertexIndex);
+    CvPoint const  &CandidateTailStart  = GetVertex(unCandidateTailVertexIndex);
+/*    unsigned int    unTempIndexOne      = 0;
+    unsigned int    unTempIndexTwo      = 0;
+    CvPoint         EndPoint            = cvPoint(0, 0);*/
 
-    // Find an end point to the head line...
+    // Compare the candidate head and tail brightness, as requested...
+    return (GetSurroundingBrightness(CandidateHeadStart, GrayImage) >
+            GetSurroundingBrightness(CandidateTailStart, GrayImage));
 
-        // Find one side of the contour...
-        unTempIndexOne = 
-            FindNearestVertexIndexByPerimeterLength(unCandidateHeadVertexIndex, 
-                                                    Length() / -16.0f);
+    /* Find the average brightness of the candidate head...
 
-        // Find other side on the contour...
-        unTempIndexTwo = 
-            FindNearestVertexIndexByPerimeterLength(unCandidateHeadVertexIndex, 
-                                                    Length() / 16.0f);
+        // Walk a 1/6th the length of the vermiform one way from the head...
+        unTempIndexOne = FindVertexIndexByLength(unCandidateHeadVertexIndex, 
+                                                 Length() / -2.0f);
 
-        // The midpoint between the two sides we will use as the other end...
+        // Walk a 1/6th the length of the vermiform the other way from head...
+        unTempIndexTwo = FindVertexIndexByLength(unCandidateHeadVertexIndex, 
+                                                 Length() / 2.0f);
+
+        // The midpoint between the two sides we will use to form a line from
+        //  the head out hopefully into the body...
         EndPoint.x = int((GetVertex(unTempIndexTwo).x - 
                           GetVertex(unTempIndexOne).x) / 2.0f)
                         + GetVertex(unTempIndexOne).x;
@@ -489,34 +587,46 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
                           GetVertex(unTempIndexOne).y) / 2.0f)
                         + GetVertex(unTempIndexOne).y;
 
-    // Calculate brightness of candidate head line...
-    
-        // Initialize pixel iterator...
-        nPixels = cvInitLineIterator(&GrayImage, CandidateHeadStart, EndPoint, 
-                                     &LineIterator, 8, 0);
+        // Adjust line length...
+        LineSegment CandidateHeadLineSegment(cvPointTo32f(CandidateHeadStart), 
+                                             cvPointTo32f(EndPoint));
+        AdjustDirectedLineSegmentLength(CandidateHeadLineSegment, 10.0f);
 
-        // Better be 8-bit unsigned grayscale image...
-        assert(GrayImage.depth == IPL_DEPTH_8U);
+        // Calculate average brightness...
+        double const dCandidateHeadBrightness = 
+            GetLineBrightness(CandidateHeadLineSegment, GrayImage);
 
-        // Scan each pixel, totaling as we go...
-        dCandidateHeadBrightness = 0.0f;
-        for(int nPixelIndex = 0; nPixelIndex < nPixels; ++nPixelIndex)
-        {
-            /*
-                Idea: Discard points that fail point polygon test.
-            */
+    // Find the average brightness of the candidate tail...
 
-            // Store the new mean brightness. Just multiply your old average by
-            //  n, add x_{n+1}, and then divide the whole thing by n+1...
-            dCandidateHeadBrightness = 
-                ((dCandidateHeadBrightness * nPixelIndex) + LineIterator.ptr[0]) 
-                    / (nPixelIndex + 1);
+        // Walk a 1/6th the length of the vermiform one way from the tail...
+        unTempIndexOne = FindVertexIndexByLength(unCandidateTailVertexIndex, 
+                                                 Length() / -2.0f);
 
-            // Seek to next point...
-            CV_NEXT_LINE_POINT(LineIterator);
-        }
-Finish this
-    return true;
+        // Walk a 1/6th the length of the vermiform the other way from tail...
+        unTempIndexTwo = 
+            FindVertexIndexByLength(unCandidateTailVertexIndex, 
+                                    Length() / 2.0f);
+
+        // The midpoint between the two sides we will use to form a line from
+        //  the tail out hopefully into the body...
+        EndPoint.x = int((GetVertex(unTempIndexTwo).x - 
+                          GetVertex(unTempIndexOne).x) / 2.0f)
+                        + GetVertex(unTempIndexOne).x;
+        EndPoint.y = int((GetVertex(unTempIndexTwo).y - 
+                          GetVertex(unTempIndexOne).y) / 2.0f)
+                        + GetVertex(unTempIndexOne).y;
+
+        // Adjust line length...
+        LineSegment CandidateTailLineSegment(cvPointTo32f(CandidateTailStart), 
+                                             cvPointTo32f(EndPoint));
+        AdjustDirectedLineSegmentLength(CandidateTailLineSegment, 10.0f);
+
+        // Calculate average brightness...
+        double const dCandidateTailBrightness = 
+            GetLineBrightness(CandidateTailLineSegment, GrayImage);
+
+    // Compare the candidate head and tail brightness, as requested...
+    return (dCandidateHeadBrightness > dCandidateTailBrightness);*/
 }
 
 /* Given only the two vertex indices, *this* image, and assuming they are 
@@ -544,12 +654,12 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
         
             // Backtrack an 1/8th from the candidate head...
             unStartVertexIndex  = 
-                FindNearestVertexIndexByPerimeterLength(
+                FindVertexIndexByLength(
                     unCandidateHeadVertexIndex, 
                     -1.0f * Length() / 8.0f);
 
             // Now to encompass a full 1/8th, we go 1/8th forward twice...
-            FindNearestVertexIndexByPerimeterLength(
+            FindVertexIndexByLength(
                 unStartVertexIndex, 
                 Length() / 4.0f, 
                 unVerticesTraversed);
@@ -573,12 +683,12 @@ inline bool Worm::IsFirstProbablyHeadViaCloisterCheck(
         // Enclose 1/8th of the worm's perimeter...
         
             // Backtrack an 1/8th from the candidate head...
-            unStartVertexIndex  = FindNearestVertexIndexByPerimeterLength(
+            unStartVertexIndex  = FindVertexIndexByLength(
                 unCandidateTailVertexIndex, 
                 -1.0f * Length() / 8.0f);
             
             // Now to encompass a full 1/8th, we go 1/8th forward twice...
-            FindNearestVertexIndexByPerimeterLength(
+            FindVertexIndexByLength(
                 unStartVertexIndex, 
                 Length() / 4.0f, 
                 unVerticesTraversed);
@@ -734,7 +844,7 @@ inline unsigned int Worm::PinchShiftForAnEnd(IplImage const &GrayImage) const
     StartingLineSegment.second  = 
 //        cvPointTo32f(GetVertex(GetNextVertexIndex(unStartVertexIndex)));
         cvPointTo32f(GetVertex(
-            FindNearestVertexIndexByPerimeterLength(unStartVertexIndex, 5.0f)));
+            FindVertexIndexByLength(unStartVertexIndex, 5.0f)));
 
     // Make the starting line segment now a tangent to the curve...
     AdjustDirectedLineSegmentLength(StartingLineSegment, 30.0f);

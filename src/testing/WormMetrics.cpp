@@ -169,7 +169,7 @@ int main(int nArguments, char *ppszArguments[])
     CvMemStorage *pStorage  = cvCreateMemStorage(0);
     
     // Create a worm object...
-    Worm Nematode;
+    //Worm Nematode;
     
     // Create windows...
     cvNamedWindow("Original", CV_WINDOW_AUTOSIZE);
@@ -221,6 +221,7 @@ int main(int nArguments, char *ppszArguments[])
                 flush(cout);
 
             // Discover worm's new state...
+            Worm Nematode;
             Nematode.Discover(*pCurrentContour, *pGrayImage);
 
             // Show it...
@@ -240,7 +241,7 @@ int main(int nArguments, char *ppszArguments[])
 
             cvCircle(pThresholdImage, 
                      Nematode.Head(),
-                     5,
+                     6,
                      CV_RGB(0xFF, 0xFF, 0xFF), 2, 2);
             cvCircle(pThresholdImage, 
                      Nematode.Tail(),

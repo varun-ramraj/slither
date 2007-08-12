@@ -14,7 +14,7 @@
     #include <opencv/cv.h>
     
     // Standard libraries and STL...
-    #include <iostream>
+    #include <ostream>
     #include <utility>
 
 // Worm class...
@@ -100,29 +100,47 @@ class Worm
 
         // Accessors...
 
-            // Find the vertex on the contour the given length away, starting in increasing order... O(n)
-            unsigned int const  FindNearestVertexIndexByPerimeterLength(
+            // Find the vertex on the contour a given length away, starting 
+            //  from a given vertex... O(n)
+            unsigned int const  FindVertexIndexByLength(
                                     unsigned int const &unStartVertexIndex, 
                                     double const &dPerimeterLength,
                                     unsigned int &unVerticesTraversed = unDummy) 
-                                    const;
+                                const;
 
-            // Get the average brightness of the area within a contour...
+            // Get the total brightness of a line...
+            double const        GetLineBrightness(LineSegment const &A,
+                                                  IplImage const &GrayImage)
+                                const;
+
+            // Get the total surrounding brightness of a central point ...
+            double const        GetSurroundingBrightness(
+                                    CvPoint Centre,
+                                    IplImage const &GrayImage)
+                                const;
+            
+            /* Get the average brightness of the area within a contour...
             double const        GetAverageBrightness(
                                     CvContour const &Contour,
-                                    IplImage const &GrayImage) const;
+                                    IplImage const &GrayImage) const;*/
 
-            // Get the index of the next vertex in the contour after the given index, O(1) average...
+            // Get the index of the next vertex in the contour after the given 
+            //  index, O(1) average...
             unsigned int        GetNextVertexIndex(
-                                    unsigned int const &unVertexIndex) const;
+                                    unsigned int const &unVertexIndex)
+                                const;
             
-            // Get the actual vertex of the given vertex index in the contour, O(1) average...
+            // Get the actual vertex of the given vertex index in the contour, 
+            //  O(1) average...
             CvPoint            &GetVertex(
-                                    unsigned int const &unVertexIndex) const;
+                                    unsigned int const &unVertexIndex)
+                                const;
             
-            // Get the index of the previous vertex in the contour after the given index, O(1) average...
+            // Get the index of the previous vertex in the contour after the 
+            //  given index, O(1) average...
             unsigned int        GetPreviousVertexIndex(
-                                    unsigned int const &unVertexIndex) const;
+                                    unsigned int const &unVertexIndex)
+                                const;
 
         // Mutators...
 
@@ -266,7 +284,8 @@ class Worm
     protected:
     
             // The value of π...
-            double const static Pi                          = 3.1415926535897932384626433832795f;
+            double const static Pi                          
+                = 3.1415926535897932384626433832795f;
             
             // Infinity... (kind of)
             double const static Infinity                    = FLT_MAX;
