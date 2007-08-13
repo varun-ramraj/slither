@@ -132,9 +132,10 @@ class Worm
                                     unsigned int &unVerticesTraversed = unDummy) 
                                 const;
 
-            // Get the total brightness of a line...
-            double const        GetLineBrightness(LineSegment const &A,
-                                                  IplImage const &GrayImage)
+            // Get the maximum brightness along a line...
+            double const        GetLineMaximumBrightness(
+                                    LineSegment const &A,
+                                    IplImage const &GrayImage)
                                 const;
 
             // Get the total surrounding brightness of a central point ...

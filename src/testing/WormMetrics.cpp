@@ -254,6 +254,7 @@ int main(int nArguments, char *ppszArguments[])
             // Show it...
             cvShowImage("Original", pGrayImage);
             cvShowImage("Analysis", pThresholdImage);
+            cvMoveWindow("Analysis", 640, 0);
 //            CvSize Size = cvGetSize(pThresholdImage);
 //            cvResizeWindow("Analysis", int(Size.width * 1.5f), 
 //                                       int(Size.height * 1.5f));

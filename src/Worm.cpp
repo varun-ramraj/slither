@@ -8,9 +8,7 @@
 #include "Worm.h"
 #include <new>
 #include <cmath>
-#include <cfloat>
 #include <cassert>
-#include <ostream>
 
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
@@ -224,33 +222,6 @@ inline void Worm::Discover(CvContour const &NewContour,
                 UpdateHeadAndTail(unOtherMysteryEndVertexIndex, 
                                   unMysteryEndVertexIndex);
             }
-
-    /* Finally calculate the width of the worm...
-
-        // Let us measure from approximately half way up the worm from either 
-        //  end, 1/2 the total length... O(n)
-        unsigned int const unVertexIndexOfMiddleSideA =
-            FindVertexIndexByLength(unMysteryEndVertexIndex, 
-                                    dLengthAtThisMoment / 2.0f);
-
-        // Now find the middle on the other side by going the other way half 
-        //  the length... O(n)
-        unsigned int const unVertexIndexOfMiddleSideB =
-            FindVertexIndexByLength(unMysteryEndVertexIndex, 
-                                    -1.0f * dLengthAtThisMoment / 2.0f);
-
-cvCircle(const_cast<IplImage *>(&GrayImage), 
-            GetVertex(unVertexIndexOfMiddleSideA), 3,
-            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
-cvCircle(const_cast<IplImage *>(&GrayImage), 
-         GetVertex(unVertexIndexOfMiddleSideB), 3,
-            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
-
-        // The distance between the two points is approximately the width of
-        //  the worm...
-        UpdateWidth(
-            DistanceBetweenTwoPoints(GetVertex(unVertexIndexOfMiddleSideA), 
-                                     GetVertex(unVertexIndexOfMiddleSideB)));*/
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
@@ -350,18 +321,13 @@ inline void Worm::GenerateOrthogonalToLineSegment(
     // Start with the given line...
     Orthogonal = A;
     
-    /* Adjust so first point begins midway into given...
-    Orthogonal.first.x  += (A.second.x - A.first.x) / 2.0f;
-    Orthogonal.first.y  += (A.second.y - A.first.y) / 2.0f;*/
+    // Orthogonal begins at the first point of the original...
     Orthogonal.first.x = A.first.x;
     Orthogonal.first.y = A.first.y;
     
     // Pivot the second point 90 degrees about the first...
     RotatePointAboutAnother(Orthogonal.second, Orthogonal.first, 
                             Pi / 2.0f, Orthogonal.second);
-
-    // Make it of unit length...
- //   AdjustDirectedLineSegmentLength(Orthogonal, 10.0f);
 }
 
 /* Get the average brightness of the area within a contour...
@@ -392,7 +358,7 @@ cvDrawContours(const_cast<IplImage *>(&GrayImage),
                (CvSeq *) &Contour, CV_RGB(255, 255, 255), 
                CV_RGB(255, 255, 255), 0, CV_FILLED, 8);
 
-        // Fill the candidate head's mask with all white...
+        // Fill the contour's mask with all white...
         cvDrawContours(pMaskImage, (CvSeq *) &Contour, CV_RGB(255, 255, 255), 
                        CV_RGB(255, 255, 255), -1, CV_FILLED, 8);
 
@@ -427,8 +393,8 @@ if(AverageBrightness.val[0] == 0.0f)
     return AverageBrightness.val[0];
 }*/
 
-// Get the total brightness of a line...
-inline double const Worm::GetLineBrightness(
+// Get the maximum brightness along a line...
+inline double const Worm::GetLineMaximumBrightness(
     LineSegment const &A,
     IplImage const &GrayImage) const
 {
@@ -477,15 +443,6 @@ inline double const Worm::GetLineBrightness(
                 continue;
             }
 
-        /* Store the new mean brightness. Just multiply your old average by
-        //  n, add x_{n+1}, and then divide the whole thing by n+1...
-        dTotalBrightness = 
-            ((dTotalBrightness * nPixelIndex) + LineIterator.ptr[0]) 
-                / (nPixelIndex + 1);*/
-
-        /* Add pixel to accumulator...      
-        dTotalBrightness += LineIterator.ptr[0];*/
-        
         // We want the brightest pixel we can find...
         MaxBrightness = std::max(MaxBrightness, LineIterator.ptr[0]);
 
@@ -534,9 +491,9 @@ inline double const Worm::GetSurroundingBrightness(
             Horizontal(cvPoint2D32f(Centre.x - unRadius, Centre.y),
                        cvPoint2D32f(Centre.x + unRadius, Centre.y));
 
-    // Return the total brightness of the cross...
-    return GetLineBrightness(Vertical, GrayImage) +
-           GetLineBrightness(Horizontal, GrayImage);
+    // Return the maximum brightness on the cross...
+    return GetLineMaximumBrightness(Vertical, GrayImage) +
+           GetLineMaximumBrightness(Horizontal, GrayImage);
 }
 
 // Get the actual vertex of the given vertex index in the contour, O(1) 
@@ -851,8 +808,7 @@ inline bool Worm::operator==(Worm &RightWorm) const
     if(unUpdates == 0)
         return false;
 
-    /* TODO: Perhaps cvMeanShift could be useful here? */
-    return false;
+    
 }
 
 // Find the vertex index in the contour sequence that contains either end of 
@@ -979,10 +935,10 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     unsigned int unVertexIndexSideA = unStartVertexIndex;
     unsigned int unVertexIndexSideB = unClosestOppositeVertexIndexFound;
 
-cvLine(const_cast<IplImage *>(&GrayImage), 
+/*cvLine(const_cast<IplImage *>(&GrayImage), 
        GetVertex(unVertexIndexSideA),
        GetVertex(unVertexIndexSideB),
-       CV_RGB(0xFF, 0xFF, 0xFF));
+       CV_RGB(0xFF, 0xFF, 0xFF));*/
        
     // Pinch-Shift doesn't always pick the best two pinch vertices. However, 
     // the line segment formed between the two will probably have an upper 
@@ -1167,9 +1123,6 @@ inline void Worm::UpdateGravitationalCentre()
     // Extract the centre of gravity...
     GravitationalCentre.x = int(CurrentMoment.m10 / CurrentMoment.m00);
     GravitationalCentre.y = int(CurrentMoment.m01 / CurrentMoment.m00);
-
-/*cvCircle(&GrayImage, Centre, 4,
-            CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);*/
 }
 
 // Update the approximate head and tail position, based on the value at this 
