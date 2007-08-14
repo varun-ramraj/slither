@@ -794,23 +794,6 @@ inline double Worm::LengthOfLineSegment(LineSegment const &A) const
                   ((A.second.y - A.first.y) * (A.second.y - A.first.y)));
 }
 
-// Candidates are not similar enough... (see below)
-inline bool Worm::operator<(Worm &RightWorm) const
-{
-    /* TODO: Implement this. */
-    return false;
-}
-
-// Candidate meet the minimum required similarity...
-inline bool Worm::operator==(Worm &RightWorm) const
-{
-    // Hmm, we have no information about our own worm just yet...
-    if(unUpdates == 0)
-        return false;
-
-    
-}
-
 // Find the vertex index in the contour sequence that contains either end of 
 //  the worm, and update width while we're at it... θ(n)
 inline unsigned int Worm::PinchShiftForAnEnd(

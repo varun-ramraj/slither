@@ -11,8 +11,8 @@
 #include <opencv/highgui.h>
 #include <cassert>
 #include <iostream>
-#include <stdlib.h>
-#include <math.h>
+#include <cstdlib>
+#include <cmath>
 
 // Using the standard namespace...
 using namespace std;

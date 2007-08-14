@@ -61,12 +61,6 @@ class Worm
             friend std::ostream &operator<<(std::ostream &Output, 
                                             Worm &RequestedWorm);
 
-            // Candidates are not similar enough...
-            bool                operator<(Worm &RightWorm) const;
-
-            // Candidates meet the minimum required similarity...
-            bool                operator==(Worm &RightWorm) const;
-
         // Deconstructor...
        ~Worm();
 
@@ -86,10 +80,6 @@ class Worm
             
             // Infinity... (kind of)
             double const static Infinity                    = FLT_MAX;
-            
-            // The minimum required similarity needed for worm equivalency... 
-            //  (0.0 < percentage <= 100.0) 
-            double const static dMinimumRequiredSimilarity  = 95.0f;
 
     // Protected types...
     protected:
