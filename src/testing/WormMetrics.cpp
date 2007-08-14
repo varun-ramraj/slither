@@ -1,5 +1,5 @@
 /*
-  Name:         WormMetrics.cpp (implementation)
+  Name:         WormMetrics.cpp
   Author:       Kip Warner (Kip@TheVertigo.com)
   Description:  Tests out the Worm class...
   Quick Debug:  g++ WormMetrics.cpp ../Worm.cpp -g3 -o WormMetrics -Wall -Werror -lcxcore -lcv -lhighgui -lcvaux && insight --readnow --args ./WormMetrics WormFrame1.png WormFrame2.png WormFrame3.png WormFrame4.png
@@ -235,7 +235,17 @@ int main(int nArguments, char *ppszArguments[])
                 8,                      // line type
                 cvPoint(0, 0));         // offset
 
-            cvCircle(pThresholdImage, 
+            cvRectangle(pGrayImage, 
+                        cvPoint(pCurrentContour->rect.x, 
+                        pCurrentContour->rect.y),
+                        cvPoint(pCurrentContour->rect.width + 
+                                pCurrentContour->rect.x, 
+                                pCurrentContour->rect.height +
+                                pCurrentContour->rect.y), 
+                                CV_RGB(255, 255, 255), 1);
+                                
+
+            cvCircle(pGrayImage, 
                      Nematode.Head(),
                      5,
                      CV_RGB(0xFF, 0xFF, 0xFF), -1, 2);
@@ -243,7 +253,7 @@ int main(int nArguments, char *ppszArguments[])
                      Nematode.Centre(),
                      4,
                      CV_RGB(0xFF, 0xFF, 0xFF), -1);
-            cvCircle(pThresholdImage, 
+            cvCircle(pGrayImage, 
                      Nematode.Tail(),
                      5,
                      CV_RGB(0xFF, 0xFF, 0xFF), 1);

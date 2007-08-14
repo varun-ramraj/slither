@@ -321,9 +321,9 @@ inline void Worm::GenerateOrthogonalToLineSegment(
     // Start with the given line...
     Orthogonal = A;
     
-    // Orthogonal begins at the first point of the original...
-    Orthogonal.first.x = A.first.x;
-    Orthogonal.first.y = A.first.y;
+    /* Shift the line segment's start to half way...
+    Orthogonal.first.x = ((A.second.x - A.first.x) / 2.0f) + A.first.x;
+    Orthogonal.first.y = ((A.second.y - A.first.y) / 2.0f) + A.first.y;*/
     
     // Pivot the second point 90 degrees about the first...
     RotatePointAboutAnother(Orthogonal.second, Orthogonal.first, 
@@ -848,15 +848,15 @@ inline unsigned int Worm::PinchShiftForAnEnd(
 
     // Ensure that orthogonal is directed into the worm, rather than outwards...
     CorrectedOrthogonal = OrthogonalLineSegment;
-    for(unsigned int unOrthogonalCorrection = 0;
+    for(unsigned int unOrthogonalCorrection = 1;
         cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) <= 0.0f;
-        unOrthogonalCorrection++)
+      ++unOrthogonalCorrection)
     {
         // Preserve precision by starting with the original orthogonal...
         CorrectedOrthogonal = OrthogonalLineSegment;
 
         // Compute new length to try...
-        double dNewLength = (unOrthogonalCorrection / 10.0f);
+        double dNewLength = (unOrthogonalCorrection / 20.0f);
         
         // Alternate its direction for every other correction...
         if(unOrthogonalCorrection % 2 == 0)
