@@ -13,31 +13,6 @@
 // Dummy default argument parameters...
 unsigned int Worm::unDummy = 0;
 
-// Output a point...
-std::ostream & operator<<(std::ostream &Output, CvPoint Point)
-{
-    // Output
-    Output << "(" << Point.x << ", " << Point.y << ")";
-
-    // Return the stream...
-    return Output;
-}
-
-// Output some info of what we know about this worm...
-std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
-{
-    // Output attributes of note...
-    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
-           << "Centre:\t"   << RequestedWorm.Centre() << std::endl
-           << "Length:\t"   << RequestedWorm.dLength  << std::endl
-           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
-           << "Head:\t"     << RequestedWorm.Head()   << std::endl
-           << "Tail:\t"     << RequestedWorm.Tail()   << std::endl;
-
-    // Return the stream...
-    return Output;
-}
-
 // Default constructor...
 Worm::Worm()
     : pStorage(cvCreateMemStorage(0)),
@@ -72,7 +47,7 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
         throw std::bad_alloc();
 
     // Update the worm's metrics based on the contour...
-    Discover(Contour, GrayImage);
+    Update(Contour, GrayImage);
 }
 
 // Adjust the distance of the second vertex by the given distance along the radial... 
@@ -146,82 +121,6 @@ inline int Worm::Direction(CvPoint2D32f const Start,
     //  to the origin to make it work...
     return (int) (((First.x - Start.x) * (Second.y - Start.y)) - 
                   ((Second.x - Start.x) * (First.y - Start.y)));
-}
-
-// Discover the worm's metrics based on its new contour... (area, length, 
-//  width, et cetera)
-inline void Worm::Discover(CvContour const &NewContour, 
-                           IplImage const &GrayImage)
-{
-    // Image must be a 8-bit, unsigned, grayscale...
-    assert(GrayImage.depth == IPL_DEPTH_8U);
-
-    // Image must not have a region of interest set...
-    assert(GrayImage.roi == NULL);
-
-    // Remember that how many times we have updated, which we need for 
-    //  calculating arithmetic means...
-  ++unUpdates;
-
-    // Forget the old contour if we have one yet. This works by restoring the 
-    //  old contour sequence blocks to the base storage pool. This is θ(1) 
-    //  running time, usually...
-    if(pContour)
-        cvClearSeq((CvSeq *) pContour);
-
-    // Clone the new contour sequence into our storage pool...
-    pContour = (CvContour *) cvCloneSeq((CvSeq *) &NewContour, pStorage);
-
-        // For some reason the bounding rectangle in the header is skipped.
-        //  Intel bug?
-        pContour->rect = NewContour.rect;
-
-    // Update the gravitational centre from this image...
-    UpdateGravitationalCentre();
-
-    // Update the approximate area from the area calculated in this image...
-    UpdateArea(fabs(cvContourArea(pContour)));
-
-    // Update the approximate length from the length calculated in *this* image.
-    //  The length is about half the perimeter all the way around the worm...
-    double const dLengthAtThisMoment = 
-        cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
-    UpdateLength(dLengthAtThisMoment);
-
-    // Find both ends... (head and tail)
-
-        // Find an end, either will do... θ(n)
-        unsigned int const unMysteryEndVertexIndex = 
-            PinchShiftForAnEnd(GrayImage, Forwards);
-
-        // Find the other end of the worm which must be approximately the 
-        //  length of the worm away... O(n)
-        /*unsigned int const unOtherMysteryEndVertexIndex = 
-            FindVertexIndexByLength(unMysteryEndVertexIndex, 
-                                    dLengthAtThisMoment);*/
-        unsigned int const unOtherMysteryEndVertexIndex = 
-            PinchShiftForAnEnd(GrayImage, Backwards);
-
-        // Make a reasonably intelligent guess as to which end is which, based 
-        //  only on *this* image alone...
-
-            // The first end we found was probably the head...
-            if(IsFirstHeadCloisterCheck(unMysteryEndVertexIndex, 
-                                        unOtherMysteryEndVertexIndex, 
-                                        GrayImage))
-            {
-                // Remember for next time where approximately it was found...
-                UpdateHeadAndTail(unMysteryEndVertexIndex, 
-                                  unOtherMysteryEndVertexIndex);
-            }
-
-            // Nope, it was the other way around...
-            else
-            {
-                // Remember for next time where approximately it was found...
-                UpdateHeadAndTail(unOtherMysteryEndVertexIndex, 
-                                  unMysteryEndVertexIndex);
-            }
 }
 
 // Calculate the distance between the midpoints of two segments... θ(1)
@@ -1083,6 +982,81 @@ CvPoint const &Worm::Tail() const
             return TerminalA.LastSeenLocus;
 }
 
+// Update the worm's metrics based on its new contour... (area, length, width, 
+//  et cetera)
+inline void Worm::Update(CvContour const &NewContour, IplImage const &GrayImage)
+{
+    // Image must be a 8-bit, unsigned, grayscale...
+    assert(GrayImage.depth == IPL_DEPTH_8U);
+
+    // Image must not have a region of interest set...
+    assert(GrayImage.roi == NULL);
+
+    // Remember that how many times we have updated, which we need for 
+    //  calculating arithmetic means...
+  ++unUpdates;
+
+    // Forget the old contour if we have one yet. This works by restoring the 
+    //  old contour sequence blocks to the base storage pool. This is θ(1) 
+    //  running time, usually...
+    if(pContour)
+        cvClearSeq((CvSeq *) pContour);
+
+    // Clone the new contour sequence into our storage pool...
+    pContour = (CvContour *) cvCloneSeq((CvSeq *) &NewContour, pStorage);
+
+        // For some reason the bounding rectangle in the header is skipped.
+        //  Intel bug?
+        pContour->rect = NewContour.rect;
+
+    // Update the gravitational centre from this image...
+    UpdateGravitationalCentre();
+
+    // Update the approximate area from the area calculated in this image...
+    UpdateArea(fabs(cvContourArea(pContour)));
+
+    // Update the approximate length from the length calculated in *this* image.
+    //  The length is about half the perimeter all the way around the worm...
+    double const dLengthAtThisMoment = 
+        cvArcLength(pContour, CV_WHOLE_SEQ, true) / 2.0;
+    UpdateLength(dLengthAtThisMoment);
+
+    // Find both ends... (head and tail)
+
+        // Find an end, either will do... θ(n)
+        unsigned int const unMysteryEndVertexIndex = 
+            PinchShiftForAnEnd(GrayImage, Forwards);
+
+        // Find the other end of the worm which must be approximately the 
+        //  length of the worm away... O(n)
+        /*unsigned int const unOtherMysteryEndVertexIndex = 
+            FindVertexIndexByLength(unMysteryEndVertexIndex, 
+                                    dLengthAtThisMoment);*/
+        unsigned int const unOtherMysteryEndVertexIndex = 
+            PinchShiftForAnEnd(GrayImage, Backwards);
+
+        // Make a reasonably intelligent guess as to which end is which, based 
+        //  only on *this* image alone...
+
+            // The first end we found was probably the head...
+            if(IsFirstHeadCloisterCheck(unMysteryEndVertexIndex, 
+                                        unOtherMysteryEndVertexIndex, 
+                                        GrayImage))
+            {
+                // Remember for next time where approximately it was found...
+                UpdateHeadAndTail(unMysteryEndVertexIndex, 
+                                  unOtherMysteryEndVertexIndex);
+            }
+
+            // Nope, it was the other way around...
+            else
+            {
+                // Remember for next time where approximately it was found...
+                UpdateHeadAndTail(unOtherMysteryEndVertexIndex, 
+                                  unMysteryEndVertexIndex);
+            }
+}
+
 // Update the approximate area, based on the value at this moment in time. This 
 //  will help us make a more informed answer when asked via Area() for the size. 
 //  θ(1) space and time...
@@ -1184,5 +1158,30 @@ Worm::~Worm()
 {
     // Deallocate storage pool...
     cvReleaseMemStorage(&pStorage);
+}
+
+// Output a point...
+std::ostream & operator<<(std::ostream &Output, CvPoint Point)
+{
+    // Output
+    Output << "(" << Point.x << ", " << Point.y << ")";
+
+    // Return the stream...
+    return Output;
+}
+
+// Output some info of what we know about this worm...
+std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
+{
+    // Output attributes of note...
+    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
+           << "Centre:\t"   << RequestedWorm.Centre() << std::endl
+           << "Length:\t"   << RequestedWorm.dLength  << std::endl
+           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
+           << "Head:\t"     << RequestedWorm.Head()   << std::endl
+           << "Tail:\t"     << RequestedWorm.Tail()   << std::endl;
+
+    // Return the stream...
+    return Output;
 }
 

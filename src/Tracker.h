@@ -27,7 +27,7 @@ class Tracker
     public:
 
         // Default constructor...
-        Tracker();
+        Tracker(IplImage const &NewGrayImage);
 
         // Accessors...
 
@@ -36,31 +36,62 @@ class Tracker
 
             // Could this contour be a worm, independent of what we know?
             bool IsPossibleWorm(CvContour const &MysteryContour) const;
+            
+            // The number of worms we are currently tracking...
+            unsigned int Tracking() const;
 
         // Mutators...
-            
-            // Acknowledge a contour... (vermiform or not)
-            void Acknowledge(CvContour &Worm);
+
+            // Acknowledge a worm contour...
+            void Acknowledge(CvContour &WormContour);
+
+            // Advance frame...
+            void AdvanceNextFrame(IplImage const &NewGrayImage);
+
+        // Operators...
+
+            // Output some info on current tracker state......
+            friend std::ostream &operator<<(std::ostream &Output, 
+                                            Tracker &RequestedTracker);
 
         // Deconstructor...
        ~Tracker();
 
-    // Protected types...
+    // Protected types and constants...
     protected:
+
+        // Null worm...
+        Worm const static NullWorm;
 
     // Protected methods...
     protected:
 
         // Accessors...
-        Worm &FindBestMatch(CvContour &Key) const;
+            
+            // Find the best match of this contour, or NullWorm if none...
+            Worm &FindBestMatch(CvContour &Key) const;
+
+            // How many underlying rectangles does given one rest upon?
+            unsigned int const GetRectanglesBeneath(CvRect const &Rectangle) 
+                const;
+
+            // Does this worm's contour lie along the outer edge of the frame?
+            bool IsOuterEdge(CvContour const &WormContour) const;
 
         // Mutators...
+
+            // Add worm to tracker...
+            void Add(CvContour const &WormContour);
 
     // Protected attributes...
     protected:
 
-        // Null worm...
-        Worm const static NullWorm;
+        // Base storage to store contour sequence and any other dynamic 
+        //  OpenCV data structures...
+        CvMemStorage   *pStorage;
+
+        // Current frame's gray image...
+        IplImage       *pGrayImage;
 };
 
 #endif
