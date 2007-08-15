@@ -903,6 +903,13 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     return unVertexIndexSideA;
 }
 
+// Get the bounding rectangle for the worm...
+CvRect const &Worm::Rectangle() const
+{
+    // Return it...
+    return pContour->rect;
+}
+
 // Rotate a line segment about a point counterclockwise by an angle...
 inline void Worm::RotateLineSegmentAboutPoint(LineSegment &LineToRotate, 
                                               CvPoint2D32f const &Origin, 

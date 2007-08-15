@@ -53,6 +53,8 @@ void Tracker::Acknowledge(CvContour &WormContour)
                 // Find the best match...
                 Worm &BestMatch = FindBestMatch(WormContour);
 
+                /* TODO: Update rectangle as well? */
+
                 // Update it with the new contour...
                 BestMatch.Update(WormContour, *pGrayImage);
             }
@@ -64,7 +66,9 @@ void Tracker::Acknowledge(CvContour &WormContour)
     {
         // Find the best match...
         Worm &BestMatch = FindBestMatch(WormContour);
-        
+
+        /* TODO: Update rectangle as well? */
+
         // Update it with the new contour...
         BestMatch.Update(WormContour, *pGrayImage);
     }
@@ -74,7 +78,8 @@ void Tracker::Acknowledge(CvContour &WormContour)
 // Add worm to tracker...
 void Tracker::Add(CvContour const &WormContour)
 {
-
+    // Add new worm...
+    TrackingTable.push_back(new Worm(WormContour, *pGrayImage));
 }
 
 // Advance frame...
@@ -164,7 +169,8 @@ bool Tracker::IsPossibleWorm(CvContour const &MysteryContour) const
 // The number of worms we are currently tracking...
 unsigned int Tracker::Tracking() const
 {
-
+    // Return the size of the table...
+    return TrackingTable.size();
 }
 
 // Deconstructor...

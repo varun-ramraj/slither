@@ -19,6 +19,7 @@
     // Standard libraries and STL...
     #include <ostream>
     #include <utility>
+    #include <vector>
 
 // Tracker class...
 class Tracker
@@ -88,10 +89,13 @@ class Tracker
 
         // Base storage to store contour sequence and any other dynamic 
         //  OpenCV data structures...
-        CvMemStorage   *pStorage;
+        CvMemStorage           *pStorage;
 
         // Current frame's gray image...
-        IplImage       *pGrayImage;
+        IplImage               *pGrayImage;
+        
+        // Table of worms being tracked...
+        std::vector<Worm &>     TrackingTable;
 };
 
 #endif
