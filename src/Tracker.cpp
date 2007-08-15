@@ -28,7 +28,6 @@ Tracker::Tracker(IplImage const &GrayImage)
 
     // Image must not have a region of interest set...
     assert(pGrayImage->roi == NULL);
-
 }
 
 // Acknowledge a worm contour...
@@ -37,8 +36,8 @@ void Tracker::Acknowledge(CvContour &WormContour)
     // This worm's contour doesn't overlap with any other's...
     if(GetRectanglesBeneath(WormContour.rect) == 0)
     {
-        // This worm is on the outermost edge of the frame, add it...
-        if(IsOnOuterEdge(WormContour))
+        // This worm is within the outermost edge of the frame, add it...
+        if(IsWithinOuterFrameEdge(WormContour))
             Add(WormContour);
 
         // This worm is within the inner portion of the frame...
@@ -81,7 +80,15 @@ void Tracker::Add(CvContour const &WormContour)
 // Advance frame...
 void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 {
-
+    // Release the old image...
+    cvReleaseImage(&pGrayImage);
+    
+    // Allocate and clone the new one...
+    pGrayImage = cvCloneImage(&NewGrayImage);
+    
+        // Failed...
+        if(!pGrayImage)
+            throw std::bad_alloc();
 }
 
 // Find the best match of this contour, or NullWorm if none...
@@ -102,16 +109,56 @@ unsigned int const Tracker::GetRectanglesBeneath(CvRect const &Rectangle) const
 
 }
 
-// Does this worm's contour lie along the outer edge of the frame?
-bool Tracker::IsOuterEdge(CvContour const &WormContour) const
+// Does this worm's contour lie within the outer edge of the frame?
+bool Tracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
 {
+    // Border thickness...
+    int const   nBorderThickness    = 80;
 
+    // Check our assumptions...
+    assert((pGrayImage->height - nBorderThickness) > 0);
+    assert((pGrayImage->width  - nBorderThickness) > 0);
+
+    // Bounding rectangle of worm...
+    CvRect const &WormRectangle = WormContour.rect;
+
+    // Within left border...
+    if((WormRectangle.x + WormRectangle.width) < nBorderThickness)
+        return true;
+
+    // Within top border...
+    else if((WormRectangle.y + WormRectangle.height) < nBorderThickness)
+        return true;
+
+    // Within right border...
+    else if(WormRectangle.x > (pGrayImage->width - nBorderThickness))
+        return true;
+
+    // Within bottom border...
+    else if(WormRectangle.y > (pGrayImage->height - nBorderThickness))
+        return true;
+        
+    // Not within any of the borders...
+    else
+        return false;
 }
 
 // Could this contour be a worm, independent of what we know?
 bool Tracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
+    // Too few vertices...
+    if(MysteryContour.total < 6)
+        return false;
 
+    // Calculate the area of the worm...
+    double const dArea = fabs(cvContourArea(&MysteryContour));
+
+    // Too small / too big to be a worm...
+    if((dArea < 200.0) || (800.0 < dArea))
+        return false;
+        
+    // Meets worm minima...
+    return true;
 }
 
 // The number of worms we are currently tracking...

@@ -75,8 +75,8 @@ class Tracker
             unsigned int const GetRectanglesBeneath(CvRect const &Rectangle) 
                 const;
 
-            // Does this worm's contour lie along the outer edge of the frame?
-            bool IsOuterEdge(CvContour const &WormContour) const;
+            // Does this worm's contour lie within the outer edge of the frame?
+            bool IsWithinOuterFrameEdge(CvContour const &WormContour) const;
 
         // Mutators...
 
