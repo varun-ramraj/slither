@@ -50,6 +50,13 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     Update(Contour, GrayImage);
 }
 
+/* Explicit copy constructor...
+Worm::Worm(Worm const & SourceWorm)
+{
+    std::cout << "Worm copy constructor invoked..." << endl;
+    assert(false);
+}*/
+
 // Adjust the distance of the second vertex by the given distance along the radial... 
 inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A, 
                                                   double dLength) const

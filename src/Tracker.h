@@ -62,19 +62,23 @@ class Tracker
     protected:
 
         // Null worm...
-        Worm const static NullWorm;
+        Worm const NullWorm;
 
     // Protected methods...
     protected:
 
         // Accessors...
             
-            // Find the best match of this contour, or NullWorm if none...
-            Worm &FindBestMatch(CvContour &Key) const;
-
             // How many underlying rectangles does given one rest upon?
-            unsigned int const GetRectanglesBeneath(CvRect const &Rectangle) 
-                const;
+            unsigned int const CountRectanglesIntersected(
+                CvRect const &Rectangle) const;
+            
+            // Find the best match of this contour, or NullWorm if none...
+            Worm &FindBestMatch(CvContour &WormContour) const;
+
+            // Do the two rectangles have a non-zero intersection area?
+            bool IsRectanglesIntersect(CvRect const &RectangleOne,
+                                       CvRect const &RectangleTwo) const;
 
             // Does this worm's contour lie within the outer edge of the frame?
             bool IsWithinOuterFrameEdge(CvContour const &WormContour) const;
@@ -89,13 +93,13 @@ class Tracker
 
         // Base storage to store contour sequence and any other dynamic 
         //  OpenCV data structures...
-        CvMemStorage           *pStorage;
+        CvMemStorage               *pStorage;
 
         // Current frame's gray image...
-        IplImage               *pGrayImage;
+        IplImage                   *pGrayImage;
         
         // Table of worms being tracked...
-        std::vector<Worm &>     TrackingTable;
+        std::vector<Worm *>         TrackingTable;
 };
 
 #endif

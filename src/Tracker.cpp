@@ -9,6 +9,7 @@
 #include <new>
 #include <cmath>
 #include <cassert>
+#include <algorithm>
 
 // Default constructor...
 Tracker::Tracker(IplImage const &GrayImage)
@@ -34,7 +35,7 @@ Tracker::Tracker(IplImage const &GrayImage)
 void Tracker::Acknowledge(CvContour &WormContour)
 {
     // This worm's contour doesn't overlap with any other's...
-    if(GetRectanglesBeneath(WormContour.rect) == 0)
+    if(CountRectanglesIntersected(WormContour.rect) == 0)
     {
         // This worm is within the outermost edge of the frame, add it...
         if(IsWithinOuterFrameEdge(WormContour))
@@ -53,8 +54,6 @@ void Tracker::Acknowledge(CvContour &WormContour)
                 // Find the best match...
                 Worm &BestMatch = FindBestMatch(WormContour);
 
-                /* TODO: Update rectangle as well? */
-
                 // Update it with the new contour...
                 BestMatch.Update(WormContour, *pGrayImage);
             }
@@ -67,12 +66,9 @@ void Tracker::Acknowledge(CvContour &WormContour)
         // Find the best match...
         Worm &BestMatch = FindBestMatch(WormContour);
 
-        /* TODO: Update rectangle as well? */
-
         // Update it with the new contour...
         BestMatch.Update(WormContour, *pGrayImage);
     }
-    
 }
 
 // Add worm to tracker...
@@ -96,22 +92,56 @@ void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
             throw std::bad_alloc();
 }
 
-// Find the best match of this contour, or NullWorm if none...
-Worm &Tracker::FindBestMatch(CvContour &Key) const
+// How many underlying rectangles does given one rest upon?
+unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle) 
+    const
 {
+    // Variables...
+    unsigned int unIntersections = 0;
+    
+    // Count the number of intersections...
+    for(std::vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
+        Iterator != TrackingTable.end();
+      ++Iterator)
+    {
+        // Worm to check...
+        Worm const *pCurrentWorm = *Iterator;
+        
+        // Intersection detected...
+        if(IsRectanglesIntersect(Rectangle, pCurrentWorm->Rectangle()))
+          ++unIntersections;
+    }
 
+    // Return the count...
+    return unIntersections;
+}
+
+// Find the best match of this contour, or NullWorm if none...
+Worm &Tracker::FindBestMatch(CvContour &WormContour) const
+{
+    
 }
 
 // Get the nth worm, or null worm if no more...
 Worm const &Tracker::GetWorm(unsigned int const unIndex) const
 {
+    // Check bounds...
+    if(unIndex + 1 >= TrackingTable.size())
+        return NullWorm;
 
+    // Return worm...
+    return *TrackingTable.at(unIndex);
 }
 
-// How many underlying rectangles does given one rest upon?
-unsigned int const Tracker::GetRectanglesBeneath(CvRect const &Rectangle) const
+// Do the two rectangles have a non-zero intersection area?
+bool Tracker::IsRectanglesIntersect(CvRect const &RectangleOne,
+                                    CvRect const &RectangleTwo) const
 {
-
+    // Check...
+    return (RectangleOne.x < RectangleTwo.x + RectangleTwo.width) && 
+           (RectangleOne.y < RectangleTwo.y + RectangleTwo.height) &&
+           (RectangleOne.x + RectangleOne.width > RectangleTwo.x) && 
+           (RectangleOne.y + RectangleOne.height > RectangleTwo.y);
 }
 
 // Does this worm's contour lie within the outer edge of the frame?
@@ -176,15 +206,25 @@ unsigned int Tracker::Tracking() const
 // Deconstructor...
 Tracker::~Tracker()
 {
+    // Cleanup the worms...
+    for(std::vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
+        Iterator != TrackingTable.end();
+      ++Iterator)
+    {
+        // Deallocate
+        delete *Iterator;
+    }
+
+
     // Cleanup the gray image...
     cvReleaseImage(&pGrayImage);
     
     // Cleanup base storage...
-    cvReleaseMemStorage(&pStorage);
+    cvReleaseMemStorage(&pStorage);    
 }
 
 // Output some info on current tracker state......
-std::ostream & operator<<(std::ostream &Output, Worm &RequestedTracker)
+std::ostream & operator<<(std::ostream &Output, Tracker &RequestedTracker)
 {
     // Stubbed. Return the stream...
     return Output;
