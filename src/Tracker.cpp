@@ -12,28 +12,25 @@
 #include <algorithm>
 
 // Default constructor...
-Tracker::Tracker(IplImage const &GrayImage)
+Tracker::Tracker()
     : pStorage(cvCreateMemStorage(0)),
-      pGrayImage(cvCloneImage(&GrayImage))
+      pGrayImage(NULL)
 {
     // Allocatation of base storage failed...
     if(!pStorage)
         throw std::bad_alloc();
-    
-    // Allocation of image failed...
-    if(!pGrayImage)
-        throw std::bad_alloc();
-        
-    // Image must be a 8-bit, unsigned, grayscale...
-    assert(pGrayImage->depth == IPL_DEPTH_8U);
-
-    // Image must not have a region of interest set...
-    assert(pGrayImage->roi == NULL);
 }
 
 // Acknowledge a worm contour...
 void Tracker::Acknowledge(CvContour &WormContour)
 {
+    // We cannot do anything without at least the gray image...
+    assert(pGrayImage);
+
+    // Not a possible worm, ignore it...
+    if(!IsPossibleWorm(WormContour))
+        return;
+
     // This worm's contour doesn't overlap with any other's...
     if(CountRectanglesIntersected(WormContour.rect) == 0)
     {
@@ -54,7 +51,7 @@ void Tracker::Acknowledge(CvContour &WormContour)
                 // Find the best match...
                 Worm &BestMatch = FindBestMatch(WormContour);
 
-                // Update it with the new contour...
+                // Update it with the new contour and image data...
                 BestMatch.Update(WormContour, *pGrayImage);
             }
         }
@@ -74,22 +71,56 @@ void Tracker::Acknowledge(CvContour &WormContour)
 // Add worm to tracker...
 void Tracker::Add(CvContour const &WormContour)
 {
+    // We cannot do anything without at least the gray image...
+    assert(pGrayImage);
+
     // Add new worm...
     TrackingTable.push_back(new Worm(WormContour, *pGrayImage));
 }
 
 // Advance frame...
-void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
+void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
 {
-    // Release the old image...
-    cvReleaseImage(&pGrayImage);
+    // Variables...
+    CvContour  *pFirstContour   = NULL;
+    CvContour  *pCurrentContour = NULL;
+
+    // Release the old image, if any...
+    if(pGrayImage)
+        cvReleaseImage(&pGrayImage);
     
     // Allocate and clone the new one...
-    pGrayImage = cvCloneImage(&NewGrayImage);
+    pGrayImage = cvCloneImage(pNewGrayImage);
     
         // Failed...
         if(!pGrayImage)
             throw std::bad_alloc();
+
+    // Image must be a 8-bit, unsigned, grayscale...
+    assert(pGrayImage->depth == IPL_DEPTH_8U);
+
+    // Image must not have a region of interest set...
+    assert(pGrayImage->roi == NULL);
+    
+    // Create threshold...
+    IplImage *pThresholdImage = cvCloneImage(pGrayImage);
+    cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
+
+    // Find the contours in the threshold image...
+    cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
+                    sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
+                    cvPoint(0, 0));
+
+    // Cleanup...
+    cvReleaseImage(&pThresholdImage);
+
+    // Go through each contour found...
+    for(pCurrentContour = pFirstContour; pCurrentContour;
+        pCurrentContour = (CvContour *) pCurrentContour->h_next)
+    {
+        // Acknowledge...
+        Acknowledge(*pCurrentContour);
+    }
 }
 
 // How many underlying rectangles does given one rest upon?
@@ -116,10 +147,51 @@ unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle)
     return unIntersections;
 }
 
-// Find the best match of this contour, or NullWorm if none...
+// Find the best match of this contour...
 Worm &Tracker::FindBestMatch(CvContour &WormContour) const
 {
-    
+    // Worm's rectangle...
+    CvMoments       WormMoment;
+    CvPoint         WormCentre              = {0, 0};
+    double          dDistanceToClosestWorm  = FLT_MAX;
+    unsigned int    unClosestWormIndex      = (unsigned) -1;
+
+    // There had to be at least one worm tracking...
+    assert(Tracking() > 0);
+
+    // Calculate the gravitational centre of the given contour...
+
+        // Compute all moments of the contour...
+        cvMoments(&WormContour, &WormMoment);
+
+        // Extract centre of gravity...
+        WormCentre.x = int(WormMoment.m10 / WormMoment.m00);
+        WormCentre.y = int(WormMoment.m01 / WormMoment.m00);
+
+    // Check each worm's proximity to this one...
+    for(unsigned int unWormIndex = 0; 
+        unWormIndex < TrackingTable.size();
+      ++unWormIndex)
+    {
+        // Worm to check...
+        Worm const * const pCurrentWorm = TrackingTable.at(unWormIndex);
+
+        // How far away is the given worm to this iteration's...
+        double const dDistanceToWorm = 
+            cvSqrt(pow(WormCentre.x - pCurrentWorm->Centre().x, 2) + 
+                    pow(WormCentre.y - pCurrentWorm->Centre().y, 2));
+
+        // Remember only if its centre of mass has best proximity...
+        if(dDistanceToWorm < dDistanceToClosestWorm)
+        {
+            // Make a note of how close it was and which worm...
+            dDistanceToClosestWorm  = dDistanceToWorm;
+            unClosestWormIndex      = unWormIndex;
+        }
+    }
+
+    // Return reference to the best worm found...
+    return *TrackingTable.at(unClosestWormIndex);
 }
 
 // Get the nth worm, or null worm if no more...
@@ -226,7 +298,22 @@ Tracker::~Tracker()
 // Output some info on current tracker state......
 std::ostream & operator<<(std::ostream &Output, Tracker &RequestedTracker)
 {
-    // Stubbed. Return the stream...
+    // Show some general information about tracker...
+    std::cout << "Tracking " << RequestedTracker.TrackingTable.size() 
+              << " worms..." << std::endl;
+             
+
+    // Iterate through each worm in the tracker...
+    for(unsigned int unWormIndex = 0;
+        unWormIndex < RequestedTracker.TrackingTable.size();
+      ++unWormIndex)
+    {
+        // Show some information about each worm...
+        std::cout << *RequestedTracker.TrackingTable.at(unWormIndex) 
+                  << std::endl;
+    }
+
+    // Return the stream...
     return Output;
 }
 

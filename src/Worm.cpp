@@ -1188,12 +1188,12 @@ std::ostream & operator<<(std::ostream &Output, CvPoint Point)
 std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
 {
     // Output attributes of note...
-    Output << "Area:\t"     << RequestedWorm.dArea    << std::endl
-           << "Centre:\t"   << RequestedWorm.Centre() << std::endl
-           << "Length:\t"   << RequestedWorm.dLength  << std::endl
-           << "Width:\t"    << RequestedWorm.dWidth   << std::endl
-           << "Head:\t"     << RequestedWorm.Head()   << std::endl
-           << "Tail:\t"     << RequestedWorm.Tail()   << std::endl;
+    Output << "\tArea: "    << RequestedWorm.dArea      << std::endl
+           << "\tCentre: "  << RequestedWorm.Centre()   << std::endl
+           << "\tLength: "  << RequestedWorm.dLength    << std::endl
+           << "\tWidth: "   << RequestedWorm.dWidth     << std::endl
+           << "\tHead: "    << RequestedWorm.Head()     << std::endl
+           << "\tTail: "    << RequestedWorm.Tail()     << std::endl;
 
     // Return the stream...
     return Output;

@@ -17,7 +17,7 @@
     #include <opencv/cv.h>
     
     // Standard libraries and STL...
-    #include <ostream>
+    #include <iostream>
     #include <utility>
     #include <vector>
 
@@ -28,7 +28,7 @@ class Tracker
     public:
 
         // Default constructor...
-        Tracker(IplImage const &NewGrayImage);
+        Tracker();
 
         // Accessors...
 
@@ -47,7 +47,7 @@ class Tracker
             void Acknowledge(CvContour &WormContour);
 
             // Advance frame...
-            void AdvanceNextFrame(IplImage const &NewGrayImage);
+            void AdvanceNextFrame(IplImage const *pNewGrayImage);
 
         // Operators...
 
@@ -73,7 +73,7 @@ class Tracker
             unsigned int const CountRectanglesIntersected(
                 CvRect const &Rectangle) const;
             
-            // Find the best match of this contour, or NullWorm if none...
+            // Find the best match of this contour...
             Worm &FindBestMatch(CvContour &WormContour) const;
 
             // Do the two rectangles have a non-zero intersection area?
