@@ -14,7 +14,8 @@
 // Default constructor...
 Tracker::Tracker()
     : pStorage(cvCreateMemStorage(0)),
-      pGrayImage(NULL)
+      pGrayImage(NULL),
+      pThinkingImage(NULL)
 {
     // Allocatation of base storage failed...
     if(!pStorage)
@@ -88,6 +89,10 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
     // Release the old image, if any...
     if(pGrayImage)
         cvReleaseImage(&pGrayImage);
+        
+    // Release the old thinking image, if any...
+    if(pThinkingImage)
+        cvReleaseImage(&pThinkingImage);
     
     // Allocate and clone the new one...
     pGrayImage = cvCloneImage(pNewGrayImage);
@@ -95,6 +100,18 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
         // Failed...
         if(!pGrayImage)
             throw std::bad_alloc();
+
+    // Prepare the thinking image...
+    
+        // Allocate...
+        pThinkingImage = cvCreateImage(cvGetSize(pGrayImage), IPL_DEPTH_8U, 3);
+        
+            // Failed...
+            if(!pThinkingImage)
+                throw std::bad_alloc();
+
+        // Copy in the original grayscale image as colour now...
+        cvConvertImage(pGrayImage, pThinkingImage, CV_GRAY2BGR);
 
     // Image must be a 8-bit, unsigned, grayscale...
     assert(pGrayImage->depth == IPL_DEPTH_8U);
@@ -118,8 +135,17 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
     for(pCurrentContour = pFirstContour; pCurrentContour;
         pCurrentContour = (CvContour *) pCurrentContour->h_next)
     {
-        // Acknowledge...
-        Acknowledge(*pCurrentContour);
+        // Not a possible worm, ignore it...
+        if(!IsPossibleWorm(*pCurrentContour))
+            continue;
+
+        /* Acknowledge...
+        Acknowledge(*pCurrentContour);*/
+        
+        cvDrawContours(pThinkingImage, (CvSeq*) pCurrentContour,
+                       CV_RGB(rand() & 255, rand() & 255, rand() & 255),
+                       CV_RGB(rand() & 255, rand() & 255, rand() & 255), 0,
+                       2);
     }
 }
 
@@ -192,6 +218,13 @@ Worm &Tracker::FindBestMatch(CvContour &WormContour) const
 
     // Return reference to the best worm found...
     return *TrackingTable.at(unClosestWormIndex);
+}
+
+// Get the current thinking image...
+IplImage const *Tracker::GetThinkingImage() const
+{
+    // Return it...
+    return pThinkingImage;
 }
 
 // Get the nth worm, or null worm if no more...
@@ -287,7 +320,6 @@ Tracker::~Tracker()
         delete *Iterator;
     }
 
-
     // Cleanup the gray image...
     cvReleaseImage(&pGrayImage);
     
@@ -301,7 +333,6 @@ std::ostream & operator<<(std::ostream &Output, Tracker &RequestedTracker)
     // Show some general information about tracker...
     std::cout << "Tracking " << RequestedTracker.TrackingTable.size() 
               << " worms..." << std::endl;
-             
 
     // Iterate through each worm in the tracker...
     for(unsigned int unWormIndex = 0;

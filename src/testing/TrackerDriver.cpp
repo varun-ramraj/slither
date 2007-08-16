@@ -182,7 +182,8 @@ int main(int nArguments, char *ppszArguments[])
         cout << TestTracker << endl;
 
         // Show it...
-        cvShowImage("Tracker", pGrayImage);
+        720 480
+        cvShowImage("Tracker", TestTracker.GetThinkingImage());
 
         // Wait for key press...
         while(true)
