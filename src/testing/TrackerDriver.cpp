@@ -159,7 +159,7 @@ int main(int nArguments, char *ppszArguments[])
     }
     
     // Create windows...
-    cvNamedWindow("Tracker", CV_WINDOW_AUTOSIZE);
+    cvNamedWindow("Tracker", 0);//, CV_WINDOW_AUTOSIZE);
 
     // Process and display each image in sequence...
     for(int nCurrentFrame = 0; 
@@ -176,14 +176,14 @@ int main(int nArguments, char *ppszArguments[])
         assert(pGrayImage);
                                            
         // Advance tracker frame...
-        TestTracker.AdvanceNextFrame(pGrayImage);
+        TestTracker.AdvanceNextFrame(*pGrayImage);
 
         // Show some information on the tracker...
         cout << TestTracker << endl;
 
         // Show it...
-        720 480
         cvShowImage("Tracker", TestTracker.GetThinkingImage());
+        cvResizeWindow("Tracker", 720, 480);
 
         // Wait for key press...
         while(true)

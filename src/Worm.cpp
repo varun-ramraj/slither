@@ -707,61 +707,69 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     IterationDirection Direction)
 {
     // Variables...
-    unsigned int const  unStartVertexIndex                  = 0;
+    unsigned int        unStartVertexIndex                  = 0;
     unsigned int        unCurrentOppositeVertexIndex        = 0;
     unsigned int        unClosestOppositeVertexIndexFound   = 0;
     double              dClosestOppositeVertexDistanceFound = Infinity;
-    LineSegment         StartingLineSegment(
-                            cvPoint2D32f(0.0f, 0.0f), 
-                            cvPoint2D32f(0.0f, 0.0f));
-    LineSegment         OrthogonalLineSegment(
-                            cvPoint2D32f(0.0f, 0.0f), 
-                            cvPoint2D32f(0.0f, 0.0f));
-    LineSegment         CorrectedOrthogonal(
-                            cvPoint2D32f(0.0f, 0.0f), 
-                            cvPoint2D32f(0.0f, 0.0f));;
+    LineSegment         StartingLineSegment;
+    LineSegment         OrthogonalLineSegment;
+    LineSegment         CorrectedOrthogonal;
 
-    // We begin by forming a line segment from an arbitrary point on the 
-    //  contour to its neighbour...
-    StartingLineSegment.first   = 
-        cvPointTo32f(GetVertex(unStartVertexIndex));
-    StartingLineSegment.second  = 
-        cvPointTo32f(GetVertex(
-            FindVertexIndexByLength(unStartVertexIndex, 5.0f)));
-
-    // Make the starting line segment now a tangent to the curve...
-    AdjustDirectedLineSegmentLength(StartingLineSegment, 30.0f);
-
-    // Generate an orthogonal for the starting line segment...
-    GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
-
-    // Ensure that orthogonal is directed into the worm, rather than outwards...
-    CorrectedOrthogonal = OrthogonalLineSegment;
-    for(unsigned int unOrthogonalCorrection = 1;
-        cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) <= 0.0f;
-      ++unOrthogonalCorrection)
+    // Keep trying to make an orthogonal from the starting vertex that points
+    //  into the worm...
+    do
     {
-        // Preserve precision by starting with the original orthogonal...
+        // We begin by forming a line segment from an arbitrary point on the 
+        //  contour to its neighbour...
+        StartingLineSegment.first   = cvPointTo32f(GetVertex(unStartVertexIndex));
+        StartingLineSegment.second  = cvPointTo32f(GetVertex(
+                FindVertexIndexByLength(unStartVertexIndex, 5.0f)));
+
+        // Make the starting line segment now a tangent to the curve...
+        AdjustDirectedLineSegmentLength(StartingLineSegment, 30.0f);
+
+        // Generate an orthogonal for the starting line segment...
+        GenerateOrthogonalToLineSegment(StartingLineSegment, OrthogonalLineSegment);
+
+        // Keep correcting the orthogonal until we find one that works, or we
+        //  give up...
         CorrectedOrthogonal = OrthogonalLineSegment;
+        for(unsigned int unOrthogonalCorrection = 1;
+            unOrthogonalCorrection <= 40 && 
+            cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) <= 0.0f;
+            ++unOrthogonalCorrection)
+        {
+            // Preserve precision by starting with the original orthogonal...
+            CorrectedOrthogonal = OrthogonalLineSegment;
 
-        // Compute new length to try...
-        double dNewLength = (unOrthogonalCorrection / 20.0f);
+            // Compute new length to try...
+            double dNewLength = (unOrthogonalCorrection / 20.0f);
+            
+            // Alternate its direction for every other correction...
+            if(unOrthogonalCorrection % 2 == 0)
+                dNewLength *= -1.0f;
+
+            // Alternate between pointing in either direction...
+            AdjustDirectedLineSegmentLength(CorrectedOrthogonal, dNewLength);
+        }
+
+        // We had found a good orthogonal...
+        if(cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) 
+            > 0.0f)
+            break;
         
-        // Alternate its direction for every other correction...
-        if(unOrthogonalCorrection % 2 == 0)
-            dNewLength *= -1.0f;
-
-        // Alternate between pointing in either direction...
-        AdjustDirectedLineSegmentLength(CorrectedOrthogonal, dNewLength);
+        // We had not found a good orthogonal...
+        else
+        {
+            // Try again from 1/5th of the worm's length away...
+            unStartVertexIndex = 
+                FindVertexIndexByLength(unStartVertexIndex, Length() / 5.0f);
+        }
     }
+    while(true);
 
-    // Use corrected orthogonal now...
+    // Use corrected orthogonal from now on...
     OrthogonalLineSegment = CorrectedOrthogonal;
-
-        // The orthogonal directed segment's other side should always be within 
-        //  the worm...
-        assert(cvPointPolygonTest(pContour, OrthogonalLineSegment.second, 0) 
-                > 0.0f);
 
     // Extend the directed orthogonal line segment out very far and clip to the 
     //  very edge of the image...
@@ -1193,7 +1201,8 @@ std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
            << "\tLength: "  << RequestedWorm.dLength    << std::endl
            << "\tWidth: "   << RequestedWorm.dWidth     << std::endl
            << "\tHead: "    << RequestedWorm.Head()     << std::endl
-           << "\tTail: "    << RequestedWorm.Tail()     << std::endl;
+           << "\tTail: "    << RequestedWorm.Tail()     << std::endl
+           << "\tUpdates: " << RequestedWorm.unUpdates  << std::endl;
 
     // Return the stream...
     return Output;

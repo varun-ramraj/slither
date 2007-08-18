@@ -17,8 +17,10 @@
     #include <opencv/cv.h>
     #include <opencv/highgui.h>
     
-    // Standard libraries and STL...
+    // Standard libraries, STL, and namespace...
+    using namespace std;
     #include <iostream>
+    #include <string>
     #include <utility>
     #include <vector>
 
@@ -50,14 +52,17 @@ class Tracker
             // Acknowledge a worm contour...
             void Acknowledge(CvContour &WormContour);
 
+            // Add a text label to the thinking image at a point...
+            void AddThinkingLabel(string const sLabel, CvPoint Point);
+
             // Advance frame...
-            void AdvanceNextFrame(IplImage const *pNewGrayImage);
+            void AdvanceNextFrame(IplImage const &NewGrayImage);
 
         // Operators...
 
             // Output some info on current tracker state......
-            friend std::ostream &operator<<(std::ostream &Output, 
-                                            Tracker &RequestedTracker);
+            friend ostream &operator<<(ostream &Output, 
+                                       Tracker &RequestedTracker);
 
         // Deconstructor...
        ~Tracker();
@@ -97,14 +102,17 @@ class Tracker
 
         // Base storage to store contour sequence and any other dynamic 
         //  OpenCV data structures...
-        CvMemStorage               *pStorage;
+        CvMemStorage   *pStorage;
+        
+        // Thinking image label font...
+        CvFont          ThinkingLabelFont;
 
         // Current frame's gray image and thinking image...
-        IplImage                   *pGrayImage;
-        IplImage                   *pThinkingImage;
+        IplImage       *pGrayImage;
+        IplImage       *pThinkingImage;
         
         // Table of worms being tracked...
-        std::vector<Worm *>         TrackingTable;
+        vector<Worm *>  TrackingTable;
 };
 
 #endif

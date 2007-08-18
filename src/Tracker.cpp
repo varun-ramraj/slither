@@ -10,6 +10,7 @@
 #include <cmath>
 #include <cassert>
 #include <algorithm>
+#include <sstream>
 
 // Default constructor...
 Tracker::Tracker()
@@ -19,7 +20,19 @@ Tracker::Tracker()
 {
     // Allocatation of base storage failed...
     if(!pStorage)
-        throw std::bad_alloc();
+        throw bad_alloc();
+        
+    // Initialize the thinking label font...
+    
+        // Font constants...
+        double const        fHorizontalScale    = 1.0;
+        double const        fVerticalScale      = 1.0;
+        unsigned int const  unThickness         = 0;
+        unsigned int const  unLineWidth         = 1;
+
+        // Initialize the font structure...
+        cvInitFont(&ThinkingLabelFont, CV_FONT_HERSHEY_PLAIN, 
+                   fHorizontalScale, fVerticalScale, unThickness, unLineWidth);
 }
 
 // Acknowledge a worm contour...
@@ -75,12 +88,28 @@ void Tracker::Add(CvContour const &WormContour)
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
 
+    // Breath life into a new worm from the given contour...
+    Worm &NewWorm = *(new Worm(WormContour, *pGrayImage));
+
     // Add new worm...
-    TrackingTable.push_back(new Worm(WormContour, *pGrayImage));
+    TrackingTable.push_back(&NewWorm);
+}
+
+// Add a text label to the thinking image at a point...
+void Tracker::AddThinkingLabel(string const sLabel, CvPoint Point)
+{
+    // Draw label line...
+    cvLine(pThinkingImage, cvPoint(Point.x + 20, Point.y + 20), Point,
+           CV_RGB(0xfe, 0x00, 0x00));
+
+    // Draw text...
+    cvPutText(pThinkingImage, sLabel.c_str(), 
+              cvPoint(Point.x + 25, Point.y + 25), &ThinkingLabelFont,
+              CV_RGB(0xfe, 0x00, 0x00));
 }
 
 // Advance frame...
-void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
+void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 {
     // Variables...
     CvContour  *pFirstContour   = NULL;
@@ -95,11 +124,11 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
         cvReleaseImage(&pThinkingImage);
     
     // Allocate and clone the new one...
-    pGrayImage = cvCloneImage(pNewGrayImage);
+    pGrayImage = cvCloneImage(&NewGrayImage);
     
         // Failed...
         if(!pGrayImage)
-            throw std::bad_alloc();
+            throw bad_alloc();
 
     // Prepare the thinking image...
     
@@ -108,7 +137,7 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
         
             // Failed...
             if(!pThinkingImage)
-                throw std::bad_alloc();
+                throw bad_alloc();
 
         // Copy in the original grayscale image as colour now...
         cvConvertImage(pGrayImage, pThinkingImage, CV_GRAY2BGR);
@@ -139,13 +168,31 @@ void Tracker::AdvanceNextFrame(IplImage const *pNewGrayImage)
         if(!IsPossibleWorm(*pCurrentContour))
             continue;
 
-        /* Acknowledge...
-        Acknowledge(*pCurrentContour);*/
-        
+        // Draw the contours onto the thinking image...
         cvDrawContours(pThinkingImage, (CvSeq*) pCurrentContour,
-                       CV_RGB(rand() & 255, rand() & 255, rand() & 255),
-                       CV_RGB(rand() & 255, rand() & 255, rand() & 255), 0,
-                       2);
+                       CV_RGB(0x00, 0x00, 0xfe), CV_RGB(0x00, 0x00, 0xfe), 0, 
+                       1);
+
+        // Acknowledge...
+        Acknowledge(*pCurrentContour);
+    }
+    
+    // Show some information on each worm contour...
+    for(unsigned int unWormIndex = 0; unWormIndex < TrackingTable.size();
+      ++unWormIndex)
+    {
+        // Get the current worm...
+        Worm const &CurrentWorm = GetWorm(unWormIndex);
+        
+        // This should still be within bounds...
+        assert(&CurrentWorm != &NullWorm);
+    
+        // Show some information about the worm on the thinking image...
+        std::ostringstream sHead;
+        sHead << "worm " << unWormIndex;
+        AddThinkingLabel(sHead.str(), CurrentWorm.Head());
+        AddThinkingLabel("centre", CurrentWorm.Centre());
+        AddThinkingLabel("tail", CurrentWorm.Tail());
     }
 }
 
@@ -157,7 +204,7 @@ unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle)
     unsigned int unIntersections = 0;
     
     // Count the number of intersections...
-    for(std::vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
+    for(vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
         Iterator != TrackingTable.end();
       ++Iterator)
     {
@@ -204,8 +251,8 @@ Worm &Tracker::FindBestMatch(CvContour &WormContour) const
 
         // How far away is the given worm to this iteration's...
         double const dDistanceToWorm = 
-            cvSqrt(pow(WormCentre.x - pCurrentWorm->Centre().x, 2) + 
-                    pow(WormCentre.y - pCurrentWorm->Centre().y, 2));
+            cvSqrt(pow(double(WormCentre.x) - pCurrentWorm->Centre().x, 2) + 
+                   pow(double(WormCentre.y) - pCurrentWorm->Centre().y, 2));
 
         // Remember only if its centre of mass has best proximity...
         if(dDistanceToWorm < dDistanceToClosestWorm)
@@ -231,7 +278,7 @@ IplImage const *Tracker::GetThinkingImage() const
 Worm const &Tracker::GetWorm(unsigned int const unIndex) const
 {
     // Check bounds...
-    if(unIndex + 1 >= TrackingTable.size())
+    if(unIndex + 1 > TrackingTable.size())
         return NullWorm;
 
     // Return worm...
@@ -312,7 +359,7 @@ unsigned int Tracker::Tracking() const
 Tracker::~Tracker()
 {
     // Cleanup the worms...
-    for(std::vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
+    for(vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
         Iterator != TrackingTable.end();
       ++Iterator)
     {
@@ -328,11 +375,11 @@ Tracker::~Tracker()
 }
 
 // Output some info on current tracker state......
-std::ostream & operator<<(std::ostream &Output, Tracker &RequestedTracker)
+ostream & operator<<(ostream &Output, Tracker &RequestedTracker)
 {
     // Show some general information about tracker...
-    std::cout << "Tracking " << RequestedTracker.TrackingTable.size() 
-              << " worms..." << std::endl;
+    cout << "Tracking " << RequestedTracker.TrackingTable.size() 
+         << " worms..." << endl;
 
     // Iterate through each worm in the tracker...
     for(unsigned int unWormIndex = 0;
@@ -340,8 +387,8 @@ std::ostream & operator<<(std::ostream &Output, Tracker &RequestedTracker)
       ++unWormIndex)
     {
         // Show some information about each worm...
-        std::cout << *RequestedTracker.TrackingTable.at(unWormIndex) 
-                  << std::endl;
+        cout << "Worm " << unWormIndex << endl;
+        cout << *RequestedTracker.TrackingTable.at(unWormIndex) << endl;
     }
 
     // Return the stream...
