@@ -1,11 +1,11 @@
 /*
-  Name:         Tracker.cpp (implementation)
+  Name:         WormTracker.cpp (implementation)
   Author:       Kip Warner (Kip@TheVertigo.com)
-  Description:  Tracker class...
+  Description:  WormTracker class...
 */
 
 // Includes...
-#include "Tracker.h"
+#include "WormTracker.h"
 #include <new>
 #include <cmath>
 #include <cassert>
@@ -13,7 +13,7 @@
 #include <sstream>
 
 // Default constructor...
-Tracker::Tracker()
+WormTracker::WormTracker()
     : pStorage(cvCreateMemStorage(0)),
       pGrayImage(NULL),
       pThinkingImage(NULL)
@@ -36,7 +36,7 @@ Tracker::Tracker()
 }
 
 // Acknowledge a worm contour...
-void Tracker::Acknowledge(CvContour &WormContour)
+void WormTracker::Acknowledge(CvContour &WormContour)
 {
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
@@ -83,7 +83,7 @@ void Tracker::Acknowledge(CvContour &WormContour)
 }
 
 // Add worm to tracker...
-void Tracker::Add(CvContour const &WormContour)
+void WormTracker::Add(CvContour const &WormContour)
 {
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
@@ -96,7 +96,7 @@ void Tracker::Add(CvContour const &WormContour)
 }
 
 // Add a text label to the thinking image at a point...
-void Tracker::AddThinkingLabel(string const sLabel, CvPoint Point)
+void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 {
     // Draw label line...
     cvLine(pThinkingImage, cvPoint(Point.x + 20, Point.y + 20), Point,
@@ -109,7 +109,7 @@ void Tracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 }
 
 // Advance frame...
-void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
+void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 {
     // Variables...
     CvContour  *pFirstContour   = NULL;
@@ -154,8 +154,8 @@ void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 
     // Find the contours in the threshold image...
     cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
-                    sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
-                    cvPoint(0, 0));
+                   sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
+                   cvPoint(0, 0));
 
     // Cleanup...
     cvReleaseImage(&pThresholdImage);
@@ -188,17 +188,18 @@ void Tracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         assert(&CurrentWorm != &NullWorm);
     
         // Show some information about the worm on the thinking image...
-        std::ostringstream sHead;
-        sHead << "worm " << unWormIndex;
-        AddThinkingLabel(sHead.str(), CurrentWorm.Head());
-        AddThinkingLabel("centre", CurrentWorm.Centre());
+        AddThinkingLabel("head", CurrentWorm.Head());
+        std::ostringstream ssCentre;
+        ssCentre << "(worm " << unWormIndex << ", updated " 
+                 << CurrentWorm.Updates() << ")";
+        AddThinkingLabel(ssCentre.str(), CurrentWorm.Centre());
         AddThinkingLabel("tail", CurrentWorm.Tail());
     }
 }
 
 // How many underlying rectangles does given one rest upon?
-unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle) 
-    const
+unsigned int const WormTracker::CountRectanglesIntersected(
+    CvRect const &Rectangle) const
 {
     // Variables...
     unsigned int unIntersections = 0;
@@ -209,10 +210,10 @@ unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle)
       ++Iterator)
     {
         // Worm to check...
-        Worm const *pCurrentWorm = *Iterator;
+        Worm const &CurrentWorm = **Iterator;
         
         // Intersection detected...
-        if(IsRectanglesIntersect(Rectangle, pCurrentWorm->Rectangle()))
+        if(IsRectanglesIntersect(Rectangle, CurrentWorm.Rectangle()))
           ++unIntersections;
     }
 
@@ -221,7 +222,7 @@ unsigned int const Tracker::CountRectanglesIntersected(CvRect const &Rectangle)
 }
 
 // Find the best match of this contour...
-Worm &Tracker::FindBestMatch(CvContour &WormContour) const
+Worm &WormTracker::FindBestMatch(CvContour &WormContour) const
 {
     // Worm's rectangle...
     CvMoments       WormMoment;
@@ -268,14 +269,14 @@ Worm &Tracker::FindBestMatch(CvContour &WormContour) const
 }
 
 // Get the current thinking image...
-IplImage const *Tracker::GetThinkingImage() const
+IplImage const *WormTracker::GetThinkingImage() const
 {
     // Return it...
     return pThinkingImage;
 }
 
 // Get the nth worm, or null worm if no more...
-Worm const &Tracker::GetWorm(unsigned int const unIndex) const
+Worm const &WormTracker::GetWorm(unsigned int const unIndex) const
 {
     // Check bounds...
     if(unIndex + 1 > TrackingTable.size())
@@ -286,8 +287,8 @@ Worm const &Tracker::GetWorm(unsigned int const unIndex) const
 }
 
 // Do the two rectangles have a non-zero intersection area?
-bool Tracker::IsRectanglesIntersect(CvRect const &RectangleOne,
-                                    CvRect const &RectangleTwo) const
+bool WormTracker::IsRectanglesIntersect(CvRect const &RectangleOne,
+                                        CvRect const &RectangleTwo) const
 {
     // Check...
     return (RectangleOne.x < RectangleTwo.x + RectangleTwo.width) && 
@@ -297,7 +298,7 @@ bool Tracker::IsRectanglesIntersect(CvRect const &RectangleOne,
 }
 
 // Does this worm's contour lie within the outer edge of the frame?
-bool Tracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
+bool WormTracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
 {
     // Border thickness...
     int const   nBorderThickness    = 80;
@@ -331,7 +332,7 @@ bool Tracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
 }
 
 // Could this contour be a worm, independent of what we know?
-bool Tracker::IsPossibleWorm(CvContour const &MysteryContour) const
+bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
     // Too few vertices...
     if(MysteryContour.total < 6)
@@ -349,14 +350,14 @@ bool Tracker::IsPossibleWorm(CvContour const &MysteryContour) const
 }
 
 // The number of worms we are currently tracking...
-unsigned int Tracker::Tracking() const
+unsigned int WormTracker::Tracking() const
 {
     // Return the size of the table...
     return TrackingTable.size();
 }
 
 // Deconstructor...
-Tracker::~Tracker()
+WormTracker::~WormTracker()
 {
     // Cleanup the worms...
     for(vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
@@ -367,28 +368,33 @@ Tracker::~Tracker()
         delete *Iterator;
     }
 
-    // Cleanup the gray image...
-    cvReleaseImage(&pGrayImage);
+    // Cleanup the gray image, if any...
+    if(pGrayImage)
+        cvReleaseImage(&pGrayImage);
+
+    // Cleanup the thinking image, if any...
+    if(pThinkingImage)
+        cvReleaseImage(&pThinkingImage);
     
     // Cleanup base storage...
     cvReleaseMemStorage(&pStorage);    
 }
 
 // Output some info on current tracker state......
-ostream & operator<<(ostream &Output, Tracker &RequestedTracker)
+ostream & operator<<(ostream &Output, WormTracker &RequestedWormTracker)
 {
     // Show some general information about tracker...
-    cout << "Tracking " << RequestedTracker.TrackingTable.size() 
+    cout << "Tracking " << RequestedWormTracker.TrackingTable.size() 
          << " worms..." << endl;
 
     // Iterate through each worm in the tracker...
     for(unsigned int unWormIndex = 0;
-        unWormIndex < RequestedTracker.TrackingTable.size();
+        unWormIndex < RequestedWormTracker.TrackingTable.size();
       ++unWormIndex)
     {
         // Show some information about each worm...
         cout << "Worm " << unWormIndex << endl;
-        cout << *RequestedTracker.TrackingTable.at(unWormIndex) << endl;
+        cout << *RequestedWormTracker.TrackingTable.at(unWormIndex) << endl;
     }
 
     // Return the stream...

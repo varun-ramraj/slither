@@ -56,6 +56,9 @@ class Worm
             // Best guess as to the tail's position at this moment in time, 
             //  since it changes...
             CvPoint const      &Tail() const;
+            
+            // Number of times worm has been updated...
+            unsigned int const  Updates() const;
 
             // Best guess of the area, considering everything we've seen thus 
             //  far...

@@ -1168,6 +1168,13 @@ inline void Worm::UpdateWidth(double const &dWidthAtThisMoment)
     dWidth = std::max(dWidth, dWidthAtThisMoment);
 }
 
+// Number of times worm has been updated...
+unsigned int const Worm::Updates() const
+{
+    // Return it...
+    return unUpdates;
+}
+
 // Best guess of the area, considering everything we've seen thus far...
 inline double const &Worm::Width() const
 {
@@ -1202,7 +1209,7 @@ std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
            << "\tWidth: "   << RequestedWorm.dWidth     << std::endl
            << "\tHead: "    << RequestedWorm.Head()     << std::endl
            << "\tTail: "    << RequestedWorm.Tail()     << std::endl
-           << "\tUpdates: " << RequestedWorm.unUpdates  << std::endl;
+           << "\tUpdates: " << RequestedWorm.Updates()  << std::endl;
 
     // Return the stream...
     return Output;

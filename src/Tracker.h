@@ -1,12 +1,12 @@
 /*
-  Name:         Tracker.h (definition)
+  Name:         WormTracker.h (definition)
   Author:       Kip Warner (Kip@TheVertigo.com)
-  Description:  Tracker class...
+  Description:  WormTracker class...
 */
 
 // Multiple include protection...
-#ifndef _TRACKER_H_
-#define _TRACKER_H_
+#ifndef _WORMTRACKER_H_
+#define _WORMTRACKER_H_
 
 // Includes...
 
@@ -24,14 +24,14 @@
     #include <utility>
     #include <vector>
 
-// Tracker class...
-class Tracker
+// WormTracker class...
+class WormTracker
 {   
     // Public methods...
     public:
 
         // Default constructor...
-        Tracker();
+        WormTracker();
 
         // Accessors...
 
@@ -62,10 +62,10 @@ class Tracker
 
             // Output some info on current tracker state......
             friend ostream &operator<<(ostream &Output, 
-                                       Tracker &RequestedTracker);
+                                       WormTracker &RequestedWormTracker);
 
         // Deconstructor...
-       ~Tracker();
+       ~WormTracker();
 
     // Protected types and constants...
     protected:
