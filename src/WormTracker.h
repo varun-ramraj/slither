@@ -71,7 +71,11 @@ class WormTracker
     protected:
 
         // Null worm...
-        Worm const NullWorm;
+        Worm const  NullWorm;
+        
+        // The region within the image from which we consider worms...
+        int const   nClippingRegionThickness;
+        CvRect      ClippingRegion;
 
     // Protected methods...
     protected:

@@ -117,6 +117,13 @@ void Worm::ClipLineSegment(CvSize Size, LineSegment &A) const
             A.second = cvPointTo32f(End);
 }
 
+// Get the worm's contour...
+CvContour const &Worm::Contour() const
+{
+    // Return it...
+    return *pContour;
+}
+
 // Is directed line segment Start->Second clockwise (> 0), counterclockwise 
 //  (< 0), or collinear with respect to the directed line segment 
 //  Start->First? θ(1)

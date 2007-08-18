@@ -42,6 +42,9 @@ class Worm
             // Best guess of the worm's centre...
             CvPoint const      &Centre() const;
 
+            // Get the worm's contour...
+            CvContour const    &Contour() const;
+
             // Best guess as to the head's position at this moment in time, 
             //  since it changes...
             CvPoint const      &Head() const;

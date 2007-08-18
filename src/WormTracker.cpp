@@ -14,7 +14,9 @@
 
 // Default constructor...
 WormTracker::WormTracker()
-    : pStorage(cvCreateMemStorage(0)),
+    : nClippingRegionThickness(80),
+      ClippingRegion(cvRect(0, 0, 0, 0)),
+      pStorage(cvCreateMemStorage(0)),
       pGrayImage(NULL),
       pThinkingImage(NULL)
 {
@@ -25,8 +27,8 @@ WormTracker::WormTracker()
     // Initialize the thinking label font...
     
         // Font constants...
-        double const        fHorizontalScale    = 1.0;
-        double const        fVerticalScale      = 1.0;
+        double const        fHorizontalScale    = 0.7;
+        double const        fVerticalScale      = 0.7;
         unsigned int const  unThickness         = 0;
         unsigned int const  unLineWidth         = 1;
 
@@ -41,13 +43,17 @@ void WormTracker::Acknowledge(CvContour &WormContour)
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
 
-    // Not a possible worm, ignore it...
-    if(!IsPossibleWorm(WormContour))
-        return;
+    // Frame advancer was suppose to check for this already...
+    assert(IsPossibleWorm(WormContour));
 
     // This worm's contour doesn't overlap with any other's...
     if(CountRectanglesIntersected(WormContour.rect) == 0)
     {
+/*
+    TODO: Forget this outer edge stuff and just check worm contour in 
+          IsPossibleWorm() for vertices on image exterior.
+*/
+
         // This worm is within the outermost edge of the frame, add it...
         if(IsWithinOuterFrameEdge(WormContour))
             Add(WormContour);
@@ -112,8 +118,9 @@ void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 {
     // Variables...
-    CvContour  *pFirstContour   = NULL;
-    CvContour  *pCurrentContour = NULL;
+    CvContour      *pFirstContour   = NULL;
+    CvContour      *pCurrentContour = NULL;
+    CvSize const    ImageSize       = cvGetSize(&NewGrayImage);
 
     // Release the old image, if any...
     if(pGrayImage)
@@ -133,7 +140,7 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
     // Prepare the thinking image...
     
         // Allocate...
-        pThinkingImage = cvCreateImage(cvGetSize(pGrayImage), IPL_DEPTH_8U, 3);
+        pThinkingImage = cvCreateImage(ImageSize, IPL_DEPTH_8U, 3);
         
             // Failed...
             if(!pThinkingImage)
@@ -147,6 +154,12 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 
     // Image must not have a region of interest set...
     assert(pGrayImage->roi == NULL);
+    
+    // Prepare clipping region...
+    ClippingRegion.x        = nClippingRegionThickness;
+    ClippingRegion.y        = nClippingRegionThickness;
+    ClippingRegion.width    = ImageSize.width - (2 * nClippingRegionThickness);
+    ClippingRegion.height   = ImageSize.height - (2 * nClippingRegionThickness);
     
     // Create threshold...
     IplImage *pThresholdImage = cvCloneImage(pGrayImage);
@@ -168,14 +181,17 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         if(!IsPossibleWorm(*pCurrentContour))
             continue;
 
-        // Draw the contours onto the thinking image...
-        cvDrawContours(pThinkingImage, (CvSeq*) pCurrentContour,
-                       CV_RGB(0x00, 0x00, 0xfe), CV_RGB(0x00, 0x00, 0xfe), 0, 
-                       1);
-
         // Acknowledge...
         Acknowledge(*pCurrentContour);
     }
+    
+    // Show the clipping region...
+    cvRectangle(pThinkingImage, 
+                cvPoint(ClippingRegion.x, ClippingRegion.y),
+                cvPoint(ClippingRegion.x + ClippingRegion.width,
+                        ClippingRegion.y + ClippingRegion.height),
+                CV_RGB(0x00, 0xff, 0x00));
+                
     
     // Show some information on each worm contour...
     for(unsigned int unWormIndex = 0; unWormIndex < TrackingTable.size();
@@ -186,7 +202,12 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         
         // This should still be within bounds...
         assert(&CurrentWorm != &NullWorm);
-    
+
+        // Draw the contours onto the thinking image...
+        cvDrawContours(pThinkingImage, (CvSeq *) &CurrentWorm.Contour(),
+                       CV_RGB(0x00, 0x00, 0xfe), CV_RGB(0x00, 0x00, 0xfe), 0, 
+                       1);
+
         // Show some information about the worm on the thinking image...
         AddThinkingLabel("head", CurrentWorm.Head());
         std::ostringstream ssCentre;
@@ -300,30 +321,27 @@ bool WormTracker::IsRectanglesIntersect(CvRect const &RectangleOne,
 // Does this worm's contour lie within the outer edge of the frame?
 bool WormTracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
 {
-    // Border thickness...
-    int const   nBorderThickness    = 80;
-
     // Check our assumptions...
-    assert((pGrayImage->height - nBorderThickness) > 0);
-    assert((pGrayImage->width  - nBorderThickness) > 0);
+    assert((pGrayImage->height - nClippingRegionThickness) > 0);
+    assert((pGrayImage->width  - nClippingRegionThickness) > 0);
 
     // Bounding rectangle of worm...
     CvRect const &WormRectangle = WormContour.rect;
 
     // Within left border...
-    if((WormRectangle.x + WormRectangle.width) < nBorderThickness)
+    if((WormRectangle.x + WormRectangle.width) < nClippingRegionThickness)
         return true;
 
     // Within top border...
-    else if((WormRectangle.y + WormRectangle.height) < nBorderThickness)
+    else if((WormRectangle.y + WormRectangle.height) < nClippingRegionThickness)
         return true;
 
     // Within right border...
-    else if(WormRectangle.x > (pGrayImage->width - nBorderThickness))
+    else if(WormRectangle.x > (pGrayImage->width - nClippingRegionThickness))
         return true;
 
     // Within bottom border...
-    else if(WormRectangle.y > (pGrayImage->height - nBorderThickness))
+    else if(WormRectangle.y > (pGrayImage->height - nClippingRegionThickness))
         return true;
         
     // Not within any of the borders...

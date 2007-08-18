@@ -146,8 +146,8 @@ int main(int nArguments, char *ppszArguments[])
 int main(int nArguments, char *ppszArguments[])
 {
     // Objects...
-    Tracker     TestTracker;
-    IplImage   *pGrayImage      = NULL;
+    WormTracker     TestTracker;
+    IplImage       *pGrayImage      = NULL;
 
     // Print usage...
     if(nArguments <= 1)
@@ -183,7 +183,7 @@ int main(int nArguments, char *ppszArguments[])
 
         // Show it...
         cvShowImage("Tracker", TestTracker.GetThinkingImage());
-        cvResizeWindow("Tracker", 720, 480);
+//        cvResizeWindow("Tracker", 720, 480);
 
         // Wait for key press...
         while(true)
