@@ -1,323 +1,118 @@
 /*
-  Name:         Worm.h (definition)
+  Name:         WormTracker.h (definition)
   Author:       Kip Warner (Kip@TheVertigo.com)
-  Description:  Worm class...
+  Description:  WormTracker class...
 */
 
 // Multiple include protection...
-#ifndef _WORM_H_
-#define _WORM_H_
+#ifndef _WORMTRACKER_H_
+#define _WORMTRACKER_H_
 
 // Includes...
 
+    // Worm class...
+    #include "Worm.h"
+
     // OpenCV...
     #include <opencv/cv.h>
+    #include <opencv/highgui.h>
     
-    // Standard libraries and STL...
-    #include <ostream>
+    // Standard libraries, STL, and namespace...
+    using namespace std;
+    #include <iostream>
+    #include <string>
     #include <utility>
+    #include <vector>
 
-// Worm class...
-class Worm
+// WormTracker class...
+class WormTracker
 {   
     // Public methods...
     public:
 
         // Default constructor...
-        Worm();
-        
-        // Worm constructor just needs to know it's contour and the image it 
-        //  rests on...
-        Worm(CvContour const &Contour, IplImage const &GrayImage);
-
-        // Explicit copy constructor...
-//        Worm(Worm const & SourceWorm);
+        WormTracker();
 
         // Accessors...
 
-            // Best guess of the area, considering everything we've seen thus 
-            //  far...
-            double const       &Area() const;
+            // Get the nth worm, or null worm if no more...
+            Worm const &GetWorm(unsigned int const unIndex) const;
 
-            // Best guess of the worm's centre...
-            CvPoint const      &Centre() const;
-
-            // Best guess as to the head's position at this moment in time, 
-            //  since it changes...
-            CvPoint const      &Head() const;
-
-            // Best guess of the length from head to tail, considering 
-            //  everything we've seen thus far...
-            double const       &Length() const;
-
-            // Get the bounding rectangle for the worm...
-            CvRect const       &Rectangle() const;
-
-            // Best guess as to the tail's position at this moment in time, 
-            //  since it changes...
-            CvPoint const      &Tail() const;
+            // Could this contour be a worm, independent of what we know?
+            bool IsPossibleWorm(CvContour const &MysteryContour) const;
             
-            // Number of times worm has been updated...
-            unsigned int const  Updates() const;
-
-            // Best guess of the area, considering everything we've seen thus 
-            //  far...
-            double const       &Width() const;
+            // The number of worms we are currently tracking...
+            unsigned int Tracking() const;
+            
+            // Get the current thinking image...
+            IplImage const *GetThinkingImage() const;
 
         // Mutators...
 
-            // Update worm's metrics based on new contour and image data...
-            void                Update(CvContour const &NewContour, 
-                                       IplImage const &GrayImage);
+            // Acknowledge a worm contour...
+            void Acknowledge(CvContour &WormContour);
+
+            // Add a text label to the thinking image at a point...
+            void AddThinkingLabel(string const sLabel, CvPoint Point);
+
+            // Advance frame...
+            void AdvanceNextFrame(IplImage const &NewGrayImage);
 
         // Operators...
 
-            // Output some info of what we know about this worm...
-            friend std::ostream &operator<<(std::ostream &Output, 
-                                            Worm &RequestedWorm);
+            // Output some info on current tracker state......
+            friend ostream &operator<<(ostream &Output, 
+                                       WormTracker &RequestedWormTracker);
 
         // Deconstructor...
-       ~Worm();
+       ~WormTracker();
 
-    // Protected constants...
+    // Protected types and constants...
     protected:
-    
-            // Pinch-Shift iteration directions...
-            enum IterationDirection
-            {
-                Forwards,
-                Backwards
-            };
 
-            // The value of π...
-            double const static Pi                          
-                = 3.1415926535897932384626433832795f;
-            
-            // Infinity... (kind of)
-            double const static Infinity                    = FLT_MAX;
-
-    // Protected types...
-    protected:
-    
-        // Line segment...
-        typedef std::pair<CvPoint2D32f, CvPoint2D32f>
-            LineSegment;
-        
-        // Terminal end scores are used to award terminal ends (head or tail)
-        //  of the nematode, based on their likelihood of being the head or the
-        //  tail...
-        typedef struct TerminalEndNotes
-        {
-            // Inline constructor initializer...
-            TerminalEndNotes(CvPoint _LastSeenLocus, 
-                             unsigned int _unHeadScore)
-                : LastSeenLocus(_LastSeenLocus),
-                  unHeadScore(_unHeadScore)
-            {
-            }
-            
-            // Last place we saw the terminal end...
-            CvPoint         LastSeenLocus;
-
-            // Number of times this end has been guessed as the head...
-            unsigned int    unHeadScore;
-
-        }TerminalEndNotes;
+        // Null worm...
+        Worm const NullWorm;
 
     // Protected methods...
     protected:
 
         // Accessors...
-
-            // Find the vertex on the contour a given length away, starting 
-            //  from a given vertex... O(n)
-            unsigned int const  FindVertexIndexByLength(
-                                    unsigned int const &unStartVertexIndex, 
-                                    double const &dPerimeterLength,
-                                    unsigned int &unVerticesTraversed = unDummy) 
-                                const;
-
-            // Get the maximum brightness along a line...
-            double const        GetLineMaximumBrightness(
-                                    LineSegment const &A,
-                                    IplImage const &GrayImage)
-                                const;
-
-            // Get the total surrounding brightness of a central point ...
-            double const        GetSurroundingBrightness(
-                                    CvPoint Centre,
-                                    IplImage const &GrayImage)
-                                const;
             
-            /* Get the average brightness of the area within a contour...
-            double const        GetAverageBrightness(
-                                    CvContour const &Contour,
-                                    IplImage const &GrayImage) const;*/
+            // How many underlying rectangles does given one rest upon?
+            unsigned int const CountRectanglesIntersected(
+                CvRect const &Rectangle) const;
+            
+            // Find the best match of this contour...
+            Worm &FindBestMatch(CvContour &WormContour) const;
 
-            // Get the index of the next vertex in the contour after the given 
-            //  index, O(1) average...
-            unsigned int        GetNextVertexIndex(
-                                    unsigned int const &unVertexIndex)
-                                const;
-            
-            // Get the actual vertex of the given vertex index in the contour, 
-            //  O(1) average...
-            CvPoint            &GetVertex(
-                                    unsigned int const &unVertexIndex)
-                                const;
-            
-            // Get the index of the previous vertex in the contour after the 
-            //  given index, O(1) average...
-            unsigned int        GetPreviousVertexIndex(
-                                    unsigned int const &unVertexIndex)
-                                const;
+            // Do the two rectangles have a non-zero intersection area?
+            bool IsRectanglesIntersect(CvRect const &RectangleOne,
+                                       CvRect const &RectangleTwo) const;
+
+            // Does this worm's contour lie within the outer edge of the frame?
+            bool IsWithinOuterFrameEdge(CvContour const &WormContour) const;
 
         // Mutators...
 
-            // Update the approximate area, based on the value at this moment in
-            //  time. This will help us make a more informed answer when asked 
-            //  via Area() for the size. θ(1) space and time...
-            void                UpdateArea(double const &dAreaAtThisMoment);
-
-            // Update the gravitational centre from this image...
-            void                UpdateGravitationalCentre();
-
-            // Update the approximate head and tail position, based on the value 
-            //  at this moment in time. This will help us make a more informed 
-            //  answer when asked via Head() or Tail() for the actual 
-            //  coordinates...
-            void                UpdateHeadAndTail(
-                                    unsigned int const &unHeadVertexIndex,
-                                    unsigned int const &unTailVertexIndex);
-
-            // Update the approximate length, based on the value at this moment
-            //  in time. This will help us make a more informed answer when
-            //  asked via Length() for the length. θ(1) space and time...
-            void                UpdateLength(double const &dLengthAtThisMoment);
-            
-            // Update the approximate width, based on the value at this moment 
-            //  in time. This will help us make a more informed answer when
-            //  asked via Width() for the width. θ(1) space and time...
-            void                UpdateWidth(double const &dWidthAtThisMoment);
-
-        // Mutationless math and computational geometry helpers...
-
-            // Adjust the distance of the second vertex by the given distance 
-            //  along the radial... 
-            void                AdjustDirectedLineSegmentLength(
-                                    LineSegment &A, 
-                                    double dLength) const;
-            
-            // Clip line against the image rectangle...
-            void                ClipLineSegment(CvSize Size, 
-                                                LineSegment &A) const;
-            
-            // Calculate the distance between the midpoints of two segments... 
-            //  θ(1)
-            double              DistanceBetweenLineSegments(
-                                    LineSegment const &A, 
-                                    LineSegment const &B) const;
-
-            // Calculate the absolute distance between two points...
-            double              DistanceBetweenTwoPoints(
-                                    CvPoint const &First, 
-                                    CvPoint const &Second) const;
-            double              DistanceBetweenTwoPoints(
-                                    CvPoint2D32f const &First, 
-                                    CvPoint2D32f const &Second) const;
-
-            // Is directed line segment Start->Second clockwise (> 0), 
-            //  counterclockwise (< 0), or collinear with respect to the
-            //  directed line segment Start->First? θ(1)
-            int                 Direction(CvPoint2D32f const Start, 
-                                          CvPoint2D32f const First, 
-                                          CvPoint2D32f const Second) const;
-        
-            // Generate orthogonal of unit length from middle of given line 
-            //  segment outwards... θ(1)
-            void                GenerateOrthogonalToLineSegment(
-                                    LineSegment const &A, 
-                                    LineSegment &Orthogonal) const;
-
-            // Can the collinear point be found on the line segment? θ(1)
-            bool                IsCollinearPointOnLineSegment(
-                                    LineSegment const &A, 
-                                    CvPoint2D32f const &CollinearPoint) const;
-
-            // Given only the two vertex indices, *this* image, and assuming 
-            //  they are opposite ends of the worm, would the first of the two
-            //  most likely be the head if we had but this image alone to
-            //  consider?
-            bool                IsFirstHeadCloisterCheck(
-                                    unsigned int const &unCandidateHeadVertexIndex,
-                                    unsigned int const &unCandidateTailVertexIndex,
-                                    IplImage const     &GrayImage) const;
-
-            // Check if two line segments intersect... θ(1)
-            bool                IsLineSegmentsIntersect(
-                                    LineSegment const &A, 
-                                    LineSegment const &B) const;
-
-            // Calculate the length of a line segment... θ(1)
-            double              LengthOfLineSegment(
-                                    LineSegment const &A) const;
-            
-            // Find the vertex index in the contour sequence that contains 
-            //  either end of the worm, and update width while we're at it... 
-            //  θ(n)
-            unsigned int        PinchShiftForAnEnd(
-                                    IplImage const &GrayImage,
-                                    IterationDirection Direction = Forwards);
-
-            // Rotate a line segment about a point counterclockwise by an 
-            //  angle...
-            void                RotateLineSegmentAboutPoint(
-                                    LineSegment &LineToRotate, 
-                                    CvPoint2D32f const &Origin,
-                                    double const &dRadians) const;
-
-            // Rotate a point around another to be used as the origin...
-            CvPoint2D32f       &RotatePointAboutAnother(
-                                    CvPoint2D32f const &OldPointToRotate,
-                                    CvPoint2D32f const &Origin,
-                                    double const &dRadians,
-                                    CvPoint2D32f &NewPoint) const;
+            // Add worm to tracker...
+            void Add(CvContour const &WormContour);
 
     // Protected attributes...
     protected:
 
-            // Base storage to store contour sequence and any other dynamic 
-            //  OpenCV data structures...
-            CvMemStorage       *pStorage;
+        // Base storage to store contour sequence and any other dynamic 
+        //  OpenCV data structures...
+        CvMemStorage   *pStorage;
+        
+        // Thinking image label font...
+        CvFont          ThinkingLabelFont;
 
-                // Contour around the worm...
-                CvContour      *pContour;
-            
-            // Some book keeping information that we use for computing 
-            //  arithmetic averages for the metrics...
-            unsigned int        unUpdates;
-            
-            // The worm's metrics...
-            
-                // Area...
-                double          dArea;
-                
-                // Centre...
-                CvPoint         GravitationalCentre;
-                
-                // Length of the worm...
-                double          dLength;
-                
-                // Width of the worm...
-                double          dWidth;
-
-            // Terminal end scores...
-            TerminalEndNotes    TerminalA;
-            TerminalEndNotes    TerminalB;
-            
-            // Dummy default argument parameters...
-            static unsigned int unDummy;
-
+        // Current frame's gray image and thinking image...
+        IplImage       *pGrayImage;
+        IplImage       *pThinkingImage;
+        
+        // Table of worms being tracked...
+        vector<Worm *>  TrackingTable;
 };
 
 #endif

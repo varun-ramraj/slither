@@ -2,11 +2,11 @@
   Name:         TrackerDriver.cpp
   Author:       Kip Warner (Kip@TheVertigo.com)
   Description:  Driver for the worm tracker class...
-  Quick Debug:  g++ TrackerDriver.cpp ../Tracker.cpp ../Worm.cpp -g3 -o TrackerDriver -Wall -Werror -lcxcore -lcv -lhighgui -lcvaux && insight --readnow --args ./TrackerDriver TrackerFrame1.png TrackerFrame2.png TrackerFrame3.png TrackerFrame4.png
+  Quick Debug:  g++ TrackerDriver.cpp ../WormTracker.cpp ../Worm.cpp -g3 -o TrackerDriver -Wall -Werror -lcxcore -lcv -lhighgui -lcvaux && insight --readnow --args ./TrackerDriver TrackerFrame1.png TrackerFrame2.png TrackerFrame3.png TrackerFrame4.png
 */
 
 // Includes...
-#include "../Tracker.h"
+#include "../WormTracker.h"
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <iostream>
