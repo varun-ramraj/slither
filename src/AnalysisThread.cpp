@@ -8,6 +8,7 @@
 #include "AnalysisThread.h"
 #include "MainFrame.h"
 #include "Experiment.h"
+#include "WormTracker.h"
 
 // Constructor locks UI...
 AnalysisThread::CAnalysisAutoLock::CAnalysisAutoLock(MainFrame &_Frame)
@@ -94,15 +95,15 @@ AnalysisThread::AnalysisThread(MainFrame &_Frame)
 
 }
 
-// Analyze captured frame and return the analyzed version...
+/* Analyze captured frame and return the analyzed version...
 IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
 {
     // Variables...
-    /*CvFont          Font;
-    double          fHorizontalScale    = 1.0;
-    double          fVerticalScale      = 1.0;
-    int             nLineWidth          = 2;
-    wxString        sBuffer;*/
+//    CvFont          Font;
+//    double          fHorizontalScale    = 1.0;
+//    double          fVerticalScale      = 1.0;
+//    int             nLineWidth          = 2;
+//    wxString        sBuffer;
     IplImage       *pGrayImage          = NULL;
     IplImage       *pThresholdImage     = NULL;
     CvMemStorage   *pContourStorage     = NULL;
@@ -160,15 +161,15 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
         // Draw it, if enabled...
         if(Frame.ShowVisualsCheckBox->IsChecked())
             cvDrawContours(pFinalImage, (CvSeq *) pCurrentContour, 
-                           CV_RGB(239, 34, 0),     /* external colour */
-                           CV_RGB(239, 34, 0),     /* hole colour */
-                           0,                      /* maximum level */
-                           2,                      /* thickness */
-                           8,                      /* line type */
-                           cvPoint(0, 0));         /* offset */
+                           CV_RGB(239, 34, 0),
+                           CV_RGB(239, 34, 0),
+                           0,                 
+                           2,                 
+                           8,                 
+                           cvPoint(0, 0));    
     }
 
-    /* Show time elapsed...
+    // Show time elapsed...
     
         // Create font...
         cvInitFont(&Font, CV_FONT_HERSHEY_TRIPLEX, fHorizontalScale, 
@@ -181,7 +182,7 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
 
         // Output...
         cvPutText(pFinalImage, sBuffer.mb_str(), cvPoint(10, 30), &Font, 
-                  cvScalar(0, 243, 0));*/
+                  cvScalar(0, 243, 0));
 
     // Cleanup...
     cvReleaseMemStorage(&pContourStorage);
@@ -190,17 +191,17 @@ IplImage *AnalysisThread::AnalyzeFrame(IplImage *pImage)
 
     // Return the finally analyzed frame...
     return pFinalImage;
-}
+}*/
 
 // Thread entry point...
 void *AnalysisThread::Entry()
 {
     // Variables...
-    IplImage           *pCapturedImage          = NULL;
-    IplImage           *pClonedImage            = NULL;
-    IplImage           *pAnalyzedImage          = NULL;
-    long                lLastPulseTime          = ::wxGetLocalTime();
-    long                lLastDisplayTime        = 0L;
+    WormTracker         Tracker;
+    IplImage           *pGrayImage          = NULL;
+    IplImage           *pThinkingImage      = NULL;
+    long                lLastPulseTime      = ::wxGetLocalTime();
+    long                lLastDisplayTime    = 0L;
     wxString            sTemp;
     wxStopWatch         StopWatch;
 
@@ -255,17 +256,26 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
        cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT),
        cvGetCaptureProperty(pCapture, CV_CAP_PROP_FOURCC));*/
 
-        // Retrieve the captured frame and check for error...
-        pCapturedImage = cvRetrieveFrame(pCapture);
+        // Retrieve the captured image...
+        IplImage const &OriginalImage = *cvRetrieveFrame(pCapture);
 
-        // Make our own internal copy to modify...
-        pClonedImage = cvCloneImage(pCapturedImage);
+        // The tracker prefers grayscale 8-bit unsigned format, prepare...
 
-        // Analyze the frame...
-        pAnalyzedImage = AnalyzeFrame(pClonedImage);
+            // Allocate blank grayscale image...
+            pGrayImage = cvCreateImage(cvGetSize(&OriginalImage), 
+                                       IPL_DEPTH_8U, 3);
+
+            // Convert original to grayscale...
+            cvConvertImage(OriginalImage, pGrayImage);
+
+        // Feed into tracker...
+        Tracker.AdvanceNextFrame(*pGrayImage);
         
-            // Cleanup...
-            cvReleaseImage(&pClonedImage);
+        // Cleanup gray image...
+        cvReleaseImage(&pGrayImage);
+        
+        // Prepare the thinking image...
+        pThinkingImage = cvCloneImage(&Tracker.GetThinkingImage());
 
             // Cleanup analyzed image as well if buffer is piling up. We can do
             //  this because all we want is the data extrapolated in the 
@@ -275,14 +285,14 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
                ::wxGetLocalTime() == lLastDisplayTime)
             {
                 // Release the image...
-                cvReleaseImage(&pAnalyzedImage);
+                cvReleaseImage(&pThinkingImage);
             }
                 
             // Otherwise, add it to the buffer...
             else
             {
                 // Place at the end of the buffer...
-                Frame.AnalysisFrameBuffer.push_back(pAnalyzedImage);
+                Frame.AnalysisFrameBuffer.push_back(pThinkingImage);
                 
                 // Remember having stored image for GUI at this interval to
                 //  avoid doing it again...
@@ -292,9 +302,9 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
         // Depending on processor throttle setting, idle...
         if(Frame.ProcessorThrottle->GetValue() < 100)
         {
-            // Compute sleep time from slider value...
+            // Compute sleep time from slider value... [1,1000ms]
             int nSleepTime = 
-                (100 - Frame.ProcessorThrottle->GetValue()) * 35;
+                ((Frame.ProcessorThrottle->GetValue() + 1) / 10.0f);
 
             // Give up rest of time slice to system for other threads...
             Yield();
@@ -372,9 +382,9 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
     while(!Frame.AnalysisFrameBuffer.empty())
     {
         // Deallocate oldest...
-        pAnalyzedImage = (IplImage *) Frame.AnalysisFrameBuffer.front();
+        pThinkingImage = (IplImage *) Frame.AnalysisFrameBuffer.front();
         Frame.AnalysisFrameBuffer.pop_front();
-        cvReleaseImage(&pAnalyzedImage);
+        cvReleaseImage(&pThinkingImage);
     }
 
     // Release the capture source...

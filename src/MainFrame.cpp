@@ -403,7 +403,7 @@ MainFrame::MainFrame(const wxString &sTitle)
                 printf("CreateGrid failed...\n");
 
             // Analysis type...
-            ChosenAnalysisType->SetSelection(0);
+            ChosenAnalysisType->SetSelection(ANALYSIS_BODY_SIZE);
             OnChooseAnalysisType(DummyCommandEvent);
 
     // Refresh...
@@ -583,6 +583,25 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
     // Objects...
     wxGridCellAttr *pColumnAttributes   = NULL;
     wxString        sTemp;
+
+    // We've only implemented analysis body size so far...
+    if(Event.GetSelection() != ANALYSIS_BODY_SIZE)
+    {
+        // Revert selection to body size analysis...
+        wxCommandEvent  DummyCommandEvent;
+        DummyCommandEvent.SetInt(0);
+        ChosenAnalysisType->SetSelection(ANALYSIS_BODY_SIZE);
+        OnChooseAnalysisType(DummyCommandEvent);
+        
+        // Alert user...
+        wxMessageDialog Message(this, 
+                                wxT("Sorry, but that is not implemented yet."), 
+                                wxT("Analysis"), wxICON_INFORMATION);
+        Message.ShowModal();
+        
+        // Abort...
+        return;
+    }
 
     // Clear analysis grid...
         
