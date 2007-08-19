@@ -708,11 +708,11 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
         AnalysisGrid->SetRowLabelValue(unRow, wxT(""));
     }
     
-    // Force a refresh...
-    AnalysisGrid->SetSize(AnalysisGrid->GetSize());
-    
     // Automatically resize all columns and rows to fit contents...
     AnalysisGrid->AutoSize();
+    
+    // Trigger analysis results sizer to recalculate layout...
+    AnalysisGrid->GetContainingSizer()->Layout();
 }
 
 // Cancel analysis button hit...
