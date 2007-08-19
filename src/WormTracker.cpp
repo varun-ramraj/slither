@@ -14,9 +14,7 @@
 
 // Default constructor...
 WormTracker::WormTracker()
-    : nClippingRegionThickness(80),
-      ClippingRegion(cvRect(0, 0, 0, 0)),
-      pStorage(cvCreateMemStorage(0)),
+    : pStorage(cvCreateMemStorage(0)),
       pGrayImage(NULL),
       pThinkingImage(NULL)
 {
@@ -38,54 +36,24 @@ WormTracker::WormTracker()
 }
 
 // Acknowledge a worm contour...
-void WormTracker::Acknowledge(CvContour &WormContour)
+void WormTracker::Acknowledge(CvContour const &WormContour)
 {
+    // Variables...
+    unsigned int unFoundIndex   = (unsigned) -1;
+
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
 
     // Frame advancer was suppose to check for this already...
     assert(IsPossibleWorm(WormContour));
 
-    // This worm's contour doesn't overlap with any other's...
-    if(CountRectanglesIntersected(WormContour.rect) == 0)
-    {
-/*
-    TODO: Forget this outer edge stuff and just check worm contour in 
-          IsPossibleWorm() for vertices on image exterior.
-*/
+    // The worm is known, refresh it with the new information...
+    if(IsKnown(WormContour, unFoundIndex))
+        GetWorm(unFoundIndex).Refresh(WormContour, *pGrayImage);
 
-        // This worm is within the outermost edge of the frame, add it...
-        if(IsWithinOuterFrameEdge(WormContour))
-            Add(WormContour);
-
-        // This worm is within the inner portion of the frame...
-        else
-        {
-            // We aren't tracking anything yet, so it must be new...
-            if(Tracking() == 0)
-                Add(WormContour);
-
-            // We are tracking, so assume it is somewhere in our tables...
-            else
-            {
-                // Find the best match...
-                Worm &BestMatch = FindBestMatch(WormContour);
-
-                // Update it with the new contour and image data...
-                BestMatch.Update(WormContour, *pGrayImage);
-            }
-        }
-    }
-    
-    // This worm's contour overlaps with at least one other...
+    // The worm is not known, inform the tracker...
     else
-    {
-        // Find the best match...
-        Worm &BestMatch = FindBestMatch(WormContour);
-
-        // Update it with the new contour...
-        BestMatch.Update(WormContour, *pGrayImage);
-    }
+        Add(WormContour);
 }
 
 // Add worm to tracker...
@@ -155,12 +123,6 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
     // Image must not have a region of interest set...
     assert(pGrayImage->roi == NULL);
     
-    // Prepare clipping region...
-    ClippingRegion.x        = nClippingRegionThickness;
-    ClippingRegion.y        = nClippingRegionThickness;
-    ClippingRegion.width    = ImageSize.width - (2 * nClippingRegionThickness);
-    ClippingRegion.height   = ImageSize.height - (2 * nClippingRegionThickness);
-    
     // Create threshold...
     IplImage *pThresholdImage = cvCloneImage(pGrayImage);
     cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
@@ -185,23 +147,12 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         Acknowledge(*pCurrentContour);
     }
     
-    // Show the clipping region...
-    cvRectangle(pThinkingImage, 
-                cvPoint(ClippingRegion.x, ClippingRegion.y),
-                cvPoint(ClippingRegion.x + ClippingRegion.width,
-                        ClippingRegion.y + ClippingRegion.height),
-                CV_RGB(0x00, 0xff, 0x00));
-                
-    
     // Show some information on each worm contour...
     for(unsigned int unWormIndex = 0; unWormIndex < TrackingTable.size();
       ++unWormIndex)
     {
         // Get the current worm...
         Worm const &CurrentWorm = GetWorm(unWormIndex);
-        
-        // This should still be within bounds...
-        assert(&CurrentWorm != &NullWorm);
 
         // Draw the contours onto the thinking image...
         cvDrawContours(pThinkingImage, (CvSeq *) &CurrentWorm.Contour(),
@@ -212,7 +163,7 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         AddThinkingLabel("head", CurrentWorm.Head());
         std::ostringstream ssCentre;
         ssCentre << "(worm " << unWormIndex << ", updated " 
-                 << CurrentWorm.Updates() << ")";
+                 << CurrentWorm.Refreshes() << ")";
         AddThinkingLabel(ssCentre.str(), CurrentWorm.Centre());
         AddThinkingLabel("tail", CurrentWorm.Tail());
     }
@@ -242,17 +193,36 @@ unsigned int const WormTracker::CountRectanglesIntersected(
     return unIntersections;
 }
 
-// Find the best match of this contour...
-Worm &WormTracker::FindBestMatch(CvContour &WormContour) const
+// Get the current thinking image...
+IplImage const &WormTracker::GetThinkingImage() const
 {
-    // Worm's rectangle...
+    // Return it...
+    return *pThinkingImage;
+}
+
+// Get the nth worm, or null worm if no more...
+Worm &WormTracker::GetWorm(unsigned int const unIndex) const
+{
+    // Check bounds...
+    assert(unIndex + 1 <= TrackingTable.size());
+
+    // Return worm...
+    return *TrackingTable.at(unIndex);
+}
+
+// Find the worm that probably created this contour, if any...
+bool WormTracker::IsKnown(CvContour const &WormContour, 
+                          unsigned int &unFoundIndex) const
+{
+   // Worm's rectangle...
     CvMoments       WormMoment;
     CvPoint         WormCentre              = {0, 0};
     double          dDistanceToClosestWorm  = FLT_MAX;
     unsigned int    unClosestWormIndex      = (unsigned) -1;
 
-    // There had to be at least one worm tracking...
-    assert(Tracking() > 0);
+    // There is nothing being tracked at present, so the worm cannot be known...
+    if(Tracking() == 0)
+        return false;
 
     // Calculate the gravitational centre of the given contour...
 
@@ -269,12 +239,12 @@ Worm &WormTracker::FindBestMatch(CvContour &WormContour) const
       ++unWormIndex)
     {
         // Worm to check...
-        Worm const * const pCurrentWorm = TrackingTable.at(unWormIndex);
+        Worm const &CurrentWorm = *TrackingTable.at(unWormIndex);
 
         // How far away is the given worm to this iteration's...
         double const dDistanceToWorm = 
-            cvSqrt(pow(double(WormCentre.x) - pCurrentWorm->Centre().x, 2) + 
-                   pow(double(WormCentre.y) - pCurrentWorm->Centre().y, 2));
+            cvSqrt(pow(double(WormCentre.x) - CurrentWorm.Centre().x, 2) + 
+                   pow(double(WormCentre.y) - CurrentWorm.Centre().y, 2));
 
         // Remember only if its centre of mass has best proximity...
         if(dDistanceToWorm < dDistanceToClosestWorm)
@@ -284,27 +254,56 @@ Worm &WormTracker::FindBestMatch(CvContour &WormContour) const
             unClosestWormIndex      = unWormIndex;
         }
     }
+    
+    // Isolate the best match now...
+    Worm &BestMatch = *TrackingTable.at(unClosestWormIndex);
+    
+    // If it doesn't even overlap with the given one, then no match...
+    if(!IsRectanglesIntersect(WormContour.rect, BestMatch.Rectangle()))
+        return false;
 
-    // Return reference to the best worm found...
-    return *TrackingTable.at(unClosestWormIndex);
+    // Found successfully...
+    unFoundIndex = unClosestWormIndex;
+    return true;
 }
 
-// Get the current thinking image...
-IplImage const *WormTracker::GetThinkingImage() const
+// Could this contour be a worm, independent of what we know?
+bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
-    // Return it...
-    return pThinkingImage;
-}
+    // Image size...
+    CvSize const Size = cvGetSize(pGrayImage);
 
-// Get the nth worm, or null worm if no more...
-Worm const &WormTracker::GetWorm(unsigned int const unIndex) const
-{
-    // Check bounds...
-    if(unIndex + 1 > TrackingTable.size())
-        return NullWorm;
+    // Too few vertices...
+    if(MysteryContour.total < 6)
+        return false;
 
-    // Return worm...
-    return *TrackingTable.at(unIndex);
+    // Calculate the area of the worm...
+    double const dArea = fabs(cvContourArea(&MysteryContour));
+
+    // Too small / too big to be a worm...
+    if((dArea < 200.0) || (800.0 < dArea))
+        return false;
+
+    // Check each point to see if any lie on image exterior...
+    for(unsigned int unVertexIndex = 0; 
+        unVertexIndex < (unsigned) MysteryContour.total; 
+        unVertexIndex++)
+    {
+        // Get the point...
+        CvPoint const &Point = *((CvPoint *) 
+            cvGetSeqElem((CvSeq *) &MysteryContour, unVertexIndex));
+
+        // On either the left or right extremity...
+        if(Point.x == 0 || Point.x == Size.width)
+            return false;
+
+        // On either the top or bottom extremity...
+        if(Point.y == 0 || Point.y == Size.height)
+            return false;
+    }
+
+    // Meets worm minima...
+    return true;
 }
 
 // Do the two rectangles have a non-zero intersection area?
@@ -316,55 +315,6 @@ bool WormTracker::IsRectanglesIntersect(CvRect const &RectangleOne,
            (RectangleOne.y < RectangleTwo.y + RectangleTwo.height) &&
            (RectangleOne.x + RectangleOne.width > RectangleTwo.x) && 
            (RectangleOne.y + RectangleOne.height > RectangleTwo.y);
-}
-
-// Does this worm's contour lie within the outer edge of the frame?
-bool WormTracker::IsWithinOuterFrameEdge(CvContour const &WormContour) const
-{
-    // Check our assumptions...
-    assert((pGrayImage->height - nClippingRegionThickness) > 0);
-    assert((pGrayImage->width  - nClippingRegionThickness) > 0);
-
-    // Bounding rectangle of worm...
-    CvRect const &WormRectangle = WormContour.rect;
-
-    // Within left border...
-    if((WormRectangle.x + WormRectangle.width) < nClippingRegionThickness)
-        return true;
-
-    // Within top border...
-    else if((WormRectangle.y + WormRectangle.height) < nClippingRegionThickness)
-        return true;
-
-    // Within right border...
-    else if(WormRectangle.x > (pGrayImage->width - nClippingRegionThickness))
-        return true;
-
-    // Within bottom border...
-    else if(WormRectangle.y > (pGrayImage->height - nClippingRegionThickness))
-        return true;
-        
-    // Not within any of the borders...
-    else
-        return false;
-}
-
-// Could this contour be a worm, independent of what we know?
-bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
-{
-    // Too few vertices...
-    if(MysteryContour.total < 6)
-        return false;
-
-    // Calculate the area of the worm...
-    double const dArea = fabs(cvContourArea(&MysteryContour));
-
-    // Too small / too big to be a worm...
-    if((dArea < 200.0) || (800.0 < dArea))
-        return false;
-        
-    // Meets worm minima...
-    return true;
 }
 
 // The number of worms we are currently tracking...

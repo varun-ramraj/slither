@@ -17,7 +17,7 @@ unsigned int Worm::unDummy = 0;
 Worm::Worm()
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
-      unUpdates(0),
+      unRefreshes(0),
       dArea(0.0f),
       GravitationalCentre(cvPoint(0, 0)),
       dLength(0.0f), 
@@ -34,7 +34,7 @@ Worm::Worm()
 Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     : pStorage(cvCreateMemStorage(0)),
       pContour(NULL),
-      unUpdates(0),
+      unRefreshes(0),
       dArea(0.0f),
       GravitationalCentre(cvPoint(0, 0)),
       dLength(0.0f), 
@@ -46,8 +46,8 @@ Worm::Worm(CvContour const &Contour, IplImage const &GrayImage)
     if(!pStorage)
         throw std::bad_alloc();
 
-    // Update the worm's metrics based on the contour...
-    Update(Contour, GrayImage);
+    // Refresh the worm's metrics based on the contour...
+    Refresh(Contour, GrayImage);
 }
 
 /* Explicit copy constructor...
@@ -1011,9 +1011,10 @@ CvPoint const &Worm::Tail() const
             return TerminalA.LastSeenLocus;
 }
 
-// Update the worm's metrics based on its new contour... (area, length, width, 
+// Refresh the worm's metrics based on its new contour... (area, length, width, 
 //  et cetera)
-inline void Worm::Update(CvContour const &NewContour, IplImage const &GrayImage)
+inline void Worm::Refresh(CvContour const &NewContour, 
+                          IplImage const &GrayImage)
 {
     // Image must be a 8-bit, unsigned, grayscale...
     assert(GrayImage.depth == IPL_DEPTH_8U);
@@ -1023,7 +1024,7 @@ inline void Worm::Update(CvContour const &NewContour, IplImage const &GrayImage)
 
     // Remember that how many times we have updated, which we need for 
     //  calculating arithmetic means...
-  ++unUpdates;
+  ++unRefreshes;
 
     // Forget the old contour if we have one yet. This works by restoring the 
     //  old contour sequence blocks to the base storage pool. This is θ(1) 
@@ -1124,7 +1125,7 @@ inline void Worm::UpdateHeadAndTail(unsigned int const &unHeadVertexIndex,
     // Either we have no previous data to compare by, and so we assume initial
     //  data to be correct for starting, or, we have data already. In the latter
     //  case, the head is closer to terminal end A than B in this frame...
-    if((unUpdates <= 1) || 
+    if((unRefreshes <= 1) || 
        (DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalA.LastSeenLocus) <
         DistanceBetweenTwoPoints(CurrentHeadVertex, TerminalB.LastSeenLocus)))
     {
@@ -1161,7 +1162,8 @@ inline void Worm::UpdateLength(double const &dLengthAtThisMoment)
 {
     // Store the new arithmetic mean in constant space. Just multiply your old
     //  average by n, add x_{n+1}, and then divide the whole thing by n+1...
-    dLength = ((dLength * unUpdates) + dLengthAtThisMoment) / (unUpdates + 1);
+    dLength = ((dLength * unRefreshes) + dLengthAtThisMoment) / 
+              (unRefreshes + 1);
 }
 
 // Update the approximate width, based on the value at this moment in time. 
@@ -1175,11 +1177,11 @@ inline void Worm::UpdateWidth(double const &dWidthAtThisMoment)
     dWidth = std::max(dWidth, dWidthAtThisMoment);
 }
 
-// Number of times worm has been updated...
-unsigned int const Worm::Updates() const
+// Number of times worm has been refreshed...
+unsigned int const Worm::Refreshes() const
 {
     // Return it...
-    return unUpdates;
+    return unRefreshes;
 }
 
 // Best guess of the area, considering everything we've seen thus far...
@@ -1210,13 +1212,13 @@ std::ostream & operator<<(std::ostream &Output, CvPoint Point)
 std::ostream & operator<<(std::ostream &Output, Worm &RequestedWorm)
 {
     // Output attributes of note...
-    Output << "\tArea: "    << RequestedWorm.dArea      << std::endl
-           << "\tCentre: "  << RequestedWorm.Centre()   << std::endl
-           << "\tLength: "  << RequestedWorm.dLength    << std::endl
-           << "\tWidth: "   << RequestedWorm.dWidth     << std::endl
-           << "\tHead: "    << RequestedWorm.Head()     << std::endl
-           << "\tTail: "    << RequestedWorm.Tail()     << std::endl
-           << "\tUpdates: " << RequestedWorm.Updates()  << std::endl;
+    Output << "\tArea: "        << RequestedWorm.dArea          << std::endl
+           << "\tCentre: "      << RequestedWorm.Centre()       << std::endl
+           << "\tLength: "      << RequestedWorm.dLength        << std::endl
+           << "\tWidth: "       << RequestedWorm.dWidth         << std::endl
+           << "\tHead: "        << RequestedWorm.Head()         << std::endl
+           << "\tTail: "        << RequestedWorm.Tail()         << std::endl
+           << "\tRefreshes: "   << RequestedWorm.Refreshes()    << std::endl;
 
     // Return the stream...
     return Output;

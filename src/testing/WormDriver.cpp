@@ -220,8 +220,8 @@ int main(int nArguments, char *ppszArguments[])
                      << " vertices... " << endl;
                 flush(cout);
 
-            // Discover worm's new state...
-            Nematode.Discover(*pCurrentContour, *pGrayImage);
+            // Refresh worm's new state...
+            Nematode.Refresh(*pCurrentContour, *pGrayImage);
 
             // Pick a colour for the contour outline...
             CvScalar Color = CV_RGB(0xFF, 0xFF, 0xFF);

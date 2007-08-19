@@ -182,8 +182,9 @@ int main(int nArguments, char *ppszArguments[])
         cout << TestTracker << endl;
 
         // Show it...
-        cvShowImage("Tracker", TestTracker.GetThinkingImage());
-//        cvResizeWindow("Tracker", 720, 480);
+        cvShowImage("Tracker", &TestTracker.GetThinkingImage());
+        CvSize Size = cvGetSize(&TestTracker.GetThinkingImage());
+        cvResizeWindow("Tracker", Size.width * 2, Size.height * 2);
 
         // Wait for key press...
         while(true)
