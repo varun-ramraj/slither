@@ -12,6 +12,7 @@
 
     // wxWidgets...
     #include <wx/wx.h>
+    #include <wx/stopwatch.h>
     
     // OpenCV...
     #include <opencv/cv.h>
@@ -26,6 +27,9 @@ class MainFrame;
 // AnalysisThread class...
 class AnalysisThread : public wxThread
 {
+    // Friends...
+    friend class MainFrame;
+
     // Public methods...
     public:
 
@@ -40,12 +44,6 @@ class AnalysisThread : public wxThread
         
         // Convert OpenCV units of length to micrometres...
         float LengthFromIntelUnitsToMicrometres(float fIntelLength) const;
-
-    // Public attributes...
-    public:
-    
-        // Worm tracker...
-        WormTracker Tracker;
 
     // Protected classes...
     protected:
@@ -80,6 +78,12 @@ class AnalysisThread : public wxThread
 
         // Capture handle...
         CvCapture          *pCapture;
+        
+        // Status update stop watch...
+        wxStopWatch         StatusUpdateStopWatch;
+        
+        // Worm tracker...
+        WormTracker Tracker;
 };
 
 #endif

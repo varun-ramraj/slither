@@ -51,30 +51,34 @@ void *AnalysisThread::Entry()
             return NULL;
         }
 
+    // Start the analysis stop watch...
+    StatusUpdateStopWatch.Start();
+
     // Keep showing video until there is nothing left or cancel requested...
-    while(cvGrabFrame(pCapture) && !Frame.bExiting && 
-          Frame.CancelAnalysisButton->IsEnabled())
+    while(!Frame.bExiting && !TestDestroy())
     {
-/*
-printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
-       "%.2f\tCV_CAP_PROP_POS_FRAMES\n"
-       "%.2f\tCV_CAP_PROP_POS_AVI_RATIO\n"
-       "%.2f\tCV_CAP_PROP_POS_WIDTH\n"
-       "%.2f\tCV_CAP_PROP_POS_HEIGHT\n"
-       "%.2f\tCV_CAP_PROP_POS_FPS\n"
-       "%.2f\tCV_CAP_PROP_FRAME_COUNT\n"
-       "%.2f\tCV_CAP_PROP_POS_FOURCC\n\n",
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_AVI_RATIO),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_WIDTH),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_HEIGHT),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FPS),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FOURCC));*/
+        // The Quicktime backend appears to be buggy in that it keeps cycling
+        //  through the video even after we have all frames. A temporary hack
+        //  is to just break the analysis loop when we have both current frame, 
+        //  total frame, and they are equal...
+        #ifdef __APPLE__
+
+            // Get current position...
+            int const nCurrentFrame = (int) 
+                cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES);
+
+            // Get total number of frames...
+            int const nTotalFrames = (int) 
+                cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT);
+
+            // Reached the end...
+            if(nCurrentFrame + 1 == nTotalFrames)
+                break;
+
+        #endif
 
         // Retrieve the captured image...
-        IplImage const &OriginalImage = *cvRetrieveFrame(pCapture);
+        IplImage const &OriginalImage = *cvQueryFrame(pCapture);
 
         // The tracker prefers grayscale 8-bit unsigned format, prepare...
 
@@ -95,8 +99,8 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
         if(Frame.ProcessorThrottle->GetValue() < 100)
         {
             // Compute sleep time from slider value... [1,1000ms]
-            int nSleepTime = (int)
-                ((Frame.ProcessorThrottle->GetValue() + 1) / 10.0f);
+            int nSleepTime = 
+                ((100 - Frame.ProcessorThrottle->GetValue()) * 10);
 
             // Give up rest of time slice to system for other threads...
             Yield();
@@ -119,6 +123,12 @@ AnalysisThread::AnalysisAutoLock::AnalysisAutoLock(MainFrame &_Frame)
 {
     // Variables...
     wxString    sTemp;
+
+    // Begin analysis button...
+    Frame.BeginAnalysisButton->Disable();
+
+    // Cancel analysis button...
+    Frame.CancelAnalysisButton->Enable();
 
     // Microscope set...
     Frame.ChosenMicroscopeName->Disable();
@@ -155,6 +165,12 @@ AnalysisThread::AnalysisAutoLock::AnalysisAutoLock(MainFrame &_Frame)
 // Deconstructor unlocks UI...
 AnalysisThread::AnalysisAutoLock::~AnalysisAutoLock()
 {
+    // Begin analysis button...
+    Frame.BeginAnalysisButton->Enable();
+
+    // Cancel analysis button...
+    Frame.CancelAnalysisButton->Disable();
+
     // Microscope set...
     Frame.ChosenMicroscopeName->Enable();
     Frame.ChosenMicroscopeTotalZoom->Enable();

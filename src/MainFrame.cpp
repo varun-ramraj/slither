@@ -468,6 +468,9 @@ void MainFrame::OnAnalyze(wxCommandEvent &Event)
 // A frame has just been analyzed and is ready to be displayed...
 void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
 {
+    // Variables...
+    wxString sTemp;
+
     // Get the thinking image...
     IplImage *pThinkingImage = pAnalysisThread->Tracker.GetThinkingImage();
     
@@ -481,76 +484,65 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
     // Cleanup...
     cvReleaseImage(&pThinkingImage);
 
-        /* Update status every 3000 milliseconds...
-        if(StatusUpdateStopWatch.Time() >= 3000)
+    // Update status every 1000 milliseconds...
+    if(pAnalysisThread->StatusUpdateStopWatch.Time() >= 1000)
+    {
+        // Get current position...
+        int const nCurrentFrame = (int) 
+            cvGetCaptureProperty(pAnalysisThread->pCapture, 
+                                 CV_CAP_PROP_POS_FRAMES);
+
+        // Get total number of frames...
+        int const nTotalFrames = (int) 
+            cvGetCaptureProperty(pAnalysisThread->pCapture, 
+                                 CV_CAP_PROP_FRAME_COUNT);
+
+        // Show number tracking...
+        sTemp.Printf(wxT("%d"), pAnalysisThread->Tracker.Tracking());
+        AnalysisWormsTrackingStatus->ChangeValue(sTemp);
+        
+        // We have the information we need to compute progress...
+        if(nCurrentFrame && nTotalFrames)
         {
-::wxMutexGuiEnter();
-            
-            // Get current position...
-            int nCurrentFrame = (int) 
-                cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES);
+            // Compute total progress...
+            int const nProgress = 
+                (int)(((float) nCurrentFrame / nTotalFrames)  * 100.0);
 
-            // Get total number of frames...
-            int nTotalFrames = (int) 
-                cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT);
+            // Prepare current frame processing string...
+            sTemp.Printf(wxT("%d / %d (%d %%)"), nCurrentFrame, 
+                            nTotalFrames, nProgress);
 
-            // We have the information we need to compute progress...
-            if(nCurrentFrame && nTotalFrames)
+            // Set it only if it has changed...
+            if(nProgress != AnalysisGauge->GetValue())
             {
-                // Compute total progress...
-                int nProgress = 
-                    (int)(((float) nCurrentFrame / nTotalFrames)  * 100.0);
+                // Update the current frame processed...
+                AnalysisCurrentFrameStatus->ChangeValue(sTemp);
 
-                // Prepare current frame processing string...
-                sTemp.Printf(wxT("%d / %d (%d %%)"), nCurrentFrame, 
-                             nTotalFrames, nProgress);
-
-                // Set it only if it has changed...
-                if(nProgress != Frame.AnalysisGauge->GetValue())
-                {
-                    // Update the current frame...
-                    Frame.AnalysisCurrentFrameStatus->ChangeValue(sTemp);
-
-                    // Update the progress bar...
-                    Frame.AnalysisGauge->SetValue(nProgress);
-                }
-
-                // The Quicktime backend appears to be buggy in that it keeps
-                //  cycling through the video even after we have all frames.
-                //  A temporary hack is to just break the analysis loop when we
-                //  have both current frame, total frame, and they are equal...
-                if(nCurrentFrame + 1 == nTotalFrames)
-                    break;
+                // Update the progress bar...
+                AnalysisGauge->SetValue(nProgress);
             }
-            
-            // We cannot compute progress because the codec the backend on this
-            //  platform is busted to shit...
-            else
-            {
-                // Prepare current frame processing string...
-                sTemp.Printf(wxT("%d"), nCurrentFrame);
-
-                // Update the current frame...
-                Frame.AnalysisCurrentFrameStatus->ChangeValue(sTemp);
-
-                // Pulse progress bar...
-                Frame.AnalysisGauge->Pulse();
-            }
-            
-            // Reset the status update timer...
-            StatusUpdateStopWatch.Start();
-::wxMutexGuiLeave();
         }
+        
+        // We cannot compute progress because the codec the backend on this
+        //  platform is busted to shit... (probably ffmpeg)
+        else
+        {
+            // Prepare current frame processing string...
+            sTemp.Printf(wxT("%d"), nCurrentFrame);
+
+            // Update the current frame...
+            AnalysisCurrentFrameStatus->ChangeValue(sTemp);
+
+            // Pulse progress bar...
+            AnalysisGauge->Pulse();
+        }
+        
+        // Reset the status update timer...
+        pAnalysisThread->StatusUpdateStopWatch.Start();
     }
 
-    // Show total time...
-    sTemp.Printf(wxT("Took %.3f s..."), AnalysisStopWatch.Time() / 1000.0f);
-::wxMutexGuiEnter();
-    Frame.AnalysisStatusList->Append(sTemp);
-::wxMutexGuiLeave();*/
-
-    // Let HighGUI process events...
-    cvWaitKey(1);
+    // Let HighGUI and wxWidgets main thread's event loop process events...
+    cvWaitKey(10);
   ::wxGetApp().Yield();
 }
 
@@ -604,6 +596,17 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         delete pAnalysisThread;
         return;    
     }
+}
+
+// Cancel analysis button hit...
+void MainFrame::OnCancelAnalysis(wxCommandEvent &Event)
+{
+    // Analysis not running, abort...
+    if(!AnalysisTimer.IsRunning())
+        return;
+
+    // Delete the thread...
+    pAnalysisThread->Delete();
 }
 
 // An analysis type was chosen...
@@ -761,18 +764,6 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
     
     // Trigger analysis results sizer to recalculate layout...
     AnalysisGrid->GetContainingSizer()->Layout();
-}
-
-// Cancel analysis button hit...
-void MainFrame::OnCancelAnalysis(wxCommandEvent &Event)
-{
-    // Signal to analysis thread that it should end when convenient by disabling
-    //  the cancel analysis button...
-    CancelAnalysisButton->Disable();
-    
-    // Begin analysis button will be re-enabled when analysis thread 
-    //  terminates...
-    BeginAnalysisButton->Disable();
 }
 
 // Capture was toggled...
