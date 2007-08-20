@@ -90,6 +90,12 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
     CvContour      *pCurrentContour = NULL;
     CvSize const    ImageSize       = cvGetSize(&NewGrayImage);
 
+    // Lock resources...
+    wxMutexLocker   Lock(ResourcesMutex);
+    
+    // Lock should have been gained successfully...
+    assert(Lock.IsOk());
+
     // Release the old image, if any...
     if(pGrayImage)
         cvReleaseImage(&pGrayImage);
@@ -143,8 +149,9 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         if(!IsPossibleWorm(*pCurrentContour))
             continue;
 
-        // Acknowledge...
-        Acknowledge(*pCurrentContour);
+        // Otherwise, acknowledge it...
+        else
+            Acknowledge(*pCurrentContour);
     }
     
     // Show some information on each worm contour...
@@ -193,11 +200,22 @@ unsigned int const WormTracker::CountRectanglesIntersected(
     return unIntersections;
 }
 
-// Get the current thinking image...
-IplImage const &WormTracker::GetThinkingImage() const
+// Get a copy of the current thinking image. Caller frees...
+IplImage *WormTracker::GetThinkingImage() const
 {
-    // Return it...
-    return *pThinkingImage;
+    // Lock resources...
+    wxMutexLocker   Lock(ResourcesMutex);
+    
+    // Lock should have been gained successfully...
+    assert(Lock.IsOk());
+
+    // Clone the thinking image, if any...
+    if(pThinkingImage)
+        return cvCloneImage(pThinkingImage);
+    
+    // Otherwise, no thinking image available yet...
+    else
+        return NULL;
 }
 
 // Get the nth worm, or null worm if no more...
@@ -208,6 +226,35 @@ Worm &WormTracker::GetWorm(unsigned int const unIndex) const
 
     // Return worm...
     return *TrackingTable.at(unIndex);
+}
+
+// Do any points on the mystery contour lie on the image exterior?
+bool WormTracker::IsAnyPointOnImageExterior(CvContour const &MysteryContour)
+    const
+{
+    // Image size...
+    CvSize const Size = cvGetSize(pGrayImage);
+
+    // Check each point to see if any lie on image exterior...
+    for(unsigned int unVertexIndex = 0; 
+        unVertexIndex < (unsigned) MysteryContour.total; 
+        unVertexIndex++)
+    {
+        // Get the point...
+        CvPoint const &Point = *((CvPoint *) 
+            cvGetSeqElem((CvSeq *) &MysteryContour, unVertexIndex));
+
+        // On either the left or right extremity...
+        if(Point.x == 0 || Point.x == Size.width)
+            return true;
+
+        // On either the top or bottom extremity...
+        if(Point.y == 0 || Point.y == Size.height)
+            return true;
+    }
+
+    // Every vertex came out non-tangent to the exterior...
+    return false;
 }
 
 // Find the worm that probably created this contour, if any...
@@ -234,8 +281,7 @@ bool WormTracker::IsKnown(CvContour const &WormContour,
         WormCentre.y = int(WormMoment.m01 / WormMoment.m00);
 
     // Check each worm's proximity to this one...
-    for(unsigned int unWormIndex = 0; 
-        unWormIndex < TrackingTable.size();
+    for(unsigned int unWormIndex = 0; unWormIndex < TrackingTable.size();
       ++unWormIndex)
     {
         // Worm to check...
@@ -257,22 +303,27 @@ bool WormTracker::IsKnown(CvContour const &WormContour,
     
     // Isolate the best match now...
     Worm &BestMatch = *TrackingTable.at(unClosestWormIndex);
-    
-    // If it doesn't even overlap with the given one, then no match...
-    if(!IsRectanglesIntersect(WormContour.rect, BestMatch.Rectangle()))
-        return false;
-
-    // Found successfully...
     unFoundIndex = unClosestWormIndex;
-    return true;
+    
+    // If given worm contour isn't tangent to image exterior, assume known...
+/*    if(!IsAnyPointOnImageExterior(WormContour))*/
+
+    // If the rectangles intersect, then we have good chance of match...
+    if(IsRectanglesIntersect(WormContour.rect, BestMatch.Rectangle()))
+        return true;
+
+    // Are they close enough to be a match?
+    else if(dDistanceToClosestWorm <= 35.0f)
+        return true;
+
+    // No match...
+    else
+        return false;
 }
 
 // Could this contour be a worm, independent of what we know?
 bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
-    // Image size...
-    CvSize const Size = cvGetSize(pGrayImage);
-
     // Too few vertices...
     if(MysteryContour.total < 6)
         return false;
@@ -284,23 +335,9 @@ bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
     if((dArea < 200.0) || (800.0 < dArea))
         return false;
 
-    // Check each point to see if any lie on image exterior...
-    for(unsigned int unVertexIndex = 0; 
-        unVertexIndex < (unsigned) MysteryContour.total; 
-        unVertexIndex++)
-    {
-        // Get the point...
-        CvPoint const &Point = *((CvPoint *) 
-            cvGetSeqElem((CvSeq *) &MysteryContour, unVertexIndex));
-
-        // On either the left or right extremity...
-        if(Point.x == 0 || Point.x == Size.width)
-            return false;
-
-        // On either the top or bottom extremity...
-        if(Point.y == 0 || Point.y == Size.height)
-            return false;
-    }
+    // Contours with points on image exterior not permitted...
+    if(IsAnyPointOnImageExterior(MysteryContour))
+        return false;
 
     // Meets worm minima...
     return true;
@@ -351,6 +388,12 @@ WormTracker::~WormTracker()
 // Output some info on current tracker state......
 ostream & operator<<(ostream &Output, WormTracker &RequestedWormTracker)
 {
+    // Lock resources...
+    wxMutexLocker   Lock(RequestedWormTracker.ResourcesMutex);
+    
+    // Lock should have been gained successfully...
+    assert(Lock.IsOk());
+
     // Show some general information about tracker...
     cout << "Tracking " << RequestedWormTracker.TrackingTable.size() 
          << " worms..." << endl;

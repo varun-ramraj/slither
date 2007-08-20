@@ -17,12 +17,17 @@
     #include <opencv/cv.h>
     #include <opencv/highgui.h>
     
-    // Standard libraries, STL, and namespace...
-    using namespace std;
+    // wxWidgets for thread safe usage...
+    #include <wx/thread.h>
+    
+    // Standard libraries and STL...
     #include <iostream>
     #include <string>
     #include <utility>
     #include <vector>
+    
+    // Using the standard namespace...
+    using namespace std;
 
 // WormTracker class...
 class WormTracker
@@ -38,13 +43,10 @@ class WormTracker
             // The number of worms we are currently tracking...
             unsigned int Tracking() const;
             
-            // Get the current thinking image...
-            IplImage const &GetThinkingImage() const;
+            // Get a copy of the current thinking image. Caller frees...
+            IplImage *GetThinkingImage() const;
 
         // Mutators...
-
-            // Acknowledge a worm contour...
-            void Acknowledge(CvContour const &WormContour);
 
             // Advance frame...
             void AdvanceNextFrame(IplImage const &NewGrayImage);
@@ -73,6 +75,10 @@ class WormTracker
             // Get the nth worm, or null worm if no more...
             Worm &GetWorm(unsigned int const unIndex) const;
 
+            // Do any points on the mystery contour lie on the image exterior?
+            bool IsAnyPointOnImageExterior(CvContour const &MysteryContour)
+                const;
+
             // Find the worm that probably created this contour, if any...
             bool IsKnown(CvContour const &WormContour, 
                          unsigned int &unFoundIndex) const;
@@ -86,6 +92,9 @@ class WormTracker
 
         // Mutators...
 
+            // Acknowledge a worm contour...
+            void Acknowledge(CvContour const &WormContour);
+
             // Add worm to tracker...
             void Add(CvContour const &WormContour);
 
@@ -97,17 +106,20 @@ class WormTracker
 
         // Base storage to store contour sequence and any other dynamic 
         //  OpenCV data structures...
-        CvMemStorage   *pStorage;
+        CvMemStorage       *pStorage;
         
         // Thinking image label font...
-        CvFont          ThinkingLabelFont;
+        CvFont              ThinkingLabelFont;
 
         // Current frame's gray image and thinking image...
-        IplImage       *pGrayImage;
-        IplImage       *pThinkingImage;
+        IplImage           *pGrayImage;
+        IplImage           *pThinkingImage;
         
         // Table of worms being tracked...
-        vector<Worm *>  TrackingTable;
+        vector<Worm *>      TrackingTable;
+        
+        // Resources mutex...
+        mutable wxMutex     ResourcesMutex;
 };
 
 #endif

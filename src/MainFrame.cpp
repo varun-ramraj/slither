@@ -88,6 +88,7 @@ MainFrame::MainFrame(const wxString &sTitle)
     : pExperiment(NULL),
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
+      pAnalysisThread(NULL),
       AnalysisTimer(this, TIMER_ANALYSIS),
       bExiting(false)
 {
@@ -467,62 +468,90 @@ void MainFrame::OnAnalyze(wxCommandEvent &Event)
 // A frame has just been analyzed and is ready to be displayed...
 void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
 {
-    // Variables...
-    IplImage               *pAnalyzedIntelImage = NULL;
-    unsigned char          *pRawImageData       = NULL;
-    int                     nStep               = 0;
-    CvSize                  Size;
-    int                     x                   = 0;
-    int                     y                   = 0;
-    int                     nWidth              = 0;
-    int                     nHeight             = 0;
+    // Get the thinking image...
+    IplImage *pThinkingImage = pAnalysisThread->Tracker.GetThinkingImage();
+    
+        // Not ready yet...
+        if(!pThinkingImage)
+            return;
 
-    // No frame to grab...
-    if(AnalysisFrameBuffer.empty())
-        return;
+    // Display the image...
+    cvShowImage("Analysis", pThinkingImage);
+    
+    // Cleanup...
+    cvReleaseImage(&pThinkingImage);
 
-    // Flush frame buffer of old frames, since all we want is to display them...
-    while(AnalysisFrameBuffer.size() >= 2)
-    {
-        // Deallocate the oldest frame...
-        pAnalyzedIntelImage = (IplImage *) AnalysisFrameBuffer.front();
-        AnalysisFrameBuffer.pop_front();
-        cvReleaseImage(&pAnalyzedIntelImage);
+        /* Update status every 3000 milliseconds...
+        if(StatusUpdateStopWatch.Time() >= 3000)
+        {
+::wxMutexGuiEnter();
+            
+            // Get current position...
+            int nCurrentFrame = (int) 
+                cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES);
+
+            // Get total number of frames...
+            int nTotalFrames = (int) 
+                cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT);
+
+            // We have the information we need to compute progress...
+            if(nCurrentFrame && nTotalFrames)
+            {
+                // Compute total progress...
+                int nProgress = 
+                    (int)(((float) nCurrentFrame / nTotalFrames)  * 100.0);
+
+                // Prepare current frame processing string...
+                sTemp.Printf(wxT("%d / %d (%d %%)"), nCurrentFrame, 
+                             nTotalFrames, nProgress);
+
+                // Set it only if it has changed...
+                if(nProgress != Frame.AnalysisGauge->GetValue())
+                {
+                    // Update the current frame...
+                    Frame.AnalysisCurrentFrameStatus->ChangeValue(sTemp);
+
+                    // Update the progress bar...
+                    Frame.AnalysisGauge->SetValue(nProgress);
+                }
+
+                // The Quicktime backend appears to be buggy in that it keeps
+                //  cycling through the video even after we have all frames.
+                //  A temporary hack is to just break the analysis loop when we
+                //  have both current frame, total frame, and they are equal...
+                if(nCurrentFrame + 1 == nTotalFrames)
+                    break;
+            }
+            
+            // We cannot compute progress because the codec the backend on this
+            //  platform is busted to shit...
+            else
+            {
+                // Prepare current frame processing string...
+                sTemp.Printf(wxT("%d"), nCurrentFrame);
+
+                // Update the current frame...
+                Frame.AnalysisCurrentFrameStatus->ChangeValue(sTemp);
+
+                // Pulse progress bar...
+                Frame.AnalysisGauge->Pulse();
+            }
+            
+            // Reset the status update timer...
+            StatusUpdateStopWatch.Start();
+::wxMutexGuiLeave();
+        }
     }
-        
-    // Get the most recent and then remove it off the queue...
-    pAnalyzedIntelImage = (IplImage *) AnalysisFrameBuffer.back();
-    AnalysisFrameBuffer.pop_back();
 
-    // Display it, but only if analysis pane is visible...
-    if(MainNotebook->GetSelection() == ANALYSIS_PANE)
-    {
-        // Get the frame's raw data...
-        cvGetRawData(pAnalyzedIntelImage, &pRawImageData, &nStep, &Size);
+    // Show total time...
+    sTemp.Printf(wxT("Took %.3f s..."), AnalysisStopWatch.Time() / 1000.0f);
+::wxMutexGuiEnter();
+    Frame.AnalysisStatusList->Append(sTemp);
+::wxMutexGuiLeave();*/
 
-        // Convert the raw data into something wxWidgets understands...
-        wxImage WxImage = wxImage(pAnalyzedIntelImage->width, 
-                                  pAnalyzedIntelImage->height, 
-                                  pRawImageData, true);
-        
-        // Get the device context for the video panel...
-        wxBufferedPaintDC  DeviceContext(AnalysisImagePanel);
-
-        // Get the rectangle surrounding the current clipping region...
-        DeviceContext.GetClippingBox(&x, &y, &nWidth, &nHeight);
-
-        // Get the width and height of the video preview panel...
-        AnalysisImagePanel->GetSize(&nWidth, &nHeight); 
-
-        // Turn the image into a bitmap, scaled to the panel's dimensions...
-        wxBitmap Bitmap = wxBitmap(WxImage.Scale(nWidth, nHeight));
-
-        // Paint the bitmap onto the panel's surface...
-        DeviceContext.DrawBitmap(Bitmap, x, y);
-    }
-
-    // De-allocate our internal copy of the original intel image...
-    cvReleaseImage(&pAnalyzedIntelImage);
+    // Let HighGUI process events...
+    cvWaitKey(1);
+  ::wxGetApp().Yield();
 }
 
 // Begin analysis button hit...
@@ -550,7 +579,7 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
     }
 
     // Create the analysis thread and check for error...
-    AnalysisThread *pAnalysisThread = new AnalysisThread(*this);
+    pAnalysisThread = new AnalysisThread(*this);
     if(pAnalysisThread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
     {
         // Alert...
@@ -596,7 +625,7 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
         // Alert user...
         wxMessageDialog Message(this, 
                                 wxT("Sorry, but that is not implemented yet."), 
-                                wxT("Analysis"), wxICON_INFORMATION);
+                                wxT("Analysis Type"), wxICON_INFORMATION);
         Message.ShowModal();
         
         // Abort...
@@ -723,8 +752,8 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
         // Append new row...
         AnalysisGrid->AppendRows(100);
         
-        // Set empty row label...
-        AnalysisGrid->SetRowLabelValue(unRow, wxT(""));
+        /* Set empty row label...
+        AnalysisGrid->SetRowLabelValue(unRow, wxT(""));*/
     }
     
     // Automatically resize all columns and rows to fit contents...
@@ -1635,7 +1664,7 @@ void MainFrame::OnQuit(wxCommandEvent &Event)
 {
     // Make sure capture and analysis threads exit cleanly first...
     bExiting = true;
-    while(AnalysisTimer.IsRunning() || AnalysisTimer.IsRunning())
+    while(CaptureTimer.IsRunning() || AnalysisTimer.IsRunning())
         wxSleep(1);
 
     // Close experiment first...
@@ -1668,7 +1697,7 @@ void MainFrame::OnSystemClose(wxCloseEvent &Event)
 {
     // Make sure capture and analysis threads exit cleanly first...
     bExiting = true;
-    while(AnalysisTimer.IsRunning() || AnalysisTimer.IsRunning())
+    while(CaptureTimer.IsRunning() || AnalysisTimer.IsRunning())
         wxSleep(1);
 
     // An experiment needs to be saved...
@@ -1698,7 +1727,7 @@ void MainFrame::OnSystemClose(wxCloseEvent &Event)
 void MainFrame::ShowTip()
 {
     // Variables...
-    static size_t           nTipIndex   = (size_t) -1;
+    static size_t           nTipIndex   = (size_t) - 1;
            wxStandardPaths  StandardPaths;
            wxString         sTipsPath;
 

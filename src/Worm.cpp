@@ -312,19 +312,22 @@ inline double const Worm::GetLineMaximumBrightness(
     IplImage const &GrayImage) const
 {
     // Variables...
-    CvLineIterator      LineIterator;
-    int                 nPixelIndex         = 0;
-    //register double     dTotalBrightness    = 0.0f;
-    unsigned char       MaxBrightness       = 0x00;
-    CvPoint             CurrentPoint        = cvPoint(0, 0);
+    CvPoint                 FirstPoint(cvPointFrom32f(A.first));
+    CvPoint                 SecondPoint(cvPointFrom32f(A.second));
+    CvLineIterator          LineIterator;
+    int                     nPixelIndex     = 0;
+    register unsigned char  MaxBrightness   = 0x00;
+    CvPoint                 CurrentPoint    = cvPoint(0, 0);
+
+    // Make sure the line is within the image boundary...
+    cvClipLine(cvGetSize(&GrayImage), &FirstPoint, &SecondPoint);
 
     // Initialize pixel iterator...
-    int const nPixels = cvInitLineIterator(&GrayImage, cvPointFrom32f(A.first), 
-                                           cvPointFrom32f(A.second), 
+    int const nPixels = cvInitLineIterator(&GrayImage, FirstPoint, SecondPoint,
                                            &LineIterator, 8, 0);
 
-/*cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(A.first), 
-       cvPointFrom32f(A.second), CV_RGB(0xFF, 0xFF, 0xFF));*/
+/*cvLine(const_cast<IplImage *>(&GrayImage), cvPointFrom32f(Line.first), 
+       cvPointFrom32f(Line.second), CV_RGB(0xFF, 0xFF, 0xFF));*/
 
     // Scan each pixel, totaling as we go...
     for(nPixelIndex = 0; nPixelIndex < nPixels; ++nPixelIndex)
