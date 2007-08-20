@@ -101,6 +101,7 @@ class MainFrame : public MainFrame_Base
     // Friends...
     friend class SlitherApp;
     friend class AnalysisThread;
+    friend class AnalysisThread::AnalysisAutoLock;
     friend class CaptureThread;
     friend class Experiment;
     friend class VideosGridDropTarget;

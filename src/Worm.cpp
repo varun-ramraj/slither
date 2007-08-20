@@ -10,8 +10,16 @@
 #include <cmath>
 #include <cassert>
 
-// Dummy default argument parameters...
-unsigned int Worm::unDummy = 0;
+// Statics...
+
+    // The value of π...
+    double const Worm::Pi = 3.1415926535897932384626433832795f;
+
+    // Infinity... (kind of)
+    double const Worm::Infinity = FLT_MAX;
+
+    // Dummy default argument parameters...
+    unsigned int Worm::unDummy = 0;
 
 // Default constructor...
 Worm::Worm()

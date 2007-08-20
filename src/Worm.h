@@ -93,11 +93,10 @@ class Worm
             };
 
             // The value of π...
-            double const static Pi                          
-                = 3.1415926535897932384626433832795f;
+            static double const Pi;
             
             // Infinity... (kind of)
-            double const static Infinity                    = FLT_MAX;
+            static double const Infinity;
 
     // Protected types...
     protected:
