@@ -9,13 +9,13 @@
 #include "MainFrame.h"
 #include "Experiment.h"
 
-// Analysis thread constructor...
+// Analysis thread constructor locks UI...
 AnalysisThread::AnalysisThread(MainFrame &_Frame)
     : Frame(_Frame),
-      AnalysisLock(_Frame),
       pCapture(NULL)
 {
-
+    // Reset the tracker, if not already...
+    Frame.Tracker.Reset();
 }
 
 // Thread entry point...
@@ -57,6 +57,26 @@ void *AnalysisThread::Entry()
     // Keep showing video until there is nothing left or cancel requested...
     while(!Frame.bExiting && !TestDestroy())
     {
+        // Depending on processor throttle setting, idle...
+        if(Frame.ProcessorThrottle->GetValue() < 100)
+        {
+            // Get the throttle value...
+            int const nThrottle = Frame.ProcessorThrottle->GetValue();
+            
+            // Compute sleep time from slider value... [1,2000ms]
+            int nSleepTime = ((100 - nThrottle) * 20);
+
+            // Give up rest of time slice to system for other threads...
+            Yield();
+            
+            // Sleep...
+            wxThread::Sleep(nSleepTime);
+            
+            // Throttle was at zero, don't bother doing any processing...
+            if(nThrottle == 0)
+                continue;
+        }
+
         // Retrieve the captured image...
         IplImage const *pOriginalImage = cvQueryFrame(pCapture);
         
@@ -94,24 +114,10 @@ void *AnalysisThread::Entry()
             cvConvertImage(pOriginalImage, pGrayImage);
 
         // Feed into tracker...
-        Tracker.AdvanceNextFrame(*pGrayImage);
+        Frame.Tracker.AdvanceNextFrame(*pGrayImage);
         
         // Cleanup gray image...
         cvReleaseImage(&pGrayImage);
-        
-        // Depending on processor throttle setting, idle...
-        if(Frame.ProcessorThrottle->GetValue() < 100)
-        {
-            // Compute sleep time from slider value... [1,1000ms]
-            int nSleepTime = 
-                ((100 - Frame.ProcessorThrottle->GetValue()) * 10);
-
-            // Give up rest of time slice to system for other threads...
-            Yield();
-            
-            // Sleep...
-            wxThread::Sleep(nSleepTime);
-        }
     }
 
     // Release the capture source...
@@ -121,91 +127,17 @@ void *AnalysisThread::Entry()
     return NULL;
 }
 
-// Constructor locks UI...
-AnalysisThread::AnalysisAutoLock::AnalysisAutoLock(MainFrame &_Frame)
-    : Frame(_Frame)
+// Analysis thread exitting callback...
+void AnalysisThread::OnExit()
 {
-    // Variables...
-    wxString    sTemp;
+    // Inform main thread in a thread safe way that analysis has terminated...
+        
+        // Initialize event...
+        wxCommandEvent Event(wxEVT_COMMAND_BUTTON_CLICKED, 
+                             MainFrame::ID_ANALYSIS_ENDED);
+        Event.SetInt(true);
 
-    // Begin analysis button...
-    Frame.BeginAnalysisButton->Disable();
-
-    // Cancel analysis button...
-    Frame.CancelAnalysisButton->Enable();
-
-    // Microscope set...
-    Frame.ChosenMicroscopeName->Disable();
-    Frame.ChosenMicroscopeTotalZoom->Disable();
-    Frame.FieldOfViewDiameter->Disable();
-
-    // Analysis type...
-    Frame.ChosenAnalysisType->Disable();
-
-    // Analysis buttons...
-    Frame.BeginAnalysisButton->Disable();
-    Frame.CancelAnalysisButton->Enable();
-
-    // Analysis gauge...
-    Frame.AnalysisGauge->SetRange(100);
-    Frame.AnalysisGauge->SetValue(0);
-
-    // Clear the status list...
-    Frame.AnalysisStatusList->Clear();
-
-    // Alert user...
-    sTemp = Frame.ChosenAnalysisType->GetString(
-                Frame.ChosenAnalysisType->GetCurrentSelection()) + 
-            wxT(" analysis is running...");
-    Frame.AnalysisStatusList->Append(sTemp);
-
-    // Refresh the main frame...
-    Frame.Refresh();
-    
-    // Create analysis window...
-    cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
-}
-
-// Deconstructor unlocks UI...
-AnalysisThread::AnalysisAutoLock::~AnalysisAutoLock()
-{
-    // Stop the analysis timer...
-    Frame.AnalysisTimer.Stop();
-
-    // Begin analysis button...
-    Frame.BeginAnalysisButton->Enable();
-
-    // Cancel analysis button...
-    Frame.CancelAnalysisButton->Disable();
-
-    // Microscope set...
-    Frame.ChosenMicroscopeName->Enable();
-    Frame.ChosenMicroscopeTotalZoom->Enable();
-    Frame.FieldOfViewDiameter->Enable();
-
-    // Analysis type...
-    Frame.ChosenAnalysisType->Enable();
-
-    // Analysis status...
-    Frame.AnalysisCurrentFrameStatus->ChangeValue(wxT(""));
-    Frame.AnalysisRateStatus->ChangeValue(wxT(""));
-    Frame.AnalysisWormsTrackingStatus->ChangeValue(wxT(""));
-
-    // Analysis buttons...
-    Frame.BeginAnalysisButton->Enable();
-    Frame.CancelAnalysisButton->Disable();
-
-    // Analysis gauge...
-    Frame.AnalysisGauge->SetRange(100);
-    Frame.AnalysisGauge->SetValue(0);
-
-    // Alert user...
-    Frame.AnalysisStatusList->Append(wxT("Analysis ended..."));
-
-    // Refresh the main frame...
-    Frame.Refresh();
-    
-    // Destroy analysis window...
-    cvDestroyWindow("Analysis");
+        // Send in a thread-safe way...
+        wxPostEvent(&Frame, Event);
 }
 

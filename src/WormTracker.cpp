@@ -16,7 +16,8 @@
 WormTracker::WormTracker()
     : pStorage(cvCreateMemStorage(0)),
       pGrayImage(NULL),
-      pThinkingImage(NULL)
+      pThinkingImage(NULL),
+      unWormsJustAdded(0)
 {
     // Allocatation of base storage failed...
     if(!pStorage)
@@ -49,7 +50,7 @@ void WormTracker::Acknowledge(CvContour const &WormContour)
 
     // The worm is known, refresh it with the new information...
     if(IsKnown(WormContour, unFoundIndex))
-        GetWorm(unFoundIndex).Refresh(WormContour, *pGrayImage);
+        TrackingTable.at(unFoundIndex)->Refresh(WormContour, *pGrayImage);
 
     // The worm is not known, inform the tracker...
     else
@@ -67,6 +68,9 @@ void WormTracker::Add(CvContour const &WormContour)
 
     // Add new worm...
     TrackingTable.push_back(&NewWorm);
+    
+    // Increment just found count...
+  ++unWormsJustAdded;
 }
 
 // Add a text label to the thinking image at a point...
@@ -169,7 +173,7 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         // Show some information about the worm on the thinking image...
         AddThinkingLabel("head", CurrentWorm.Head());
         std::ostringstream ssCentre;
-        ssCentre << "(worm " << unWormIndex << ", updated " 
+        ssCentre << "(worm " << unWormIndex + 1 << ", updated " 
                  << CurrentWorm.Refreshes() << ")";
         AddThinkingLabel(ssCentre.str(), CurrentWorm.Centre());
         AddThinkingLabel("tail", CurrentWorm.Tail());
@@ -220,13 +224,24 @@ IplImage *WormTracker::GetThinkingImage() const
 }
 
 // Get the nth worm, or null worm if no more...
-Worm &WormTracker::GetWorm(unsigned int const unIndex) const
+Worm const &WormTracker::GetWorm(unsigned int const unIndex) const
 {
     // Check bounds...
     assert(unIndex + 1 <= TrackingTable.size());
 
     // Return worm...
     return *TrackingTable.at(unIndex);
+}
+
+// Get the number of worms just added since last check...
+unsigned int const WormTracker::GetWormsAddedSinceLastCheck()
+{
+    // Backup original for caller before resetting count...
+    unsigned int unTemp = unWormsJustAdded;
+    unWormsJustAdded    = 0;
+    
+    // Done...
+    return unTemp;
 }
 
 // Do any points on the mystery contour lie on the image exterior?
@@ -360,6 +375,52 @@ unsigned int WormTracker::Tracking() const
 {
     // Return the size of the table...
     return TrackingTable.size();
+}
+
+// Reset the tracker...
+void WormTracker::Reset()
+{
+    // Lock resources...
+    wxMutexLocker   Lock(ResourcesMutex);
+        
+    // Cleanup the worms...
+        
+        // Deallocate each worm...
+        for(vector<Worm *>::const_iterator Iterator = TrackingTable.begin();
+            Iterator != TrackingTable.end();
+          ++Iterator)
+        {
+            // Deallocate
+            delete *Iterator;
+        }
+        
+        // Clear the dead pointer table space...
+        TrackingTable.clear();
+
+    // Cleanup the gray image, if any...
+    if(pGrayImage)
+        cvReleaseImage(&pGrayImage);
+    pGrayImage = NULL;
+
+    // Cleanup the thinking image, if any...
+    if(pThinkingImage)
+        cvReleaseImage(&pThinkingImage);
+    pThinkingImage = NULL;
+    
+    // Cleanup base storage...
+    
+        // De-allocate...    
+        cvReleaseMemStorage(&pStorage); 
+    
+        // Reallocate...
+        pStorage = cvCreateMemStorage(0);
+        
+            // Failed...
+            if(!pStorage)
+                throw bad_alloc();
+        
+    // Worms just added in this frame...
+    unWormsJustAdded = 0;
 }
 
 // Deconstructor...

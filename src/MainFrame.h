@@ -101,7 +101,6 @@ class MainFrame : public MainFrame_Base
     // Friends...
     friend class SlitherApp;
     friend class AnalysisThread;
-    friend class AnalysisThread::AnalysisAutoLock;
     friend class CaptureThread;
     friend class Experiment;
     friend class VideosGridDropTarget;
@@ -182,6 +181,7 @@ class MainFrame : public MainFrame_Base
         void OnBeginAnalysis(wxCommandEvent &Event);
         void OnAnalysisFrameReadyTimer(wxTimerEvent &Event);
         void OnCancelAnalysis(wxCommandEvent &Event);
+        void OnEndAnalysis(wxCommandEvent &Event);
 
         // Show the tip window...
         void ShowTip();
@@ -227,7 +227,8 @@ class MainFrame : public MainFrame_Base
             ID_CAPTURE,
             ID_CAPTURE_FRAME_READY,
             ID_START_ANALYSIS,
-            ID_STOP_ANALYSIS
+            ID_STOP_ANALYSIS,
+            ID_ANALYSIS_ENDED
         };
         
         // Timer IDs...
@@ -240,9 +241,17 @@ class MainFrame : public MainFrame_Base
         // Analysis types...
         enum
         {
-            ANALYSIS_BODY_SIZE              = 0,
+            ANALYSIS_BODY_SIZE                  = 0,
             ANALYSIS_LONG_TERM_HABITUATION,
             ANALYSIS_SHORT_TERM_HABITUATION
+        };
+        
+        // Analysis type columns...
+        enum
+        {
+            ANALYSIS_BODY_SIZE_COLUMN_LENGTH    = 0,
+            ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
+            ANALYSIS_BODY_SIZE_COLUMN_AREA
         };
         
         // Microscope table...
@@ -269,6 +278,9 @@ class MainFrame : public MainFrame_Base
         
         // Exiting flag triggers threads running to exit...
         bool                    bExiting;
+        
+        // Worm tracker...
+        WormTracker             Tracker;
 };
 
 #endif

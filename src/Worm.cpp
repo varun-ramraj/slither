@@ -87,7 +87,7 @@ inline void Worm::AdjustDirectedLineSegmentLength(LineSegment &A,
 }
 
 // Best guess of the area, considering everything we've seen thus far...
-inline double const &Worm::Area() const
+double const &Worm::Area() const
 {
     // Return it...
     return dArea;
@@ -1196,7 +1196,7 @@ unsigned int const Worm::Refreshes() const
 }
 
 // Best guess of the area, considering everything we've seen thus far...
-inline double const &Worm::Width() const
+double const &Worm::Width() const
 {
     // Return it...
     return dWidth;

@@ -65,9 +65,9 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
 
     // VideosGrid events...
     EVT_GRID_CMD_CELL_CHANGE(XRCID("VideosGrid"),           MainFrame::OnExperimentChangeCell)
-    EVT_GRID_CELL_LEFT_DCLICK(                              MainFrame::OnVideoCellDoubleLeftClick)
-    EVT_GRID_CELL_LEFT_CLICK(                               MainFrame::OnVideoCellLeftClick)
-    EVT_GRID_CELL_RIGHT_CLICK(                              MainFrame::OnVideoCellRightClick)
+    EVT_GRID_CMD_CELL_LEFT_DCLICK(XRCID("VideosGrid"),      MainFrame::OnVideoCellDoubleLeftClick)
+    EVT_GRID_CMD_CELL_LEFT_CLICK(XRCID("VideosGrid"),       MainFrame::OnVideoCellLeftClick)
+    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("VideosGrid"),      MainFrame::OnVideoCellRightClick)
 
     // Capture...
     EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
@@ -78,6 +78,7 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
                                                             MainFrame::OnChooseMicroscopeTotalZoom)
     EVT_CHOICE              (XRCID("ChosenAnalysisType"),   MainFrame::OnChooseAnalysisType)
     EVT_BUTTON              (XRCID("BeginAnalysisButton"),  MainFrame::OnBeginAnalysis)
+    EVT_BUTTON              (ID_ANALYSIS_ENDED,             MainFrame::OnEndAnalysis)
     EVT_TIMER               (TIMER_ANALYSIS,                MainFrame::OnAnalysisFrameReadyTimer)
     EVT_BUTTON              (XRCID("CancelAnalysisButton"), MainFrame::OnCancelAnalysis)
 
@@ -472,7 +473,7 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
     wxString sTemp;
 
     // Get the thinking image...
-    IplImage *pThinkingImage = pAnalysisThread->Tracker.GetThinkingImage();
+    IplImage *pThinkingImage = Tracker.GetThinkingImage();
     
         // Not ready yet...
         if(!pThinkingImage)
@@ -487,6 +488,24 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
     // Update status every half a second...
     if(pAnalysisThread->StatusUpdateStopWatch.Time() >= 500)
     {
+        // Were there any new worms found?
+        unsigned int const unWormsJustFound = 
+            Tracker.GetWormsAddedSinceLastCheck();
+
+            // Yes, alert user...
+            if(unWormsJustFound > 0)
+            {
+                // Format...
+                if(unWormsJustFound == 1)
+                    sTemp.Printf(wxT("Found a new worm..."));
+                else
+                    sTemp.Printf(wxT("Found %d new worms..."), 
+                                 unWormsJustFound);
+
+                // Append to analysis status list...
+                AnalysisStatusList->Append(sTemp);
+            }
+
         // Get current position...
         int const nCurrentFrame = (int) 
             cvGetCaptureProperty(pAnalysisThread->pCapture, 
@@ -498,7 +517,7 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
                                  CV_CAP_PROP_FRAME_COUNT);
 
         // Show number tracking...
-        sTemp.Printf(wxT("%d"), pAnalysisThread->Tracker.Tracking());
+        sTemp.Printf(wxT("%d"), Tracker.Tracking());
         AnalysisWormsTrackingStatus->ChangeValue(sTemp);
         
         // We have the information we need to compute progress...
@@ -548,6 +567,9 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
 // Begin analysis button hit...
 void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
 {
+    // Variables...
+    wxString    sTemp;
+
     // Analysis already running, abort...
     if(AnalysisTimer.IsRunning())
         return;
@@ -568,6 +590,48 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         // Done...
         return;
     }
+
+    // Lock the UI...
+
+        // Begin analysis button...
+        BeginAnalysisButton->Disable();
+
+        // Cancel analysis button...
+        CancelAnalysisButton->Enable();
+
+        // Microscope set...
+        ChosenMicroscopeName->Disable();
+        ChosenMicroscopeTotalZoom->Disable();
+        FieldOfViewDiameter->Disable();
+
+        // Analysis type...
+        ChosenAnalysisType->Disable();
+
+        // Analysis buttons...
+        BeginAnalysisButton->Disable();
+        CancelAnalysisButton->Enable();
+
+        // Analysis gauge...
+        AnalysisGauge->SetRange(100);
+        AnalysisGauge->SetValue(0);
+
+        // Clear the status list...
+        AnalysisStatusList->Clear();
+
+        // Analysis grid...
+        AnalysisGrid->Disable();
+
+        // Alert user...
+        sTemp = ChosenAnalysisType->GetString(
+                    ChosenAnalysisType->GetCurrentSelection()) + 
+                wxT(" analysis is running...");
+        AnalysisStatusList->Append(sTemp);
+
+        // Refresh the main frame...
+        Refresh();
+        
+        // Create analysis window...
+        cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
 
     // Create the analysis thread and check for error...
     pAnalysisThread = new AnalysisThread(*this);
@@ -871,18 +935,6 @@ void MainFrame::OnCaptureFrameReadyTimer(wxTimerEvent &Event)
     }
 }
 
-// User has selected to go fullscreen...
-void MainFrame::OnFullScreen(wxCommandEvent &Event)
-{
-    // Toggle full screen with newly selected state...
-    ShowFullScreen(Event.IsChecked(), wxFULLSCREEN_NOCAPTION | 
-                                      wxFULLSCREEN_NOBORDER);
-                                      
-    // Resize the media player because Quicktime is shit...
-    if(pMediaPlayer)
-        pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
-}
-
 // A microscope name has been chosen...
 void MainFrame::OnChooseMicroscopeName(wxCommandEvent &Event)
 {
@@ -941,6 +993,123 @@ void MainFrame::OnChooseMicroscopeTotalZoom(wxCommandEvent &Event)
     
     // Update diameter text box...
     FieldOfViewDiameter->SetValue(sDiameter);
+}
+
+// Analysis thread is informing us that it has terminated...
+void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
+{
+    // Unlock the UI...
+
+        // Stop the analysis timer...
+        AnalysisTimer.Stop();
+
+        // Begin analysis button...
+        BeginAnalysisButton->Enable();
+
+        // Cancel analysis button...
+        CancelAnalysisButton->Disable();
+
+        // Microscope set...
+        ChosenMicroscopeName->Enable();
+        ChosenMicroscopeTotalZoom->Enable();
+        FieldOfViewDiameter->Enable();
+
+        // Analysis type...
+        ChosenAnalysisType->Enable();
+
+        // Analysis status...
+        AnalysisCurrentFrameStatus->ChangeValue(wxT(""));
+        AnalysisRateStatus->ChangeValue(wxT(""));
+        AnalysisWormsTrackingStatus->ChangeValue(wxT(""));
+
+        // Analysis buttons...
+        BeginAnalysisButton->Enable();
+        CancelAnalysisButton->Disable();
+
+        // Analysis gauge...
+        AnalysisGauge->SetRange(100);
+        AnalysisGauge->SetValue(0);
+
+        // Analysis grid...
+        AnalysisGrid->Enable();
+
+        // Alert user...
+        AnalysisStatusList->Append(wxT("Analysis ended..."));
+
+        // Refresh the main frame...
+        Refresh();
+        
+        // Destroy analysis window...
+        cvDestroyWindow("Analysis");
+                    
+    // Remove all rows, if any
+    if(AnalysisGrid->GetNumberRows() > 0)
+        AnalysisGrid->DeleteRows(0, AnalysisGrid->GetNumberRows());
+
+    // Body size analysis...
+    if(ChosenAnalysisType->GetCurrentSelection() == ANALYSIS_BODY_SIZE)
+    {
+        // Append enough rows for number of worms...
+        AnalysisGrid->AppendRows(Tracker.Tracking());
+        
+        // Output analysis results for each worm...
+        for(unsigned int unWormIndex = 0; unWormIndex < Tracker.Tracking();
+            unWormIndex++)
+        {
+            // Get the worm at this index...
+            Worm const &CurrentWorm = Tracker.GetWorm(unWormIndex);
+
+            // Set row label...
+            AnalysisGrid->SetRowLabelValue(unWormIndex, 
+                wxString::Format(wxT("Worm %d"), unWormIndex + 1));
+                
+            // Length...
+            AnalysisGrid->SetCellValue(
+                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_LENGTH,
+                wxString::Format(wxT("%.3f"), CurrentWorm.Length()));
+
+            // Width...
+            AnalysisGrid->SetCellValue(
+                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
+                wxString::Format(wxT("%.3f"), CurrentWorm.Width()));
+                    
+            // Area...
+            AnalysisGrid->SetCellValue(
+                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_AREA,
+                wxString::Format(wxT("%.3f"), CurrentWorm.Area()));
+        }
+    }
+    
+    // Long term habituation analysis...
+    else if(ChosenAnalysisType->GetCurrentSelection() == 
+            ANALYSIS_LONG_TERM_HABITUATION)
+    {
+    
+    }
+    
+    // Short term habituation analysis...
+    else
+    {
+    
+    }
+    
+    // Automatically resize all columns and rows to fit contents...
+    AnalysisGrid->AutoSize();
+    
+    // Trigger analysis results sizer to recalculate layout...
+    AnalysisGrid->GetContainingSizer()->Layout();
+}
+
+// User has selected to go fullscreen...
+void MainFrame::OnFullScreen(wxCommandEvent &Event)
+{
+    // Toggle full screen with newly selected state...
+    ShowFullScreen(Event.IsChecked(), wxFULLSCREEN_NOCAPTION | 
+                                      wxFULLSCREEN_NOBORDER);
+                                      
+    // Resize the media player because Quicktime is shit...
+    if(pMediaPlayer)
+        pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
 }
 
 // Get the total size of all videos in the videos grid...

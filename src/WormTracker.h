@@ -41,15 +41,24 @@ class WormTracker
         // Accessors...
             
             // The number of worms we are currently tracking...
-            unsigned int Tracking() const;
+            unsigned int        Tracking() const;
             
             // Get a copy of the current thinking image. Caller frees...
-            IplImage *GetThinkingImage() const;
+            IplImage           *GetThinkingImage() const;
+
+            // Get the nth worm, or null worm if no more...
+            Worm const         &GetWorm(unsigned int const unIndex) const;
 
         // Mutators...
 
             // Advance frame...
-            void AdvanceNextFrame(IplImage const &NewGrayImage);
+            void                AdvanceNextFrame(IplImage const &NewGrayImage);
+            
+            // Get the number of worms just added since last check...
+            unsigned int const  GetWormsAddedSinceLastCheck();
+            
+            // Reset the tracker...
+            void                Reset();
 
         // Operators...
 
@@ -71,9 +80,6 @@ class WormTracker
             // How many underlying rectangles does given one rest upon?
             unsigned int const CountRectanglesIntersected(
                 CvRect const &Rectangle) const;
-
-            // Get the nth worm, or null worm if no more...
-            Worm &GetWorm(unsigned int const unIndex) const;
 
             // Do any points on the mystery contour lie on the image exterior?
             bool IsAnyPointOnImageExterior(CvContour const &MysteryContour)
@@ -117,6 +123,9 @@ class WormTracker
         
         // Table of worms being tracked...
         vector<Worm *>      TrackingTable;
+        
+        // Worms just added in this frame...
+        unsigned int        unWormsJustAdded;
         
         // Resources mutex...
         mutable wxMutex     ResourcesMutex;
