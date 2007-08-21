@@ -57,6 +57,13 @@ void *AnalysisThread::Entry()
     // Keep showing video until there is nothing left or cancel requested...
     while(!Frame.bExiting && !TestDestroy())
     {
+        // Retrieve the captured image...
+        IplImage const *pOriginalImage = cvQueryFrame(pCapture);
+        
+            // There are no more...
+            if(!pOriginalImage)
+                break;
+
         // The Quicktime backend appears to be buggy in that it keeps cycling
         //  through the video even after we have all frames. A temporary hack
         //  is to just break the analysis loop when we have both current frame, 
@@ -77,17 +84,14 @@ void *AnalysisThread::Entry()
 
         #endif
 
-        // Retrieve the captured image...
-        IplImage const &OriginalImage = *cvQueryFrame(pCapture);
-
         // The tracker prefers grayscale 8-bit unsigned format, prepare...
 
             // Allocate blank grayscale image...
-            pGrayImage = cvCreateImage(cvGetSize(&OriginalImage), 
-                                       IPL_DEPTH_8U, 1);
+            pGrayImage = 
+                cvCreateImage(cvGetSize(pOriginalImage), IPL_DEPTH_8U, 1);
 
             // Convert original to grayscale...
-            cvConvertImage(&OriginalImage, pGrayImage);
+            cvConvertImage(pOriginalImage, pGrayImage);
 
         // Feed into tracker...
         Tracker.AdvanceNextFrame(*pGrayImage);
@@ -165,6 +169,9 @@ AnalysisThread::AnalysisAutoLock::AnalysisAutoLock(MainFrame &_Frame)
 // Deconstructor unlocks UI...
 AnalysisThread::AnalysisAutoLock::~AnalysisAutoLock()
 {
+    // Stop the analysis timer...
+    Frame.AnalysisTimer.Stop();
+
     // Begin analysis button...
     Frame.BeginAnalysisButton->Enable();
 
@@ -178,6 +185,11 @@ AnalysisThread::AnalysisAutoLock::~AnalysisAutoLock()
 
     // Analysis type...
     Frame.ChosenAnalysisType->Enable();
+
+    // Analysis status...
+    Frame.AnalysisCurrentFrameStatus->ChangeValue(wxT(""));
+    Frame.AnalysisRateStatus->ChangeValue(wxT(""));
+    Frame.AnalysisWormsTrackingStatus->ChangeValue(wxT(""));
 
     // Analysis buttons...
     Frame.BeginAnalysisButton->Enable();
@@ -195,8 +207,5 @@ AnalysisThread::AnalysisAutoLock::~AnalysisAutoLock()
     
     // Destroy analysis window...
     cvDestroyWindow("Analysis");
-
-    // Stop the analysis timer...
-    Frame.AnalysisTimer.Stop();
 }
 

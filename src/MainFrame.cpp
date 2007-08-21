@@ -484,56 +484,61 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
     // Cleanup...
     cvReleaseImage(&pThinkingImage);
 
-    // Get current position...
-    int const nCurrentFrame = (int) 
-        cvGetCaptureProperty(pAnalysisThread->pCapture, CV_CAP_PROP_POS_FRAMES);
-
-    // Get total number of frames...
-    int const nTotalFrames = (int) 
-        cvGetCaptureProperty(pAnalysisThread->pCapture, 
-                             CV_CAP_PROP_FRAME_COUNT);
-
-    // Show number tracking...
-    sTemp.Printf(wxT("%d"), pAnalysisThread->Tracker.Tracking());
-    AnalysisWormsTrackingStatus->ChangeValue(sTemp);
-    
-    // We have the information we need to compute progress...
-    if(nCurrentFrame && nTotalFrames)
+    // Update status every half a second...
+    if(pAnalysisThread->StatusUpdateStopWatch.Time() >= 500)
     {
-        // Compute total progress...
-        int const nProgress = 
-            (int)(((float) nCurrentFrame / nTotalFrames)  * 100.0);
+        // Get current position...
+        int const nCurrentFrame = (int) 
+            cvGetCaptureProperty(pAnalysisThread->pCapture, 
+                                 CV_CAP_PROP_POS_FRAMES);
 
-        // Prepare current frame processing string...
-        sTemp.Printf(wxT("%d / %d"), nCurrentFrame, nTotalFrames);
+        // Get total number of frames...
+        int const nTotalFrames = (int) 
+            cvGetCaptureProperty(pAnalysisThread->pCapture, 
+                                 CV_CAP_PROP_FRAME_COUNT);
 
-        // Set it only if it has changed...
-        if(nProgress != AnalysisGauge->GetValue())
+        // Show number tracking...
+        sTemp.Printf(wxT("%d"), pAnalysisThread->Tracker.Tracking());
+        AnalysisWormsTrackingStatus->ChangeValue(sTemp);
+        
+        // We have the information we need to compute progress...
+        if(nCurrentFrame && nTotalFrames)
         {
-            // Update the current frame processed...
+            // Compute total progress...
+            int const nProgress = 
+                (int)(((float) nCurrentFrame / nTotalFrames)  * 100.0);
+
+            // Prepare current frame processing string...
+            sTemp.Printf(wxT("%d / %d"), nCurrentFrame, nTotalFrames);
+
+            // Set it only if it has changed...
+            if(nProgress != AnalysisGauge->GetValue())
+            {
+                // Update the current frame processed...
+                AnalysisCurrentFrameStatus->ChangeValue(sTemp);
+
+                // Update the progress bar...
+                AnalysisGauge->SetValue(nProgress);
+            }
+        }
+        
+        // We cannot compute progress because the codec the backend on this
+        //  platform is busted to shit... (probably ffmpeg)
+        else
+        {
+            // Prepare current frame processing string...
+            sTemp.Printf(wxT("%d"), nCurrentFrame);
+
+            // Update the current frame...
             AnalysisCurrentFrameStatus->ChangeValue(sTemp);
 
-            // Update the progress bar...
-            AnalysisGauge->SetValue(nProgress);
+            // Pulse progress bar...
+            AnalysisGauge->Pulse();
         }
+        
+        // Reset the status update timer...
+        pAnalysisThread->StatusUpdateStopWatch.Start();
     }
-    
-    // We cannot compute progress because the codec the backend on this
-    //  platform is busted to shit... (probably ffmpeg)
-    else
-    {
-        // Prepare current frame processing string...
-        sTemp.Printf(wxT("%d"), nCurrentFrame);
-
-        // Update the current frame...
-        AnalysisCurrentFrameStatus->ChangeValue(sTemp);
-
-        // Pulse progress bar...
-        AnalysisGauge->Pulse();
-    }
-    
-    // Reset the status update timer...
-    pAnalysisThread->StatusUpdateStopWatch.Start();
 
     // Let HighGUI and wxWidgets main thread's event loop process events...
     cvWaitKey(10);
