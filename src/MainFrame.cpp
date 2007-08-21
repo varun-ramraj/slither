@@ -486,13 +486,12 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
 
     // Get current position...
     int const nCurrentFrame = (int) 
-        cvGetCaptureProperty(pAnalysisThread->pCapture, 
-                                CV_CAP_PROP_POS_FRAMES);
+        cvGetCaptureProperty(pAnalysisThread->pCapture, CV_CAP_PROP_POS_FRAMES);
 
     // Get total number of frames...
     int const nTotalFrames = (int) 
         cvGetCaptureProperty(pAnalysisThread->pCapture, 
-                                CV_CAP_PROP_FRAME_COUNT);
+                             CV_CAP_PROP_FRAME_COUNT);
 
     // Show number tracking...
     sTemp.Printf(wxT("%d"), pAnalysisThread->Tracker.Tracking());

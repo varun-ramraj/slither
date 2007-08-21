@@ -1315,11 +1315,11 @@
                                                                 <property name="border">5</property>
                                                                 <property name="flag">wxEXPAND</property>
                                                                 <property name="proportion">0</property>
-                                                                <object class="wxFlexGridSizer" expanded="0">
-                                                                    <property name="cols">3</property>
+                                                                <object class="wxFlexGridSizer" expanded="1">
+                                                                    <property name="cols">4</property>
                                                                     <property name="flexible_direction">wxBOTH</property>
-                                                                    <property name="growablecols">1</property>
-                                                                    <property name="growablerows">1</property>
+                                                                    <property name="growablecols"></property>
+                                                                    <property name="growablerows"></property>
                                                                     <property name="hgap">10</property>
                                                                     <property name="minimum_size"></property>
                                                                     <property name="name">StatusFlexSizer</property>
@@ -1357,7 +1357,7 @@
                                                                     </object>
                                                                     <object class="sizeritem" expanded="1">
                                                                         <property name="border">5</property>
-                                                                        <property name="flag">wxALL|wxEXPAND</property>
+                                                                        <property name="flag">wxALL</property>
                                                                         <property name="proportion">1</property>
                                                                         <object class="wxTextCtrl" expanded="1">
                                                                             <property name="bg"></property>
@@ -1417,6 +1417,16 @@
                                                                     </object>
                                                                     <object class="sizeritem" expanded="1">
                                                                         <property name="border">5</property>
+                                                                        <property name="flag">wxEXPAND</property>
+                                                                        <property name="proportion">1</property>
+                                                                        <object class="spacer" expanded="1">
+                                                                            <property name="height">0</property>
+                                                                            <property name="permission">protected</property>
+                                                                            <property name="width">10</property>
+                                                                        </object>
+                                                                    </object>
+                                                                    <object class="sizeritem" expanded="1">
+                                                                        <property name="border">5</property>
                                                                         <property name="flag">wxALL</property>
                                                                         <property name="proportion">0</property>
                                                                         <object class="wxStaticText" expanded="1">
@@ -1445,7 +1455,7 @@
                                                                     </object>
                                                                     <object class="sizeritem" expanded="1">
                                                                         <property name="border">5</property>
-                                                                        <property name="flag">wxALL|wxEXPAND</property>
+                                                                        <property name="flag">wxALL</property>
                                                                         <property name="proportion">1</property>
                                                                         <object class="wxTextCtrl" expanded="1">
                                                                             <property name="bg"></property>
@@ -1505,6 +1515,16 @@
                                                                     </object>
                                                                     <object class="sizeritem" expanded="1">
                                                                         <property name="border">5</property>
+                                                                        <property name="flag">wxEXPAND</property>
+                                                                        <property name="proportion">1</property>
+                                                                        <object class="spacer" expanded="1">
+                                                                            <property name="height">0</property>
+                                                                            <property name="permission">protected</property>
+                                                                            <property name="width">10</property>
+                                                                        </object>
+                                                                    </object>
+                                                                    <object class="sizeritem" expanded="1">
+                                                                        <property name="border">5</property>
                                                                         <property name="flag">wxALL</property>
                                                                         <property name="proportion">0</property>
                                                                         <object class="wxStaticText" expanded="1">
@@ -1533,7 +1553,7 @@
                                                                     </object>
                                                                     <object class="sizeritem" expanded="1">
                                                                         <property name="border">5</property>
-                                                                        <property name="flag">wxALL|wxEXPAND</property>
+                                                                        <property name="flag">wxALL</property>
                                                                         <property name="proportion">1</property>
                                                                         <object class="wxTextCtrl" expanded="1">
                                                                             <property name="bg"></property>
