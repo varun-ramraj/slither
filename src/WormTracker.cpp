@@ -14,15 +14,10 @@
 
 // Default constructor...
 WormTracker::WormTracker()
-    : pStorage(cvCreateMemStorage(0)),
-      pGrayImage(NULL),
+    : pGrayImage(NULL),
       pThinkingImage(NULL),
       unWormsJustAdded(0)
 {
-    // Allocatation of base storage failed...
-    if(!pStorage)
-        throw bad_alloc();
-        
     // Initialize the thinking label font...
     
         // Font constants...
@@ -90,6 +85,7 @@ void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 {
     // Variables...
+    CvMemStorage   *pStorage        = NULL;
     CvContour      *pFirstContour   = NULL;
     CvContour      *pCurrentContour = NULL;
     CvSize const    ImageSize       = cvGetSize(&NewGrayImage);
@@ -132,18 +128,23 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
 
     // Image must not have a region of interest set...
     assert(pGrayImage->roi == NULL);
-    
-    // Create threshold...
-    IplImage *pThresholdImage = cvCloneImage(pGrayImage);
-    cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
 
     // Find the contours in the threshold image...
-    cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
-                   sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
-                   cvPoint(0, 0));
 
-    // Cleanup...
-    cvReleaseImage(&pThresholdImage);
+        // Create threshold...
+        IplImage *pThresholdImage = cvCloneImage(pGrayImage);
+        cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
+
+        // Allocate contour storage space...
+        pStorage = cvCreateMemStorage(0);
+        
+        // Find contours...
+        cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
+                       sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
+                       cvPoint(0, 0));
+
+        // Cleanup...
+        cvReleaseImage(&pThresholdImage);
 
     // Go through each contour found...
     for(pCurrentContour = pFirstContour; pCurrentContour;
@@ -157,6 +158,9 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         else
             Acknowledge(*pCurrentContour);
     }
+    
+    // Cleanup...
+    cvReleaseMemStorage(&pStorage); 
     
     // Show some information on each worm contour...
     for(unsigned int unWormIndex = 0; unWormIndex < TrackingTable.size();
@@ -406,18 +410,6 @@ void WormTracker::Reset()
     if(pThinkingImage)
         cvReleaseImage(&pThinkingImage);
     pThinkingImage = NULL;
-    
-    // Cleanup base storage...
-    
-        // De-allocate...    
-        cvReleaseMemStorage(&pStorage); 
-    
-        // Reallocate...
-        pStorage = cvCreateMemStorage(0);
-        
-            // Failed...
-            if(!pStorage)
-                throw bad_alloc();
         
     // Worms just added in this frame...
     unWormsJustAdded = 0;
@@ -441,10 +433,7 @@ WormTracker::~WormTracker()
 
     // Cleanup the thinking image, if any...
     if(pThinkingImage)
-        cvReleaseImage(&pThinkingImage);
-    
-    // Cleanup base storage...
-    cvReleaseMemStorage(&pStorage);    
+        cvReleaseImage(&pThinkingImage);   
 }
 
 // Output some info on current tracker state......

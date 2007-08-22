@@ -90,8 +90,7 @@ MainFrame::MainFrame(const wxString &sTitle)
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
       pAnalysisThread(NULL),
-      AnalysisTimer(this, TIMER_ANALYSIS),
-      bExiting(false)
+      AnalysisTimer(this, TIMER_ANALYSIS)
 {
     // Set the title...
     SetTitle(wxT(PACKAGE_STRING));
@@ -419,19 +418,19 @@ MainFrame::MainFrame(const wxString &sTitle)
 
     // Set status bar text...
     SetStatusText(wxT("Welcome to Slither..."));
-
+    
     // Restore window size if any available...
     if(::wxGetApp().pConfiguration->HasEntry(wxT("/General/Width")))
     {
         // Read the previously saved values...
-        wxSize Size;
-        Size.SetWidth(::wxGetApp().pConfiguration->
-                            Read(wxT("/General/Width"), 640));
-        Size.SetHeight(::wxGetApp().pConfiguration->
-                            Read(wxT("/General/Height"), 480));
+        wxSize Size(::wxGetApp().pConfiguration->Read(wxT("/General/Width"), 640),
+                    ::wxGetApp().pConfiguration->Read(wxT("/General/Height"), 480));
         
-        // Set the window size now...
-        SetSize(Size);
+        // Create the size event...
+        wxSizeEvent SizeEvent(Size);
+
+        // Fire off resize event...
+        wxPostEvent(this, SizeEvent);
     }
 
     // Show tip...
@@ -644,9 +643,6 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         delete pAnalysisThread;
         return;
     }
-
-    // Initiate the analysis timer...
-    AnalysisTimer.Start(50, wxTIMER_CONTINUOUS);
 
     // Run the thread and check for error...
     pAnalysisThread->SetPriority(WXTHREAD_MIN_PRIORITY);
@@ -999,9 +995,6 @@ void MainFrame::OnChooseMicroscopeTotalZoom(wxCommandEvent &Event)
 void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
 {
     // Unlock the UI...
-
-        // Stop the analysis timer...
-        AnalysisTimer.Stop();
 
         // Begin analysis button...
         BeginAnalysisButton->Enable();
@@ -1602,13 +1595,13 @@ void MainFrame::OnSize(wxSizeEvent &Event)
         pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
 
     // Store the window size...
-  ::wxGetApp().pConfiguration->Write(wxT("/General/Width"), 
+  ::wxGetApp().pConfiguration->Write(wxT("/General/"), 
                                      Event.GetSize().GetWidth());
   ::wxGetApp().pConfiguration->Write(wxT("/General/Height"), 
                                      Event.GetSize().GetHeight());
 
         // Flush configuration to disk...
-      ::wxGetApp().pConfiguration->Flush();
+//      ::wxGetApp().pConfiguration->Flush();
 
     // Allow child controls to resize appropriately...
     Event.Skip();
@@ -1822,20 +1815,17 @@ void MainFrame::OnVideoCellRightClick(wxGridEvent &Event)
 void MainFrame::OnQuit(wxCommandEvent &Event)
 {
     // Make sure capture and analysis threads exit cleanly first...
-    bExiting = true;
-    while(CaptureTimer.IsRunning() || AnalysisTimer.IsRunning())
-        wxSleep(1);
+    /*if(CaptureTimer.IsRunning())
+        pCaptureThread->Delete();*/
+    if(AnalysisTimer.IsRunning())
+        pAnalysisThread->Delete();
 
     // Close experiment first...
     ProcessCommand(wxID_CLOSE); 
 
         // Experiment still loaded, abort...
         if(pExperiment)
-        {
-            // But remember to untrigger exit flag first...
-            bExiting = false;
             return;
-        }
 
     // Close the frame...
     Close();
@@ -1855,9 +1845,10 @@ void MainFrame::OnPreferences(wxCommandEvent &Event)
 void MainFrame::OnSystemClose(wxCloseEvent &Event)
 {
     // Make sure capture and analysis threads exit cleanly first...
-    bExiting = true;
-    while(CaptureTimer.IsRunning() || AnalysisTimer.IsRunning())
-        wxSleep(1);
+    /*if(CaptureTimer.IsRunning())
+        pCaptureThread->Delete();*/
+    if(AnalysisTimer.IsRunning())
+        pAnalysisThread->Delete();
 
     // An experiment needs to be saved...
     if(pExperiment && pExperiment->IsNeedSave())

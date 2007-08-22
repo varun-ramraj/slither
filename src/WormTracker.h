@@ -109,10 +109,6 @@ class WormTracker
 
     // Protected attributes...
     protected:
-
-        // Base storage to store contour sequence and any other dynamic 
-        //  OpenCV data structures...
-        CvMemStorage       *pStorage;
         
         // Thinking image label font...
         CvFont              ThinkingLabelFont;

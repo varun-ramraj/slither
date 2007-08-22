@@ -53,7 +53,7 @@ void *CaptureThread::Entry()
 
     // Keep showing live feed as long there are frames and the capture button
     //  remains toggled...
-    while(cvGrabFrame(pCapture) && !pMainFrame->bExiting &&
+    while(cvGrabFrame(pCapture) &&
           pMainFrame->GetToolBar()->GetToolState(MainFrame::ID_CAPTURE))
     {
 /*

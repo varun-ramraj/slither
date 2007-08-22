@@ -276,9 +276,6 @@ class MainFrame : public MainFrame_Base
         AnalysisThread         *pAnalysisThread;
         wxTimer                 AnalysisTimer;
         
-        // Exiting flag triggers threads running to exit...
-        bool                    bExiting;
-        
         // Worm tracker...
         WormTracker             Tracker;
 };

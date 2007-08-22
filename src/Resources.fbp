@@ -1572,7 +1572,7 @@
                                                                             <property name="size"></property>
                                                                             <property name="style">wxTE_CENTRE|wxTE_READONLY</property>
                                                                             <property name="subclass"></property>
-                                                                            <property name="tooltip">The number of works Slither thinks it has found.</property>
+                                                                            <property name="tooltip">The number of worms Slither thinks it has found.</property>
                                                                             <property name="value"></property>
                                                                             <property name="window_extra_style"></property>
                                                                             <property name="window_style"></property>
@@ -1689,9 +1689,9 @@
                                                             <property name="context_help"></property>
                                                             <property name="drag_col_move">0</property>
                                                             <property name="drag_col_size">1</property>
-                                                            <property name="drag_grid_size">0</property>
+                                                            <property name="drag_grid_size">1</property>
                                                             <property name="drag_row_size">1</property>
-                                                            <property name="editing">0</property>
+                                                            <property name="editing">1</property>
                                                             <property name="enabled">1</property>
                                                             <property name="fg"></property>
                                                             <property name="font"></property>
