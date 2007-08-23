@@ -24,40 +24,95 @@ AnalysisThread::AnalysisThread(MainFrame &_Frame)
 // Thread entry point...
 void *AnalysisThread::Entry()
 {
-    // Variables...
-    IplImage           *pGrayImage              = NULL;
-    wxString            sTemp;
-
-    // Get the complete path to the video to analyze...
+    // Get the complete path to the media to analyze...
 
         // Find the row selected...
-        wxArrayInt SelectedRows = Frame.VideosGrid->GetSelectedRows();
+        wxArrayInt SelectedRows = Frame.MediaGrid->GetSelectedRows();
         int nRow = SelectedRows[0];
         
         // Generate complete path...
         wxString sPath = Frame.pExperiment->GetCachePath() +
-                         wxT("/videos/") +
-                         Frame.VideosGrid->GetCellValue(nRow, 
-                                                              MainFrame::TITLE);
+                         wxT("/media/") +
+                         Frame.MediaGrid->GetCellValue(nRow, MainFrame::TITLE);
+
+    // Find the media...
+    wxFileName MediaFile(sPath);
+
+        // Failed...
+        if(!MediaFile.IsOk())
+            return false;
+
+    // Get the file extension...
+    wxString sExtension = MediaFile.GetExt().Lower();
+
+    // It is a movie...
+    if(sExtension == wxT("mov")   ||
+       sExtension == wxT("avi")   ||
+       sExtension == wxT("mpg")   ||
+       sExtension == wxT("mpeg"))
+        AnalyzeVideo(sPath);
+
+    // It is an image...
+    else
+        AnalyzeImage(sPath);
+        
+    // Done...
+    return NULL;
+}
+
+// Analyze single image...
+void AnalysisThread::AnalyzeImage(wxString sPath)
+{
+    // Variables...
+    IplImage           *pGrayImage              = NULL;
+    wxString            sTemp;
+
+    // Load the image...
+    pGrayImage = cvLoadImage(sPath.mb_str(), CV_LOAD_IMAGE_GRAYSCALE);
+
+        // Failed to load media...
+        if(!pGrayImage)
+        {
+            // Alert...
+            wxLogError(wxT("Unable to load image. It may be in an unrecognized"
+                           " format."));
+            
+            // Abort...
+            return;
+        }
+
+    // Feed into tracker...
+    Frame.Tracker.Advance(*pGrayImage);
+    
+    // Cleanup gray image...
+    cvReleaseImage(&pGrayImage);
+}
+
+// Analyze video...
+void AnalysisThread::AnalyzeVideo(wxString sPath)
+{
+    // Variables...
+    IplImage           *pGrayImage              = NULL;
+    wxString            sTemp;
 
     // Initialize capture from AVI...
     pCapture = cvCreateFileCapture(sPath.fn_str());
 
-        // Failed to load video...
+        // Failed to load media...
         if(!pCapture)
         {
             // Alert...
             wxLogError(wxT("Your system does not appear to have an suitable"
-                           " codec installed to read this video."));
+                           " codec installed to read this media."));
             
             // Abort...
-            return NULL;
+            return;
         }
 
     // Start the analysis stop watch...
     StatusUpdateStopWatch.Start();
 
-    // Keep showing video until there is nothing left or cancel requested...
+    // Keep showing media until there is nothing left or cancel requested...
     while(!TestDestroy())
     {
         // Depending on processor throttle setting, idle...
@@ -117,7 +172,7 @@ void *AnalysisThread::Entry()
             cvConvertImage(pOriginalImage, pGrayImage);
 
         // Feed into tracker...
-        Frame.Tracker.AdvanceNextFrame(*pGrayImage);
+        Frame.Tracker.Advance(*pGrayImage);
         
         // Cleanup gray image...
         cvReleaseImage(&pGrayImage);
@@ -125,9 +180,6 @@ void *AnalysisThread::Entry()
 
     // Release the capture source...
     cvReleaseCapture(&pCapture);
-
-    // Done...
-    return NULL;
 }
 
 // Analysis thread exitting callback...

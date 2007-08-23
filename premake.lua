@@ -247,8 +247,9 @@ function doinstaller(Command, OutputPath)
     -- Build an Ubuntu package for Linux
     if (OS == "linux") then
   
-        -- Make sure slither binary is built...
-        if not(os.execute("make CONFIG=Release") == 0) then
+        -- Make sure slither binary is built... (release has a bunch of compile
+        --  time warnings in the wx headers)
+        if not(os.execute("make CONFIG=Debug") == 0) then
             error("\nCompilation must finish successfully to generate installer...")
         end
 

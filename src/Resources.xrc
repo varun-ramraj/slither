@@ -110,14 +110,14 @@
 															<flag>wxALL</flag>
 															<border>5</border>
 															<object class="wxStaticText" name="m_staticText92">
-																<label>Videos:</label>
+																<label>Media:</label>
 															</object>
 														</object>
 														<object class="sizeritem">
 															<option>0</option>
 															<flag>wxALL</flag>
 															<border>5</border>
-															<object class="wxTextCtrl" name="EmbeddedVideos">
+															<object class="wxTextCtrl" name="EmbeddedMedia">
 																<style>wxTE_CENTRE|wxTE_READONLY</style>
 																<tooltip>This is the total number of videos in your experiment.</tooltip>
 																<value></value>
@@ -210,12 +210,12 @@
 											<border>5</border>
 											<object class="wxStaticBoxSizer">
 												<orient>wxHORIZONTAL</orient>
-												<label>Videos:</label>
+												<label>Media:</label>
 												<object class="sizeritem">
 													<option>1</option>
 													<flag>wxALL|wxEXPAND</flag>
 													<border>5</border>
-													<object class="wxGrid" name="VideosGrid">
+													<object class="wxGrid" name="MediaGrid">
 														<tooltip>Right click on a video to see additional options. If you are on a Mac and have only one mouse button, hold down on Ctrl and then click.</tooltip>
 													</object>
 												</object>
@@ -373,7 +373,7 @@
 															<border>5</border>
 															<object class="wxTextCtrl" name="FieldOfViewDiameter">
 																<style>wxTE_CENTRE|wxTE_READONLY</style>
-																<tooltip>The field of view diameter is used in all calculations involving area and distance.</tooltip>
+																<tooltip>The field of view diameter is used in all calculations involving area and distance. To set it manually, use the custom microscope option above.</tooltip>
 																<value></value>
 																<maxlength>0</maxlength>
 															</object>

@@ -17,8 +17,8 @@ Experiment::Experiment(MainFrame *_pMainFrame)
 {
     // Fill in UI elements with default values...
     pMainFrame->ExperimentTitle->ChangeValue(wxT("My New Experiment"));
-    pMainFrame->EmbeddedVideos->ChangeValue(wxT("0"));
-    pMainFrame->TotalSize->ChangeValue(wxT("0 MB"));
+    pMainFrame->EmbeddedMedia->ChangeValue(wxT("0"));
+    pMainFrame->TotalSize->ChangeValue(wxT("0 KB"));
     pMainFrame->ExperimentNotes->ChangeValue(wxT("Store any experiment notes here..."));
 
     // Create a temporary directory...
@@ -79,7 +79,7 @@ wxString Experiment::CreateTempDirectory() const
     
     // Create skeleton subdirectory structure...
     wxFileName::Mkdir(sCheckCachePath + wxT("/control/"));
-    wxFileName::Mkdir(sCheckCachePath + wxT("/videos/"));
+    wxFileName::Mkdir(sCheckCachePath + wxT("/media/"));
 
     // Return directory to caller...
     return sCheckCachePath;
@@ -108,15 +108,15 @@ void Experiment::EnableUI(bool bEnable, bool bReset)
     {
         // Fields...
         pMainFrame->ExperimentTitle->Clear();
-        pMainFrame->EmbeddedVideos->Clear();
+        pMainFrame->EmbeddedMedia->Clear();
         pMainFrame->TotalSize->Clear();
         pMainFrame->ExperimentNotes->Clear();
         
-        // Clear videos grid...
-        while(pMainFrame->VideosGrid->GetNumberRows() > 0)
-            pMainFrame->VideosGrid->DeleteRows();
+        // Clear media grid...
+        while(pMainFrame->MediaGrid->GetNumberRows() > 0)
+            pMainFrame->MediaGrid->DeleteRows();
         
-        // Stop video playback...
+        // Stop media playback...
         if(pMainFrame->pMediaPlayer)
             pMainFrame->pMediaPlayer->Stop();
         
@@ -201,7 +201,7 @@ bool Experiment::Load(const wxString _sPath)
     // Initialize progress dialog...
     wxProgressDialog *pProgressDialog = new 
         wxProgressDialog(wxT("Loading"),
-                         wxT("Decompressing videos and other media..."), 
+                         wxT("Decompressing experimental media..."), 
                          ZipInputStream.GetTotalEntries(), NULL, 
                          wxPD_APP_MODAL | wxPD_AUTO_HIDE | wxPD_SMOOTH);
 
@@ -324,83 +324,83 @@ bool Experiment::Load(const wxString _sPath)
                     ChangeValue(pChildNode->GetNodeContent());
             }
 
-            // Experiment videos...
-            else if(pChildNode->GetName() == wxT("videos"))
+            // Experimental media...
+            else if(pChildNode->GetName() == wxT("media"))
             {
-                // Parse each video...
-                wxXmlNode *pVideoNode = pChildNode->GetChildren();
-                while(pVideoNode)
+                // Parse each media file...
+                wxXmlNode *pMediaNode = pChildNode->GetChildren();
+                while(pMediaNode)
                 {
                     // Unexpected tag...
-                    if(pVideoNode->GetName() != wxT("video"))
+                    if(pMediaNode->GetName() != wxT("file"))
                     {
                         // Alert user...
                         wxLogWarning(wxT("Unknown tag in metadata: \"") + 
-                                 pVideoNode->GetName() + 
-                                 wxT("\" - perhaps newer save format?"));
+                                 pMediaNode->GetName() + 
+                                 wxT("\".\n\nPerhaps a newer save format?"));
 
                         // Try the next one...
-                        pVideoNode = pVideoNode->GetNext();
+                        pMediaNode = pMediaNode->GetNext();
                         continue;
                     }
                     
-                    // Add new row to videos grid and check for error...
-                    pMainFrame->VideosGrid->InsertRows();
+                    // Add new row to media grid and check for error...
+                    pMainFrame->MediaGrid->InsertRows();
                     int nRow = 0;
                     
                     // Update each column...
                     wxString sValue;
         
                         // Title...
-                        sValue = pVideoNode->GetNodeContent();
-                        pMainFrame->VideosGrid->
+                        sValue = pMediaNode->GetNodeContent();
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::TITLE, sValue);
 
                         // Date...
-                        sValue = pVideoNode->GetPropVal(wxT("date"), wxEmptyString);
-                        pMainFrame->VideosGrid->
+                        sValue = pMediaNode->GetPropVal(wxT("date"), wxEmptyString);
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::DATE, sValue);
 
                         // Time...
-                        sValue = pVideoNode->GetPropVal(wxT("time"), wxEmptyString);
-                        pMainFrame->VideosGrid->
+                        sValue = pMediaNode->GetPropVal(wxT("time"), wxEmptyString);
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::TIME, sValue);
                         
                         // Technician...
-                        sValue = pVideoNode->GetPropVal(wxT("technician"), 
+                        sValue = pMediaNode->GetPropVal(wxT("technician"), 
                                                         ::wxGetUserId());
-                        pMainFrame->VideosGrid->
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::TECHNICIAN, sValue);
 
                         // Length...
-                        pMainFrame->VideosGrid->
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::LENGTH, wxT("?"));
 
                         // Size...
                         
-                            // Open video...
-                            wxFileName  VideoFile(GetCachePath() + 
-                                                  wxT("/videos/") + 
-                                                  pVideoNode->GetNodeContent());
+                            // Open media...
+                            wxFileName  MediaFile(GetCachePath() + 
+                                                  wxT("/media/") + 
+                                                  pMediaNode->GetNodeContent());
 
                             // Calculate size...
                             wxULongLong ulFileSize = 
-                                VideoFile.GetSize() / (1024 * 1024);
-                            ulTotalSize += VideoFile.GetSize();
+                                MediaFile.GetSize() / 1024;
+                            ulTotalSize += MediaFile.GetSize();
 
                             // Format and add to grid...
-                            pMainFrame->VideosGrid->SetCellValue(nRow, 
+                            pMainFrame->MediaGrid->SetCellValue(nRow, 
                                 MainFrame::SIZE, ulFileSize.ToString() + 
-                                wxT(" MB"));
+                                wxT(" KB"));
 
                         // Notes...
-                        sValue = pVideoNode->GetPropVal(wxT("notes"), 
+                        sValue = pMediaNode->GetPropVal(wxT("notes"), 
                                                         wxEmptyString);
-                        pMainFrame->VideosGrid->
+                        pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::NOTES, sValue);
                     
-                    // Seek to the next video node...
-                    pVideoNode = pVideoNode->GetNext();
+                    // Seek to the next media node...
+                    pMediaNode = pMediaNode->GetNext();
                 }
             }
 
@@ -408,20 +408,20 @@ bool Experiment::Load(const wxString _sPath)
             else
                 wxLogWarning(wxT("Unknown tag in metadata: \"") + 
                              pChildNode->GetName() + 
-                             wxT("\" - perhaps newer save format?"));
+                             wxT("\".\n\nPerhaps a newer save format?"));
 
             // Seek to the next child node of the control node...
             pChildNode = pChildNode->GetNext();
         }
 
-    // Set the total embedded videos count...
-    wxString sEmbeddedVideos;
-    sEmbeddedVideos << pMainFrame->VideosGrid->GetNumberRows();
-    pMainFrame->EmbeddedVideos->ChangeValue(sEmbeddedVideos);
+    // Set the total embedded media count...
+    wxString sEmbeddedMedia;
+    sEmbeddedMedia << pMainFrame->MediaGrid->GetNumberRows();
+    pMainFrame->EmbeddedMedia->ChangeValue(sEmbeddedMedia);
 
     // Set the total size...
-    ulTotalSize /= (1024 * 1024);
-    pMainFrame->TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" MB"));
+    ulTotalSize /= 1024;
+    pMainFrame->TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" KB"));
 
     // Done...
 
@@ -570,85 +570,85 @@ bool Experiment::Save()
                               wxEmptyString, 
                               pMainFrame->ExperimentNotes->GetValue());
 
-                // Set videos element node...
-                wxXmlNode *XmlVideosElementNode = new 
+                // Set media element node...
+                wxXmlNode *XmlMediaElementNode = new 
                 wxXmlNode(XmlControlDocument.GetRoot(), wxXML_ELEMENT_NODE, 
-                          wxT("videos"), wxEmptyString);
+                          wxT("media"), wxEmptyString);
 
-                // Write out each video metadata...
+                // Write out each media metadata...
                 for(int nRow = 0; 
-                    nRow < pMainFrame->VideosGrid->GetNumberRows(); 
+                    nRow < pMainFrame->MediaGrid->GetNumberRows(); 
                     nRow++)
                 {
-                    // Set video child node...
-                    wxXmlNode *XmlVideoChildNode = new 
-                    wxXmlNode(XmlVideosElementNode, wxXML_ELEMENT_NODE, 
-                              wxT("video"), wxEmptyString);
+                    // Set media child node...
+                    wxXmlNode *XmlMediaChildNode = new 
+                    wxXmlNode(XmlMediaElementNode, wxXML_ELEMENT_NODE, 
+                              wxT("file"), wxEmptyString);
                         
                         // Add date property...
-                        XmlVideoChildNode->AddProperty(wxT("date"), 
-                            pMainFrame->VideosGrid->
+                        XmlMediaChildNode->AddProperty(wxT("date"), 
+                            pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::DATE));
                         
                         // Add time property...
-                        XmlVideoChildNode->AddProperty(wxT("time"), 
-                            pMainFrame->VideosGrid->
+                        XmlMediaChildNode->AddProperty(wxT("time"), 
+                            pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::TIME));
                         
                         // Add technician property...
-                        XmlVideoChildNode->AddProperty(wxT("technician"), 
-                            pMainFrame->VideosGrid->
+                        XmlMediaChildNode->AddProperty(wxT("technician"), 
+                            pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::TECHNICIAN));
                         
                         // Add notes property...
-                        XmlVideoChildNode->AddProperty(wxT("notes"), 
-                            pMainFrame->VideosGrid->
+                        XmlMediaChildNode->AddProperty(wxT("notes"), 
+                            pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::NOTES));
                         
-                        // Set the video name child node...
-                        wxXmlNode *XmlVideoNameChildNode = NULL;
-                        XmlVideoNameChildNode = new 
-                        wxXmlNode(XmlVideoChildNode, wxXML_TEXT_NODE, 
+                        // Set the media name child node...
+                        wxXmlNode *XmlMediaNameChildNode = NULL;
+                        XmlMediaNameChildNode = new 
+                        wxXmlNode(XmlMediaChildNode, wxXML_TEXT_NODE, 
                                   wxEmptyString, 
-                                  pMainFrame->VideosGrid->
+                                  pMainFrame->MediaGrid->
                                     GetCellValue(nRow, MainFrame::TITLE));
                 }
 
         // Write...
         XmlControlDocument.Save(ZipOutputStream, 2);
 
-    // Write videos...
+    // Write media...
     
         // Create directory in archive...
-        ZipOutputStream.PutNextDirEntry(wxT("videos"));
+        ZipOutputStream.PutNextDirEntry(wxT("media"));
     
-        // Archive each video...
+        // Archive each file...
         for(int nRow = 0; 
-            nRow < pMainFrame->VideosGrid->GetNumberRows(); 
+            nRow < pMainFrame->MediaGrid->GetNumberRows(); 
             nRow++)
         {
-            // Try to open the video...
-            wxFFileInputStream VideoEntry(GetCachePath() + wxT("/videos/") + 
-                                            pMainFrame->VideosGrid->
+            // Try to open the media...
+            wxFFileInputStream MediaEntry(GetCachePath() + wxT("/media/") + 
+                                            pMainFrame->MediaGrid->
                                             GetCellValue(nRow, MainFrame::TITLE));
 
                 // This shouldn't happen...
-                if(!VideoEntry.IsOk())
+                if(!MediaEntry.IsOk())
                 {
-                    // Log it and skip to next video...
+                    // Log it and skip to next media...
                     wxLogError(wxT("Can't save with experiment: ") +
-                               GetCachePath() + wxT("/videos/") + 
-                                pMainFrame->VideosGrid->
+                               GetCachePath() + wxT("/media/") + 
+                                pMainFrame->MediaGrid->
                                     GetCellValue(nRow, MainFrame::TITLE));
                     continue;
                 }
 
             // Create the entry...
-            ZipOutputStream.PutNextEntry(wxT("videos/") + 
-                pMainFrame->VideosGrid->GetCellValue(nRow, MainFrame::TITLE));
+            ZipOutputStream.PutNextEntry(wxT("media/") + 
+                pMainFrame->MediaGrid->GetCellValue(nRow, MainFrame::TITLE));
                                     
-            // Compress the video into the zip...
-            ZipOutputStream.Write(VideoEntry);
+            // Compress the media into the zip...
+            ZipOutputStream.Write(MediaEntry);
         }
 
     // Clear need save flag...

@@ -67,10 +67,10 @@ class Experiment;
             }
 
             // Get the nth total zoom factor capability...
-            int GetZoom(int nCapability) const
+            int GetZoom(unsigned int unCapabilityIndex) const
             {
                 // Return it...
-                return SupportedMagnifications.at(nCapability);
+                return SupportedMagnifications.at(unCapabilityIndex);
             }
 
             // Get total number of zooms...
@@ -81,14 +81,14 @@ class Experiment;
             }
             
             // Get name...
-            wxString &GetName()
+            wxString const &GetName() const
             {
                 // Return it...
                 return sName;
             }
             
             // Get a diameter for a given total magnification...
-            float GetDiameter(const int nMagnification)
+            float GetDiameter(int nMagnification)
             {
                 // Lookup...
                 return FieldOfViewDiameterTable[nMagnification];
@@ -103,7 +103,7 @@ class MainFrame : public MainFrame_Base
     friend class AnalysisThread;
     friend class CaptureThread;
     friend class Experiment;
-    friend class VideosGridDropTarget;
+    friend class MediaGridDropTarget;
 
     // Public stuff...
     public:
@@ -111,18 +111,18 @@ class MainFrame : public MainFrame_Base
         // Constructor...
         MainFrame(const wxString &sTitle);
 
-        // Compare two integers. Used for sorting rows in the videos grid...
+        // Compare two integers. Used for sorting rows in the media grid...
         static int wxCMPFUNC_CONV 
             CompareIntegers(int *pnFirst, int *pnSecond);
 
-        // Get the total size of all videos in the videos grid...
-        wxULongLong GetTotalVideoSize();
+        // Get the total size of all media in the media grid...
+        wxULongLong GetTotalMediaSize();
 
-        // Is experiment contain a video by a specific name?
-        bool IsExperimentContainVideo(wxString sName);
+        // Is experiment contain a media by a specific name?
+        bool IsExperimentContainMedia(wxString sName);
 
-        // Is experiment contain a video by a specific name, except a row?
-        bool IsExperimentContainVideoExceptRow(wxString sName, int nSkipRow);
+        // Is experiment contain a media by a specific name, except a row?
+        bool IsExperimentContainMediaExceptRow(wxString sName, int nSkipRow);
 
         // Is there an experiment loaded?
         bool IsExperimentLoaded() const;
@@ -145,7 +145,7 @@ class MainFrame : public MainFrame_Base
         // Notebook event handlers...
         void OnPageChanging(wxNotebookEvent &Event);
 
-        // Videos grid popup menu events...
+        // Media grid popup menu events...
         void OnPlay(wxCommandEvent &Event);
         void OnStop(wxCommandEvent &Event);
         void OnRemove(wxCommandEvent &Event);
@@ -159,12 +159,12 @@ class MainFrame : public MainFrame_Base
         void OnMove(wxMoveEvent &Event);
         void OnSize(wxSizeEvent &Event);
 
-        // Video grid event handlers...
-        void OnVideoCellDoubleLeftClick(wxGridEvent &Event);
-        void OnVideoCellLeftClick(wxGridEvent &Event);
-        void OnVideoCellRightClick(wxGridEvent &Event);
+        // Media grid event handlers...
+        void OnMediaCellDoubleLeftClick(wxGridEvent &Event);
+        void OnMediaCellLeftClick(wxGridEvent &Event);
+        void OnMediaCellRightClick(wxGridEvent &Event);
 
-        // Video media player event handlers...
+        // Media media player event handlers...
         void OnMediaLoaded(wxMediaEvent& Event);
         void OnMediaStop(wxMediaEvent& Event);
         void OnMediaPlay(wxMediaEvent& Event);
@@ -176,6 +176,7 @@ class MainFrame : public MainFrame_Base
         // Analysis event handlers...
         void OnChooseMicroscopeName(wxCommandEvent &Event);
         void OnChooseMicroscopeTotalZoom(wxCommandEvent &Event);
+        void OnChooseFieldOfViewDiameter(wxCommandEvent &Event);
         void OnChooseAnalysisType(wxCommandEvent &Event);
         void OnAnalyze(wxCommandEvent &Event);
         void OnBeginAnalysis(wxCommandEvent &Event);
@@ -197,7 +198,7 @@ class MainFrame : public MainFrame_Base
             ANALYSIS_PANE
         };
 
-        // Videos grid...
+        // Media grid...
         
             // The columns...
             enum
@@ -212,7 +213,7 @@ class MainFrame : public MainFrame_Base
             };
         
             // The number of columns...
-            #define VIDEOS_GRID_COLUMNS 7
+            #define MEDIA_GRID_COLUMNS 7
 
         // Event IDs...
         enum

@@ -14,7 +14,8 @@
 
 // Default constructor...
 WormTracker::WormTracker()
-    : pGrayImage(NULL),
+    : fFieldOfViewDiameter(0.0f),
+      pGrayImage(NULL),
       pThinkingImage(NULL),
       unWormsJustAdded(0)
 {
@@ -31,28 +32,7 @@ WormTracker::WormTracker()
                    fHorizontalScale, fVerticalScale, unThickness, unLineWidth);
 }
 
-// Acknowledge a worm contour...
-void WormTracker::Acknowledge(CvContour const &WormContour)
-{
-    // Variables...
-    unsigned int unFoundIndex   = (unsigned) -1;
-
-    // We cannot do anything without at least the gray image...
-    assert(pGrayImage);
-
-    // Frame advancer was suppose to check for this already...
-    assert(IsPossibleWorm(WormContour));
-
-    // The worm is known, refresh it with the new information...
-    if(IsKnown(WormContour, unFoundIndex))
-        TrackingTable.at(unFoundIndex)->Refresh(WormContour, *pGrayImage);
-
-    // The worm is not known, inform the tracker...
-    else
-        Add(WormContour);
-}
-
-// Add worm to tracker...
+// Add new worm to tracker...
 void WormTracker::Add(CvContour const &WormContour)
 {
     // We cannot do anything without at least the gray image...
@@ -82,12 +62,13 @@ void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 }
 
 // Advance frame...
-void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
+void WormTracker::Advance(IplImage const &NewGrayImage)
 {
     // Variables...
     CvMemStorage   *pStorage        = NULL;
     CvContour      *pFirstContour   = NULL;
     CvContour      *pCurrentContour = NULL;
+    unsigned int    unFoundIndex    = (unsigned) - 1;
     CvSize const    ImageSize       = cvGetSize(&NewGrayImage);
 
     // Lock resources...
@@ -146,6 +127,10 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         // Cleanup...
         cvReleaseImage(&pThresholdImage);
 
+    // Check to see if the tracker is being shown all the worms at once for
+    //  the first time...
+    bool const bInitialDiscovery = Tracking() > 0 ? false : true;
+
     // Go through each contour found...
     for(pCurrentContour = pFirstContour; pCurrentContour;
         pCurrentContour = (CvContour *) pCurrentContour->h_next)
@@ -154,9 +139,22 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         if(!IsPossibleWorm(*pCurrentContour))
             continue;
 
-        // Otherwise, acknowledge it...
+        // Possible worm and initiating for first time, assume every worm
+        //  unique...
+        else if(bInitialDiscovery)
+            Add(*pCurrentContour);
+
+        // Possible worm and some things are already known about the world...
         else
-            Acknowledge(*pCurrentContour);
+        {
+            // Find the nearest worm to this one...
+            unFoundIndex = FindNearestWorm(*pCurrentContour);
+            
+            // Let's hope they are really one and the same. Refresh it with the
+            //  new information...
+            TrackingTable.at(unFoundIndex)->Refresh(*pCurrentContour, 
+                                                    *pGrayImage);
+        }
     }
     
     // Cleanup...
@@ -182,6 +180,29 @@ void WormTracker::AdvanceNextFrame(IplImage const &NewGrayImage)
         AddThinkingLabel(ssCentre.str(), CurrentWorm.Centre());
         AddThinkingLabel("tail", CurrentWorm.Tail());
     }
+    
+    // Show worm dimension constraints...
+}
+
+// Convert from pixels to millimeters...
+inline double WormTracker::ConvertMillimetersToPixels(double const dMillimeters) 
+    const
+{
+    // Get the image size...
+    CvSize const ImageSize = cvGetSize(pGrayImage);
+
+    // Convert units...
+    return ((ImageSize.width / fFieldOfViewDiameter) * dMillimeters);
+}
+
+// Convert millimeters to pixels...
+inline double WormTracker::ConvertPixelsToMillimeters(double const dPixels) const
+{
+    // Get the image size...
+    CvSize const ImageSize = cvGetSize(pGrayImage);
+
+    // Convert units...
+    return ((fFieldOfViewDiameter / ImageSize.width) * dPixels);
 }
 
 // How many underlying rectangles does given one rest upon?
@@ -248,48 +269,17 @@ unsigned int const WormTracker::GetWormsAddedSinceLastCheck()
     return unTemp;
 }
 
-// Do any points on the mystery contour lie on the image exterior?
-bool WormTracker::IsAnyPointOnImageExterior(CvContour const &MysteryContour)
-    const
+// Find the nearest worm to given...
+unsigned int WormTracker::FindNearestWorm(CvContour const &WormContour) const
 {
-    // Image size...
-    CvSize const Size = cvGetSize(pGrayImage);
-
-    // Check each point to see if any lie on image exterior...
-    for(unsigned int unVertexIndex = 0; 
-        unVertexIndex < (unsigned) MysteryContour.total; 
-        unVertexIndex++)
-    {
-        // Get the point...
-        CvPoint const &Point = *((CvPoint *) 
-            cvGetSeqElem((CvSeq *) &MysteryContour, unVertexIndex));
-
-        // On either the left or right extremity...
-        if(Point.x == 0 || Point.x == Size.width)
-            return true;
-
-        // On either the top or bottom extremity...
-        if(Point.y == 0 || Point.y == Size.height)
-            return true;
-    }
-
-    // Every vertex came out non-tangent to the exterior...
-    return false;
-}
-
-// Find the worm that probably created this contour, if any...
-bool WormTracker::IsKnown(CvContour const &WormContour, 
-                          unsigned int &unFoundIndex) const
-{
-   // Worm's rectangle...
+    // Variables...
     CvMoments       WormMoment;
     CvPoint         WormCentre              = {0, 0};
     double          dDistanceToClosestWorm  = FLT_MAX;
     unsigned int    unClosestWormIndex      = (unsigned) -1;
 
-    // There is nothing being tracked at present, so the worm cannot be known...
-    if(Tracking() == 0)
-        return false;
+    // It doesn't make sense to ask us if we have no data...
+    assert(Tracking() != 0);
 
     // Calculate the gravitational centre of the given contour...
 
@@ -321,24 +311,37 @@ bool WormTracker::IsKnown(CvContour const &WormContour,
         }
     }
     
-    // Isolate the best match now...
-    Worm &BestMatch = *TrackingTable.at(unClosestWormIndex);
-    unFoundIndex = unClosestWormIndex;
-    
-    // If given worm contour isn't tangent to image exterior, assume known...
-/*    if(!IsAnyPointOnImageExterior(WormContour))*/
+    // Return index...
+    return unClosestWormIndex;
+}
 
-    // If the rectangles intersect, then we have good chance of match...
-    if(IsRectanglesIntersect(WormContour.rect, BestMatch.Rectangle()))
-        return true;
+// Do any points on the mystery contour lie on the image exterior?
+bool WormTracker::IsAnyPointOnImageExterior(CvContour const &MysteryContour)
+    const
+{
+    // Image size...
+    CvSize const Size = cvGetSize(pGrayImage);
 
-    // Are they close enough to be a match?
-    else if(dDistanceToClosestWorm <= 35.0f)
-        return true;
+    // Check each point to see if any lie on image exterior...
+    for(unsigned int unVertexIndex = 0; 
+        unVertexIndex < (unsigned) MysteryContour.total; 
+        unVertexIndex++)
+    {
+        // Get the point...
+        CvPoint const &Point = *((CvPoint *) 
+            cvGetSeqElem((CvSeq *) &MysteryContour, unVertexIndex));
 
-    // No match...
-    else
-        return false;
+        // On either the left or right extremity...
+        if(Point.x == 0 || Point.x == Size.width)
+            return true;
+
+        // On either the top or bottom extremity...
+        if(Point.y == 0 || Point.y == Size.height)
+            return true;
+    }
+
+    // Every vertex came out non-tangent to the exterior...
+    return false;
 }
 
 // Could this contour be a worm, independent of what we know?
@@ -347,6 +350,9 @@ bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
     // Too few vertices...
     if(MysteryContour.total < 6)
         return false;
+
+    // We must have had the field of view diameter set...
+    assert(fFieldOfViewDiameter > 0.0f);
 
     // Calculate the area of the worm...
     double const dArea = fabs(cvContourArea(&MysteryContour));
@@ -413,6 +419,13 @@ void WormTracker::Reset()
         
     // Worms just added in this frame...
     unWormsJustAdded = 0;
+}
+
+// Set the field of view diameter...
+void WormTracker::SetFieldOfViewDiameter(float const fDiameter)
+{
+    // Store...
+    fFieldOfViewDiameter = fDiameter > 0.01 ? fDiameter : 0.01;
 }
 
 // Deconstructor...

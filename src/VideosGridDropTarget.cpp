@@ -1,5 +1,5 @@
 /*
-  Name:         VideosGridDropTarget.cpp (implementation)
+  Name:         MediaGridDropTarget.cpp (implementation)
   Author:       Kip Warner (Kip@TheVertigo.com)
   Description:  Our derivation of wxFileDropTarget...
 */
@@ -9,18 +9,19 @@
 #include <wx/longlong.h>
 
 // Constructor...
-VideosGridDropTarget::VideosGridDropTarget(MainFrame *_pMainFrame)
+MediaGridDropTarget::MediaGridDropTarget(MainFrame *_pMainFrame)
     : pMainFrame(_pMainFrame)
 {
 
 }
 
 // We override here to receive dropped files...
-bool VideosGridDropTarget::OnDropFiles(wxCoord x, wxCoord y, 
-                                       const wxArrayString& FileNames)
+bool MediaGridDropTarget::OnDropFiles(wxCoord x, wxCoord y, 
+                                      const wxArrayString& FileNames)
 {
     // Constants...
-    const wxULongLong   ulMegaByte  = 1024 * 1024;
+    //const wxULongLong   ulMegaByte  = 1024 * 1024;
+    const wxULongLong   ulKiloByte  = 1024;
     
     // Variables...
     wxULongLong         ulTotalSize = 0;
@@ -51,52 +52,55 @@ bool VideosGridDropTarget::OnDropFiles(wxCoord x, wxCoord y,
         return true;
     }
 
-    // Calculate total video size...
+    // Calculate total media size...
     for(unsigned int unIndex = 0; unIndex < FileNames.GetCount(); unIndex++)
     {
-        // Find the video...
-        wxFileName VideoFile(FileNames[unIndex]);
+        // Find the media...
+        wxFileName MediaFile(FileNames[unIndex]);
 
             // Failed...
-            if(!VideoFile.IsOk())
+            if(!MediaFile.IsOk())
                 return false;
 
         // Verify it is of the write format...
-        if(!(VideoFile.GetExt().Lower() == wxT("mov") ||
-             VideoFile.GetExt().Lower() == wxT("avi") ||
-             VideoFile.GetExt().Lower() == wxT("mpg") ||
-             VideoFile.GetExt().Lower() == wxT("mpeg")))
+        if(!(MediaFile.GetExt().Lower() == wxT("mov")   ||
+             MediaFile.GetExt().Lower() == wxT("avi")   ||
+             MediaFile.GetExt().Lower() == wxT("mpg")   ||
+             MediaFile.GetExt().Lower() == wxT("mpeg")  ||
+             MediaFile.GetExt().Lower() == wxT("png")   ||
+             MediaFile.GetExt().Lower() == wxT("jpg")   ||
+             MediaFile.GetExt().Lower() == wxT("bmp")))
         {
             // Log it...
-            wxLogError(VideoFile.GetFullName() + 
-                       wxT(" is not a valid video format..."));
+            wxLogError(MediaFile.GetFullName() + 
+                       wxT(" is not a valid media format..."));
 
             // Abort...
             return false;
         }
 
         // Update total size...
-        ulTotalSize += VideoFile.GetSize();
+        ulTotalSize += MediaFile.GetSize();
     }
 
         // Nothing to add...
         if(ulTotalSize == 0)
             return false;
 
-        // Convert bytes to megabytes...
-        ulTotalSize /= ulMegaByte;
+        // Convert bytes to kilobytes...
+        ulTotalSize /= ulKiloByte;
 
     // Alert user...
-    if(wxMessageBox(wxString::Format(wxT("Add %s MB of video footage to your"
+    if(wxMessageBox(wxString::Format(wxT("Add %s KB of media footage to your"
                                          " experiment?"),
                                      ulTotalSize.ToString().c_str()),
-                    wxT("New Video Footage"), wxOK | wxCANCEL, 
+                    wxT("New Media Footage"), wxOK | wxCANCEL, 
                     pMainFrame) == wxCANCEL)
         return false;
 
     // Initialize progress dialog...
-    wxProgressDialog ProgressDialog(wxT("Video"), 
-                                    wxT("Adding new video content..."), 
+    wxProgressDialog ProgressDialog(wxT("Media"), 
+                                    wxT("Adding new media content..."), 
                                     FileNames.GetCount(), NULL, 
                                     wxPD_APP_MODAL | wxPD_AUTO_HIDE | 
                                     wxPD_SMOOTH);
@@ -105,40 +109,40 @@ bool VideosGridDropTarget::OnDropFiles(wxCoord x, wxCoord y,
     unProgress = 0;
     ProgressDialog.Update(unProgress);
 
-    // Add the videos...
+    // Add the media...
     for(unsigned int unIndex = 0; unIndex < FileNames.GetCount(); unIndex++)
     {
-        // Find the video...
-        wxFileName VideoFile(FileNames[unIndex]);
+        // Find the media...
+        wxFileName MediaFile(FileNames[unIndex]);
 
             // Failed...
-            if(!VideoFile.IsOk())
+            if(!MediaFile.IsOk())
                 continue;
 
         // Check for duplicate name in cache...
-        if(pMainFrame->IsExperimentContainVideo(VideoFile.GetFullName()))
+        if(pMainFrame->IsExperimentContainMedia(MediaFile.GetFullName()))
         {
             // Prepare error message box...
             wxMessageDialog 
                 Message(pMainFrame, 
-                        wxT("Your experiment already contains a video by the"
-                            " name of:\n\n\t") + VideoFile.GetFullName() + 
+                        wxT("Your experiment already contains media by the"
+                            " name of:\n\n\t") + MediaFile.GetFullName() + 
                             wxT(".\n\nYou might want to rename it and try"
-                                " again."), wxT("Duplicate video"), 
+                                " again."), wxT("Duplicate Media"), 
                         wxICON_EXCLAMATION);
                             
             // Show it...
             Message.ShowModal();
             
-            // Skip video...
+            // Skip media...
             continue;
         }
 
         // Copy the file into the cache...
 
-            // Create path to video to copy into cache...
+            // Create path to media to copy into cache...
             wxString sDestination = pMainFrame->pExperiment->GetCachePath() + 
-                                wxT("/videos/") + VideoFile.GetFullName();
+                                wxT("/media/") + MediaFile.GetFullName();
 
             // Copy into cache and check for error...
             if(!::wxCopyFile(FileNames[unIndex], sDestination, true))
@@ -159,62 +163,62 @@ bool VideosGridDropTarget::OnDropFiles(wxCoord x, wxCoord y,
                                         FileNames[unIndex]))
             {
                 // Alert user...
-                wxMessageBox(wxT("The adding of new video was cancelled..."));
+                wxMessageBox(wxT("The adding of new media was cancelled..."));
                 
                 // Cleanup...
                 return false;
             }
 
-        // Add new row to videos grid and check for error...
-        /*nRow = pMainFrame->VideosGrid->YToRow(y);
+        // Add new row to media grid and check for error...
+        /*nRow = pMainFrame->MediaGrid->YToRow(y);
         nRow = nRow == wxNOT_FOUND ? 0 : nRow;*/
         nRow = 0;
-        if(!pMainFrame->VideosGrid->InsertRows(nRow))
+        if(!pMainFrame->MediaGrid->InsertRows(nRow))
             continue;
 
         // Update each column...
         
             // Title...
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::TITLE, 
-                                                 VideoFile.GetFullName());
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::TITLE, 
+                                                MediaFile.GetFullName());
             
             // Date...
             wxDateTime LastModificationTime;
-            VideoFile.GetTimes(NULL, &LastModificationTime, NULL);
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::DATE,
+            MediaFile.GetTimes(NULL, &LastModificationTime, NULL);
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::DATE,
                 LastModificationTime.FormatDate());
 
             // Time...
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::TIME,
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::TIME,
                 LastModificationTime.FormatTime());
             
             // Technician...
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::TECHNICIAN,
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::TECHNICIAN,
               ::wxGetUserId());
 
             // Length...
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::LENGTH,
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::LENGTH,
                 wxT("?"));
 
             // Size...
-            ulFileSize = VideoFile.GetSize();
-            ulFileSize /= ulMegaByte;
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::SIZE,
-                ulFileSize.ToString() + wxT(" MB"));
+            ulFileSize = MediaFile.GetSize();
+            ulFileSize /= ulKiloByte;
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::SIZE,
+                ulFileSize.ToString() + wxT(" KB"));
 
             // Notes...
-            pMainFrame->VideosGrid->SetCellValue(nRow, MainFrame::NOTES,
+            pMainFrame->MediaGrid->SetCellValue(nRow, MainFrame::NOTES,
                 wxT("You may place whatever you like here..."));
     }
     
-    // Update total embedded videos count...
-    wxString sEmbeddedVideos;
-    sEmbeddedVideos << pMainFrame->VideosGrid->GetNumberRows();
-    pMainFrame->EmbeddedVideos->ChangeValue(sEmbeddedVideos);
+    // Update total embedded media count...
+    wxString sEmbeddedMedia;
+    sEmbeddedMedia << pMainFrame->MediaGrid->GetNumberRows();
+    pMainFrame->EmbeddedMedia->ChangeValue(sEmbeddedMedia);
     
     // Set the new total size...
-    ulTotalSize = pMainFrame->GetTotalVideoSize() / (1024 * 1024);
-    pMainFrame->TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" MB"));
+    ulTotalSize = pMainFrame->GetTotalMediaSize() / ulKiloByte;
+    pMainFrame->TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" KB"));
 
     // Done...
     return true;

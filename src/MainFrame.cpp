@@ -48,7 +48,7 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_MENU                (ID_CAPTURE,                    MainFrame::OnCapture)
     EVT_MENU                (wxID_ABOUT,                    MainFrame::OnAbout)
     
-    // Videos grid popup menu events...
+    // Media grid popup menu events...
     EVT_MENU                (ID_ANALYZE,                    MainFrame::OnAnalyze)
     EVT_MENU                (ID_PLAY,                       MainFrame::OnPlay)
     EVT_MENU                (ID_REMOVE,                     MainFrame::OnRemove)
@@ -63,11 +63,11 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_TEXT                (XRCID("ExperimentTitle"),      MainFrame::OnExperimentChange)
     EVT_TEXT                (XRCID("ExperimentNotes"),      MainFrame::OnExperimentChange)
 
-    // VideosGrid events...
-    EVT_GRID_CMD_CELL_CHANGE(XRCID("VideosGrid"),           MainFrame::OnExperimentChangeCell)
-    EVT_GRID_CMD_CELL_LEFT_DCLICK(XRCID("VideosGrid"),      MainFrame::OnVideoCellDoubleLeftClick)
-    EVT_GRID_CMD_CELL_LEFT_CLICK(XRCID("VideosGrid"),       MainFrame::OnVideoCellLeftClick)
-    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("VideosGrid"),      MainFrame::OnVideoCellRightClick)
+    // MediaGrid events...
+    EVT_GRID_CMD_CELL_CHANGE(XRCID("MediaGrid"),            MainFrame::OnExperimentChangeCell)
+    EVT_GRID_CMD_CELL_LEFT_DCLICK(XRCID("MediaGrid"),       MainFrame::OnMediaCellDoubleLeftClick)
+    EVT_GRID_CMD_CELL_LEFT_CLICK(XRCID("MediaGrid"),        MainFrame::OnMediaCellLeftClick)
+    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("MediaGrid"),       MainFrame::OnMediaCellRightClick)
 
     // Capture...
     EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
@@ -76,6 +76,7 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_CHOICE              (XRCID("ChosenMicroscopeName"), MainFrame::OnChooseMicroscopeName)
     EVT_CHOICE              (XRCID("ChosenMicroscopeTotalZoom"),   
                                                             MainFrame::OnChooseMicroscopeTotalZoom)
+    EVT_TEXT                (XRCID("FieldOfViewDiameter"),  MainFrame::OnChooseFieldOfViewDiameter)
     EVT_CHOICE              (XRCID("ChosenAnalysisType"),   MainFrame::OnChooseAnalysisType)
     EVT_BUTTON              (XRCID("BeginAnalysisButton"),  MainFrame::OnBeginAnalysis)
     EVT_BUTTON              (ID_ANALYSIS_ENDED,             MainFrame::OnEndAnalysis)
@@ -262,74 +263,74 @@ MainFrame::MainFrame(const wxString &sTitle)
         Connect(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING,
                 wxNotebookEventHandler(MainFrame::OnPageChanging));
 
-    // Initialize videos grid...
+    // Initialize media grid...
 
         // Objects...
         wxGridCellAttr *pColumnAttributes   = NULL;
 
         // Create it...
-        VideosGrid->CreateGrid(0, VIDEOS_GRID_COLUMNS);
+        MediaGrid->CreateGrid(0, MEDIA_GRID_COLUMNS);
 
         // Implement drop target... (doesn't work on OS X)
-        VideosGrid->SetDropTarget(new VideosGridDropTarget(this));
+        MediaGrid->SetDropTarget(new MediaGridDropTarget(this));
 
         // Set label sizes...
-        VideosGrid->SetRowLabelSize(0);
-        VideosGrid->SetColLabelSize(30);
+        MediaGrid->SetRowLabelSize(0);
+        MediaGrid->SetColLabelSize(30);
 
         // Set row sizes...
-        VideosGrid->SetRowMinimalAcceptableHeight(25);
+        MediaGrid->SetRowMinimalAcceptableHeight(25);
 
         // Set grid colours...
-        VideosGrid->SetDefaultCellTextColour(wxColour(wxT("GREEN")));
-        VideosGrid->SetGridLineColour(wxColour(wxT("BLUE")));
-        VideosGrid->SetDefaultCellBackgroundColour(wxColour(wxT("DIM GREY")));
+        MediaGrid->SetDefaultCellTextColour(wxColour(wxT("GREEN")));
+        MediaGrid->SetGridLineColour(wxColour(wxT("BLUE")));
+        MediaGrid->SetDefaultCellBackgroundColour(wxColour(wxT("DIM GREY")));
 
         // Initialize columns...
         
             // Title...
-            VideosGrid->SetColLabelValue(TITLE, wxT("Title"));
-            pColumnAttributes = VideosGrid->GetOrCreateCellAttr(0, TITLE);
+            MediaGrid->SetColLabelValue(TITLE, wxT("Title"));
+            pColumnAttributes = MediaGrid->GetOrCreateCellAttr(0, TITLE);
             pColumnAttributes->SetReadOnly();
-            VideosGrid->SetColAttr(TITLE, pColumnAttributes);
+            MediaGrid->SetColAttr(TITLE, pColumnAttributes);
             
             // Date...
-            VideosGrid->SetColLabelValue(DATE, wxT("Date"));
+            MediaGrid->SetColLabelValue(DATE, wxT("Date"));
 
             // Time...
-            VideosGrid->SetColLabelValue(TIME, wxT("Time"));
+            MediaGrid->SetColLabelValue(TIME, wxT("Time"));
 
             // Technician...
-            VideosGrid->SetColLabelValue(TECHNICIAN, wxT("Technician"));
+            MediaGrid->SetColLabelValue(TECHNICIAN, wxT("Technician"));
             
             // Length...
-            VideosGrid->SetColLabelValue(LENGTH, wxT("Length"));
-            pColumnAttributes = VideosGrid->GetOrCreateCellAttr(0, LENGTH);
+            MediaGrid->SetColLabelValue(LENGTH, wxT("Length"));
+            pColumnAttributes = MediaGrid->GetOrCreateCellAttr(0, LENGTH);
             pColumnAttributes->SetReadOnly();
-            VideosGrid->SetColAttr(LENGTH, pColumnAttributes);
+            MediaGrid->SetColAttr(LENGTH, pColumnAttributes);
             
             // Size...
-            VideosGrid->SetColLabelValue(SIZE, wxT("Size"));
-            pColumnAttributes = VideosGrid->GetOrCreateCellAttr(0, SIZE);
+            MediaGrid->SetColLabelValue(SIZE, wxT("Size"));
+            pColumnAttributes = MediaGrid->GetOrCreateCellAttr(0, SIZE);
             pColumnAttributes->SetReadOnly();
-            VideosGrid->SetColAttr(SIZE, pColumnAttributes);
+            MediaGrid->SetColAttr(SIZE, pColumnAttributes);
 
             // Notes...
-            VideosGrid->SetColLabelValue(NOTES, wxT("Notes"));
+            MediaGrid->SetColLabelValue(NOTES, wxT("Notes"));
 
         // Automatically resize...
         
             // Pad each column label...
-            for(int nColumn = 0; nColumn < VideosGrid->GetNumberCols(); 
+            for(int nColumn = 0; nColumn < MediaGrid->GetNumberCols(); 
                 nColumn++)
             {
                 // Boost this column...
-                VideosGrid->SetColSize(nColumn, 
-                    VideosGrid->GetColSize(nColumn) + 55);
+                MediaGrid->SetColSize(nColumn, 
+                    MediaGrid->GetColSize(nColumn) + 55);
             }
         
         // Force a refresh...
-        VideosGrid->ForceRefresh();
+        MediaGrid->ForceRefresh();
 
     // Initialize video player...
 
@@ -362,7 +363,7 @@ MainFrame::MainFrame(const wxString &sTitle)
                     this);
         
         // Enable it for drag and drop...
-        pMediaPlayer->SetDropTarget(new VideosGridDropTarget(this));
+        pMediaPlayer->SetDropTarget(new MediaGridDropTarget(this));
 
     // Configure recording buttons...
     RecordButton->SetBitmapLabel(record_60x60_xpm);
@@ -383,6 +384,10 @@ MainFrame::MainFrame(const wxString &sTitle)
             RandomWorks.AddDiameter(7, 52.0f);
             RandomWorks.AddDiameter(35, 6.2f);
             MicroscopeTable.push_back(RandomWorks);
+            
+            // Custom microscope...
+            Microscope Custom(wxT("Custom"));
+            MicroscopeTable.push_back(Custom);
             
         // Populate the microscope name choice box...
         for(unsigned int unIndex = 0; 
@@ -440,21 +445,21 @@ MainFrame::MainFrame(const wxString &sTitle)
     pExperiment = new Experiment(this);
 }
 
-// Compare two integers. Used for sorting rows in the videos grid...
+// Compare two integers. Used for sorting rows in the media grid...
 int wxCMPFUNC_CONV MainFrame::CompareIntegers(int *pnFirst, int *pnSecond)
 {
     // Compare...
     return *pnFirst - *pnSecond;
 }
 
-// Videos grid popup menu events for analyze...
+// Media grid popup menu events for analyze...
 void MainFrame::OnAnalyze(wxCommandEvent &Event)
 {
-    // They don't have a single video selected...
-    if(VideosGrid->GetSelectedRows().GetCount() != 1)
+    // They don't have a single media file selected...
+    if(MediaGrid->GetSelectedRows().GetCount() != 1)
     {
         // Alert user...
-        wxMessageBox(wxT("Please select the video you wish to analyze first."));
+        wxMessageBox(wxT("Please select the media you wish to analyze first."));
         
         // Don't change the page...
         return;
@@ -573,18 +578,16 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
     if(AnalysisTimer.IsRunning())
         return;
 
-    // They don't have a single video selected...
-    if(VideosGrid->GetSelectedRows().GetCount() != 1)
+    // They don't have a single media selected...
+    if(MediaGrid->GetSelectedRows().GetCount() != 1)
     {
         // Alert user...
-        wxMessageBox(wxT("You must first select a single piece of video to"
+        wxMessageBox(wxT("You must first select a single piece of media to"
                          " analyze. You will be taken to your available media"
                          " now."));
 
         // Take the user back to the data pane...
         MainNotebook->ChangeSelection(DATA_PANE);
-
-        /* TODO: Highlight videos grid here... */
 
         // Done...
         return;
@@ -721,9 +724,9 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
             switch(nColumn)
             {
                 // Label depends on the column...
-                case 0: sTemp = wxT("Length (mm)"); break;
-                case 1: sTemp = wxT("Width (mm)"); break;
-                case 2: sTemp = wxT("Area (mm^2)"); break;
+                case 0: sTemp = wxT("    Length (mm)    "); break;
+                case 1: sTemp = wxT("    Width (mm)    "); break;
+                case 2: sTemp = wxT("    Area (mm²)    "); break;
             }
             
             // Set column label
@@ -931,6 +934,35 @@ void MainFrame::OnCaptureFrameReadyTimer(wxTimerEvent &Event)
     }
 }
 
+// Field of view has been set either by user or progmatically...
+void MainFrame::OnChooseFieldOfViewDiameter(wxCommandEvent &Event)
+{
+    // Get field of view diameter as string...
+    wxString const sDiameter = FieldOfViewDiameter->GetValue();
+    
+    // The last three characters are not " mm"...
+    if(!sDiameter.EndsWith(wxT(" mm")))
+    {
+        // Add it on then...
+        FieldOfViewDiameter->ChangeValue(sDiameter + wxT(" mm"));
+        return;
+    }
+
+    // Set tracker's field of view diameter...
+    
+        // Convert string to double...
+        double dFieldOfViewDiameter = 0.0f;
+        sDiameter.BeforeFirst('\x20').ToDouble(&dFieldOfViewDiameter);
+
+        // Notify tracker...
+        Tracker.SetFieldOfViewDiameter(dFieldOfViewDiameter);
+
+    // Store the custom diameter...
+  ::wxGetApp().pConfiguration->Write(
+        wxT("/Analysis/CustomFieldOfViewDiameter"), 
+        wxString::Format(wxT("%f"), dFieldOfViewDiameter));
+}
+
 // A microscope name has been chosen...
 void MainFrame::OnChooseMicroscopeName(wxCommandEvent &Event)
 {
@@ -939,6 +971,43 @@ void MainFrame::OnChooseMicroscopeName(wxCommandEvent &Event)
 
     // Clear the choosable zooms...
     ChosenMicroscopeTotalZoom->Clear();
+    
+    // This is the custom microscope...
+    if(ChosenMicroscope.GetName() == wxT("Custom"))
+    {
+        // Make sure field of view diameter is editable...
+        FieldOfViewDiameter->SetEditable(true);
+        
+        // Fetch previously used custom diameter, if any...
+        wxString sDiameter = ::wxGetApp().pConfiguration->Read(
+                                wxT("/Analysis/CustomFieldOfViewDiameter"), 
+                                wxT("5"));
+        double dDiameter = 0.0f;
+        sDiameter.ToDouble(&dDiameter);
+        
+        // Restore it
+        FieldOfViewDiameter->ChangeValue(
+            wxString::Format(wxT("%.2f mm"), dDiameter));
+        
+        // Hide zoom...
+        ChosenMicroscopeTotalZoom->Hide();
+        
+        // Notify tracker...
+        Tracker.SetFieldOfViewDiameter(dDiameter);
+        
+        // Done...
+        return;
+    }
+    
+    // This is not the custom microscope...
+    else
+    {
+        // Show zoom...
+        ChosenMicroscopeTotalZoom->Show();
+
+        // Make sure field of view diameter is read-only...
+        FieldOfViewDiameter->SetEditable(false);
+    }
 
     // Populate the choosable zooms with the new microscope's capabilities...
     for(unsigned int unCurrentCapability = 0;
@@ -988,12 +1057,28 @@ void MainFrame::OnChooseMicroscopeTotalZoom(wxCommandEvent &Event)
     sDiameter.Printf(wxT("%.2f mm"), fFieldOfView);
     
     // Update diameter text box...
-    FieldOfViewDiameter->SetValue(sDiameter);
+    FieldOfViewDiameter->ChangeValue(sDiameter);
+
+    // Notify tracker...
+    Tracker.SetFieldOfViewDiameter(fFieldOfView);
 }
 
 // Analysis thread is informing us that it has terminated...
 void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
 {
+    // Get the thinking image...
+    IplImage *pThinkingImage = Tracker.GetThinkingImage();
+    
+    // Show it, if any...
+    if(pThinkingImage)
+    {
+        // Display the image...
+        cvShowImage("Analysis", pThinkingImage);
+    
+        // Cleanup...
+        cvReleaseImage(&pThinkingImage);
+    }
+
     // Unlock the UI...
 
         // Begin analysis button...
@@ -1031,9 +1116,6 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
 
         // Refresh the main frame...
         Refresh();
-        
-        // Destroy analysis window...
-        cvDestroyWindow("Analysis");
                     
     // Remove all rows, if any
     if(AnalysisGrid->GetNumberRows() > 0)
@@ -1105,44 +1187,44 @@ void MainFrame::OnFullScreen(wxCommandEvent &Event)
         pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
 }
 
-// Get the total size of all videos in the videos grid...
-wxULongLong MainFrame::GetTotalVideoSize()
+// Get the total size of all media in the media grid...
+wxULongLong MainFrame::GetTotalMediaSize()
 {
     // Variables...
     wxULongLong ulTotalSize = 0;
 
     // Calculate total size...
     for(unsigned int unRow = 0; 
-        unRow < (unsigned) VideosGrid->GetNumberRows(); 
+        unRow < (unsigned) MediaGrid->GetNumberRows(); 
         unRow++)
     {
-        // Find the video...
-        wxString sPath = pExperiment->GetCachePath() + wxT("/videos/") + 
-                         VideosGrid->GetCellValue(unRow, TITLE);
+        // Find the media...
+        wxString sPath = pExperiment->GetCachePath() + wxT("/media/") + 
+                         MediaGrid->GetCellValue(unRow, TITLE);
 
         // Load it...
-        wxFileName VideoFile(sPath);
+        wxFileName MediaFile(sPath);
 
             // Failed...
-            if(!VideoFile.IsOk())
+            if(!MediaFile.IsOk())
                 continue;
 
         // Size...
-        ulTotalSize += VideoFile.GetSize();
+        ulTotalSize += MediaFile.GetSize();
     }
     
     // Done...
     return ulTotalSize;
 }
 
-// Is experiment contain a video by a specific name?
-bool MainFrame::IsExperimentContainVideo(wxString sName)
+// Is experiment contain a media by a specific name?
+bool MainFrame::IsExperimentContainMedia(wxString sName)
 {
-    // Search the video list...
-    for(int nRow = 0; nRow < VideosGrid->GetNumberRows(); nRow++)
+    // Search the media list...
+    for(int nRow = 0; nRow < MediaGrid->GetNumberRows(); nRow++)
     {
         // Found match...
-        if(VideosGrid->GetCellValue(nRow, MainFrame::TITLE).Lower() == 
+        if(MediaGrid->GetCellValue(nRow, MainFrame::TITLE).Lower() == 
            sName.Lower())
             return true;
     }
@@ -1151,18 +1233,18 @@ bool MainFrame::IsExperimentContainVideo(wxString sName)
     return false;
 }
 
-// Is experiment contain a video by a specific name, except a row?
-bool MainFrame::IsExperimentContainVideoExceptRow(wxString sName, int nSkipRow)
+// Is experiment contain a media by a specific name, except a row?
+bool MainFrame::IsExperimentContainMediaExceptRow(wxString sName, int nSkipRow)
 {
-    // Search the video list...
-    for(int nRow = 0; nRow < VideosGrid->GetNumberRows(); nRow++)
+    // Search the media list...
+    for(int nRow = 0; nRow < MediaGrid->GetNumberRows(); nRow++)
     {
         // Not checking this row, skip it...
         if(nSkipRow == nRow)
             continue;
 
         // Found match...
-        if(VideosGrid->GetCellValue(nRow, MainFrame::TITLE).Lower() == 
+        if(MediaGrid->GetCellValue(nRow, MainFrame::TITLE).Lower() == 
            sName.Lower())
             return true;
     }
@@ -1256,15 +1338,15 @@ void MainFrame::OnPageChanging(wxNotebookEvent &Event)
     /* Trying to switch to analysis page...
     if(Event.GetSelection() == ANALYSIS_PANE)
     {
-        // They don't have a single video selected...
-        if(VideosGrid->GetSelectedRows().GetCount() != 1)
+        // They don't have a single media selected...
+        if(MediaGrid->GetSelectedRows().GetCount() != 1)
         {
             // Veto the page change and go back to the data pane...
             Event.Veto();
             MainNotebook->ChangeSelection(ANALYSIS_PANE);
 
             // Alert user...
-            wxMessageBox(wxT("Please select a single video to analyze first."));
+            wxMessageBox(wxT("Please select a single media to analyze first."));
 
             // Done...
             return;
@@ -1272,18 +1354,18 @@ void MainFrame::OnPageChanging(wxNotebookEvent &Event)
     }*/
 }
 
-// Videos grid popup menu event for play...
+// Media grid popup menu event for play...
 void MainFrame::OnPlay(wxCommandEvent &Event)
 {
-    // Get the complete path to the video to play...
+    // Get the complete path to the media to play...
     
         // Find the row selected...
-        wxArrayInt SelectedRows = VideosGrid->GetSelectedRows();
+        wxArrayInt SelectedRows = MediaGrid->GetSelectedRows();
         int nRow = SelectedRows[0];
         
         // Generate complete path...
-        wxString sPath = pExperiment->GetCachePath() + wxT("/videos/") +
-                         VideosGrid->GetCellValue(nRow, TITLE);
+        wxString sPath = pExperiment->GetCachePath() + wxT("/media/") +
+                         MediaGrid->GetCellValue(nRow, TITLE);
 
     // Load media and check for error...
     if(!pMediaPlayer->Load(sPath))
@@ -1294,9 +1376,9 @@ void MainFrame::OnPlay(wxCommandEvent &Event)
         return;
     }
 
-    // Update media length in the videos grid...
+    // Update media length in the media grid...
 
-        // Calculate minutes and seconds of video...
+        // Calculate minutes and seconds of media...
         wxLongLong llMediaLength = pMediaPlayer->Length();
         int nMinutes = (int) (llMediaLength / 60000).GetValue();
         int nSeconds = (int) ((llMediaLength % 60000) / 1000).GetValue();
@@ -1304,7 +1386,7 @@ void MainFrame::OnPlay(wxCommandEvent &Event)
         // Format string and update field...
         wxString sDuration;
         sDuration.Printf(wxT("%2i:%02i"), nMinutes, nSeconds);
-        VideosGrid->SetCellValue(nRow, LENGTH, sDuration);
+        MediaGrid->SetCellValue(nRow, LENGTH, sDuration);
     
 }
 
@@ -1319,7 +1401,7 @@ void MainFrame::OnExperimentChange(wxCommandEvent &Event)
     pExperiment->TriggerNeedSave();
 }
 
-// Videos grid has had a cell change...
+// Media grid has had a cell change...
 void MainFrame::OnExperimentChangeCell(wxGridEvent &Event)
 {
     // No experiment is loaded...
@@ -1329,10 +1411,10 @@ void MainFrame::OnExperimentChangeCell(wxGridEvent &Event)
     /* Is this somewhere within the title column?
     if(Event.GetCol() == TITLE)
     {
-        // What did the user just try and rename the video's title to?
-        wxString sNewTitle = VideosGrid->GetCellValue(Event.GetRow(), TITLE)
+        // What did the user just try and rename the media's title to?
+        wxString sNewTitle = MediaGrid->GetCellValue(Event.GetRow(), TITLE)
         
-        IsExperimentContainVideo(
+        IsExperimentContainMedia(
         
     }*/
 
@@ -1419,29 +1501,29 @@ void MainFrame::OnOpen(wxCommandEvent &Event)
                       pExperiment->GetPath().c_str()));
 }
 
-// Videos grid popup menu event for remove...
+// Media grid popup menu event for remove...
 void MainFrame::OnRemove(wxCommandEvent &Event)
 {
     // Remove each row backwards to preserve row ordinals...
-    wxArrayInt SelectedRows = VideosGrid->GetSelectedRows();
+    wxArrayInt SelectedRows = MediaGrid->GetSelectedRows();
     SelectedRows.Sort(CompareIntegers);
     for(int nIndex = SelectedRows.GetCount() - 1; nIndex >= 0; --nIndex)
     {
         // Double check with the user first...
         wxMessageDialog 
-        Message(this, wxT("Are you sure you want to remove the following video"
+        Message(this, wxT("Are you sure you want to remove the following media"
                           " from your experiment?\n\n") + 
-                      VideosGrid->GetCellValue(SelectedRows[nIndex], TITLE), 
-                wxT("Remove Video"), 
+                      MediaGrid->GetCellValue(SelectedRows[nIndex], TITLE), 
+                wxT("Remove Media"), 
                 wxOK | wxCANCEL | wxICON_EXCLAMATION);
                         
-            // They requested to not remove the video from the experiment...
+            // They requested to not remove the media from the experiment...
             if(Message.ShowModal() == wxID_CANCEL)
                 continue;
 
-        // Generate a complete path to the video selected...
-        wxString sPath = pExperiment->GetCachePath() + wxT("/videos/") + 
-                         VideosGrid->GetCellValue(SelectedRows[nIndex], TITLE);
+        // Generate a complete path to the media selected...
+        wxString sPath = pExperiment->GetCachePath() + wxT("/media/") + 
+                         MediaGrid->GetCellValue(SelectedRows[nIndex], TITLE);
 
         // Remove it and check for error...
         if(!::wxRemoveFile(sPath))
@@ -1453,39 +1535,39 @@ void MainFrame::OnRemove(wxCommandEvent &Event)
         }
 
         // Remove the row...
-        VideosGrid->DeleteRows(SelectedRows[nIndex]);
+        MediaGrid->DeleteRows(SelectedRows[nIndex]);
         
         // Trigger need save...
         pExperiment->TriggerNeedSave();
 
-        // Update embedded videos count...
-        wxString sEmbeddedVideos; 
-        sEmbeddedVideos << VideosGrid->GetNumberRows();
-        EmbeddedVideos->ChangeValue(sEmbeddedVideos);
+        // Update embedded media count...
+        wxString sEmbeddedMedia; 
+        sEmbeddedMedia << MediaGrid->GetNumberRows();
+        EmbeddedMedia->ChangeValue(sEmbeddedMedia);
         
-        // Update total embedded video size...
-        wxULongLong ulTotalSize = GetTotalVideoSize();
-        ulTotalSize /= (1024 * 1024);
-        TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" MB"));
+        // Update total embedded media size...
+        wxULongLong ulTotalSize = GetTotalMediaSize();
+        ulTotalSize /= 1024;
+        TotalSize->ChangeValue(ulTotalSize.ToString() + wxT(" KB"));
     }
 }
 
-// Videos grid popup menu event for rename...
+// Media grid popup menu event for rename...
 void MainFrame::OnRename(wxCommandEvent &Event)
 {
     // Find the selected row...
-    wxArrayInt SelectedRow = VideosGrid->GetSelectedRows();
+    wxArrayInt SelectedRow = MediaGrid->GetSelectedRows();
     
         // Verify that there is but one...
         if(SelectedRow.GetCount() != 1)
             return;
 
     // Get the original name...
-    wxString sOriginalName = VideosGrid->GetCellValue(SelectedRow[0], TITLE);
+    wxString sOriginalName = MediaGrid->GetCellValue(SelectedRow[0], TITLE);
 
     // Prepare the text entry dialog...
     wxTextEntryDialog Dialog(this, wxT("Please enter the new unique name:"),
-                             wxT("Rename video"),
+                             wxT("Rename Media"),
                              sOriginalName, wxOK | wxCANCEL);
 
         // Display and check for cancel...
@@ -1503,33 +1585,33 @@ void MainFrame::OnRename(wxCommandEvent &Event)
        (Dialog.GetValue().Find(wxT(" ")) != wxNOT_FOUND))
     {
         // Log error and then abort...
-        wxLogError(wxT("You cannot rename the video to that. Make sure you do"
+        wxLogError(wxT("You cannot rename the media to that. Make sure you do"
                        " not have any spaces."));
         return;
     }
 
     // Verify that this name isn't already taken...
-    if(IsExperimentContainVideoExceptRow(Dialog.GetValue(), SelectedRow[0]))
+    if(IsExperimentContainMediaExceptRow(Dialog.GetValue(), SelectedRow[0]))
     {
         // Log error and then abort...
-        wxLogError(wxT("A video already exists in your experiment by that name."
+        wxLogError(wxT("Media already exists in your experiment by that name."
                        " Try something else."));
         return;
     }
 
     // Rename the file...
-    if(!::wxRenameFile(pExperiment->GetCachePath() + wxT("/videos/") + 
+    if(!::wxRenameFile(pExperiment->GetCachePath() + wxT("/media/") + 
                          sOriginalName, 
-                       pExperiment->GetCachePath() + wxT("/videos/") + 
+                       pExperiment->GetCachePath() + wxT("/media/") + 
                          Dialog.GetValue(), false))
     {
         // Log error and then abort...
-        wxLogError(wxT("Unable to rename video..."));
+        wxLogError(wxT("Unable to rename media..."));
         return;    
     }
 
-    // Rename the title in the videos grid...
-    VideosGrid->SetCellValue(SelectedRow[0], TITLE, Dialog.GetValue());
+    // Rename the title in the media grid...
+    MediaGrid->SetCellValue(SelectedRow[0], TITLE, Dialog.GetValue());
 
     // Trigger need save...
     pExperiment->TriggerNeedSave();
@@ -1595,7 +1677,7 @@ void MainFrame::OnSize(wxSizeEvent &Event)
         pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
 
     // Store the window size...
-  ::wxGetApp().pConfiguration->Write(wxT("/General/"), 
+  ::wxGetApp().pConfiguration->Write(wxT("/General/Width"), 
                                      Event.GetSize().GetWidth());
   ::wxGetApp().pConfiguration->Write(wxT("/General/Height"), 
                                      Event.GetSize().GetHeight());
@@ -1607,7 +1689,7 @@ void MainFrame::OnSize(wxSizeEvent &Event)
     Event.Skip();
 }
 
-// Videos grid popup menu event for stop...
+// Media grid popup menu event for stop...
 void MainFrame::OnStop(wxCommandEvent &Event)
 {
     // Stop...
@@ -1661,7 +1743,7 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
                 "Linux, Win32, and Mac OS X. It is designed to help\n"
                 "you perform tap experiments on C. elegans within a\n"
                 "lab. It manages your experiments by capturing and\n"
-                "organizing video directly from your lab's dissection\n"
+                "organizing media directly from your lab's dissection\n"
                 "microscope camera. It can also try to analyze what it\n"
                 "thinks it saw, generating some useful data\n"
                 "automagically for you.\n\n"
@@ -1732,17 +1814,17 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
 }
 
 // User double clicked with the left mouse button over a cell...
-void MainFrame::OnVideoCellDoubleLeftClick(wxGridEvent &Event)
+void MainFrame::OnMediaCellDoubleLeftClick(wxGridEvent &Event)
 {
     // Move the grid cursor to the cell under the mouse cursor...
-    VideosGrid->SetGridCursor(Event.GetRow(), Event.GetCol());
+    MediaGrid->SetGridCursor(Event.GetRow(), Event.GetCol());
     
     // Is this cell editable?
-    if(VideosGrid->CanEnableCellControl())
+    if(MediaGrid->CanEnableCellControl())
     {
         // Enable and show the edit control...
-        VideosGrid->EnableCellEditControl();
-        VideosGrid->ShowCellEditControl();
+        MediaGrid->EnableCellEditControl();
+        MediaGrid->ShowCellEditControl();
     }
     
     // Otherwise jump to the analysis pane...
@@ -1751,25 +1833,25 @@ void MainFrame::OnVideoCellDoubleLeftClick(wxGridEvent &Event)
 }
 
 // User left clicked a cell...
-void MainFrame::OnVideoCellLeftClick(wxGridEvent &Event)
+void MainFrame::OnMediaCellLeftClick(wxGridEvent &Event)
 {
     // Select the entire row...
-    VideosGrid->SelectRow(Event.GetRow(), Event.ControlDown() ? true : false);
+    MediaGrid->SelectRow(Event.GetRow(), Event.ControlDown() ? true : false);
 }
 
 // User right clicked a cell...
-void MainFrame::OnVideoCellRightClick(wxGridEvent &Event)
+void MainFrame::OnMediaCellRightClick(wxGridEvent &Event)
 {
     // Control down, add to selection...
     if(Event.ControlDown())
-        VideosGrid->SelectRow(Event.GetRow(), true);
+        MediaGrid->SelectRow(Event.GetRow(), true);
 
     // Control not down...
     else
     {
         // Over unselected row, select it only...
-        if(!VideosGrid->IsInSelection(Event.GetRow(), Event.GetCol()))
-            VideosGrid->SelectRow(Event.GetRow());
+        if(!MediaGrid->IsInSelection(Event.GetRow(), Event.GetCol()))
+            MediaGrid->SelectRow(Event.GetRow());
     }
 
     // Create popup menu...
@@ -1793,7 +1875,7 @@ void MainFrame::OnVideoCellRightClick(wxGridEvent &Event)
         Menu.Append(pRemoveItem);
         
         // Rename, if only one row is selected...
-        if(VideosGrid->GetSelectedRows().GetCount() == 1)
+        if(MediaGrid->GetSelectedRows().GetCount() == 1)
         {
             // Create the menu item...
             wxMenuItem *pRenameItem = 
@@ -1808,7 +1890,7 @@ void MainFrame::OnVideoCellRightClick(wxGridEvent &Event)
         Menu.Append(pStopItem);
         
     // Popup menu...
-    VideosGrid->PopupMenu(&Menu, Event.GetPosition());
+    MediaGrid->PopupMenu(&Menu, Event.GetPosition());
 }
 
 // Quit command event handler...

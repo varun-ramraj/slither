@@ -39,9 +39,14 @@ class WormTracker
         WormTracker();
 
         // Accessors...
-            
-            // The number of worms we are currently tracking...
-            unsigned int        Tracking() const;
+
+            // Convert millimeters to pixels...
+            double              ConvertMillimetersToPixels(
+                                    double const dMillimeters) const;
+
+            // Convert from pixels to millimeters...
+            double              ConvertPixelsToMillimeters(
+                                    double const dPixels) const;
             
             // Get a copy of the current thinking image. Caller frees...
             IplImage           *GetThinkingImage() const;
@@ -49,16 +54,22 @@ class WormTracker
             // Get the nth worm, or null worm if no more...
             Worm const         &GetWorm(unsigned int const unIndex) const;
 
+            // The number of worms we are currently tracking...
+            unsigned int        Tracking() const;
+
         // Mutators...
 
             // Advance frame...
-            void                AdvanceNextFrame(IplImage const &NewGrayImage);
+            void                Advance(IplImage const &NewGrayImage);
             
             // Get the number of worms just added since last check...
             unsigned int const  GetWormsAddedSinceLastCheck();
             
             // Reset the tracker...
             void                Reset();
+            
+            // Set the field of view diameter...
+            void                SetFieldOfViewDiameter(float const fDiameter);
 
         // Operators...
 
@@ -69,9 +80,6 @@ class WormTracker
         // Deconstructor...
        ~WormTracker();
 
-    // Protected types and constants...
-    protected:
-
     // Protected methods...
     protected:
 
@@ -81,13 +89,12 @@ class WormTracker
             unsigned int const CountRectanglesIntersected(
                 CvRect const &Rectangle) const;
 
+            // Find the nearest worm to given...
+            unsigned int FindNearestWorm(CvContour const &WormContour) const;
+
             // Do any points on the mystery contour lie on the image exterior?
             bool IsAnyPointOnImageExterior(CvContour const &MysteryContour)
                 const;
-
-            // Find the worm that probably created this contour, if any...
-            bool IsKnown(CvContour const &WormContour, 
-                         unsigned int &unFoundIndex) const;
 
             // Could this contour be a worm, independent of what we know?
             bool IsPossibleWorm(CvContour const &MysteryContour) const;
@@ -98,10 +105,7 @@ class WormTracker
 
         // Mutators...
 
-            // Acknowledge a worm contour...
-            void Acknowledge(CvContour const &WormContour);
-
-            // Add worm to tracker...
+            // Add new worm to tracker...
             void Add(CvContour const &WormContour);
 
             // Add a text label to the thinking image at a point...
@@ -110,6 +114,9 @@ class WormTracker
     // Protected attributes...
     protected:
         
+        // The microscope field of view diameter...
+        float               fFieldOfViewDiameter;
+
         // Thinking image label font...
         CvFont              ThinkingLabelFont;
 
