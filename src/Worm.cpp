@@ -725,6 +725,7 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     IterationDirection Direction)
 {
     // Variables...
+    unsigned int        unProbeAttempt                      = 0;
     unsigned int        unStartVertexIndex                  = 0;
     unsigned int        unCurrentOppositeVertexIndex        = 0;
     unsigned int        unClosestOppositeVertexIndexFound   = 0;
@@ -737,6 +738,9 @@ inline unsigned int Worm::PinchShiftForAnEnd(
     //  into the worm...
     do
     {
+        // Remember number of probe attempts...
+      ++unProbeAttempt;
+        
         // We begin by forming a line segment from an arbitrary point on the 
         //  contour to its neighbour...
         StartingLineSegment.first   = cvPointTo32f(GetVertex(unStartVertexIndex));
@@ -775,13 +779,21 @@ inline unsigned int Worm::PinchShiftForAnEnd(
         if(cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) 
             > 0.0f)
             break;
-        
+
         // We had not found a good orthogonal...
         else
         {
+            // We've wasted enough time already...
+            if(unProbeAttempt > 10)
+                return 0;
+
             // Try again from 1/5th of the worm's length away...
-            unStartVertexIndex = 
-                FindVertexIndexByLength(unStartVertexIndex, Length() / 5.0f);
+            else
+            {
+                // Calculate vertex...
+                unStartVertexIndex = FindVertexIndexByLength(
+                    unStartVertexIndex, Length() / 5.0f);
+            }
         }
     }
     while(true);

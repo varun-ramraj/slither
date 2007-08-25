@@ -724,9 +724,9 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
             switch(nColumn)
             {
                 // Label depends on the column...
-                case 0: sTemp = wxT("    Length (mm)    "); break;
-                case 1: sTemp = wxT("    Width (mm)    "); break;
-                case 2: sTemp = wxT("    Area (mm²)    "); break;
+                case 0: sTemp = wxT("     Length    "); break;
+                case 1: sTemp = wxT("     Width    "); break;
+                case 2: sTemp = wxT("     Area     "); break;
             }
             
             // Set column label
@@ -1141,17 +1141,21 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
             // Length...
             AnalysisGrid->SetCellValue(
                 unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_LENGTH,
-                wxString::Format(wxT("%.3f"), CurrentWorm.Length()));
+                wxString::Format(wxT("%.3f mm"), 
+                    Tracker.ConvertPixelsToMillimeters(CurrentWorm.Length())));
 
             // Width...
             AnalysisGrid->SetCellValue(
                 unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
-                wxString::Format(wxT("%.3f"), CurrentWorm.Width()));
+                wxString::Format(wxT("%.3f mm"), 
+                    Tracker.ConvertMillimetersToPixels(CurrentWorm.Width())));
                     
             // Area...
             AnalysisGrid->SetCellValue(
                 unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_AREA,
-                wxString::Format(wxT("%.3f"), CurrentWorm.Area()));
+                wxString::Format(wxT("%.3f mm²"), 
+                    Tracker.ConvertSquarePixelsToSquareMillimeters(
+                        CurrentWorm.Area())));
         }
     }
     

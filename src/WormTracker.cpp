@@ -181,12 +181,26 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         AddThinkingLabel("tail", CurrentWorm.Tail());
     }
     
-    // Show worm dimension constraints...
+    // Show one millimeter legend...
+    
+        // Convert one millimeter to pixels...
+        unsigned int const unLegendLength = 
+            (unsigned int) ConvertMillimetersToPixels(1.0f);
+    
+        // Draw the legend line...
+        cvLine(pThinkingImage, 
+               cvPoint(50, ImageSize.height - 5),
+               cvPoint(50 + unLegendLength, ImageSize.height - 5),
+               CV_RGB(0x00, 0x00, 0xff), 2);
+
+        // Draw label...
+        cvPutText(pThinkingImage, "1 mm", 
+                    cvPoint(50 + unLegendLength + 5, ImageSize.height - 3), 
+                    &ThinkingLabelFont, CV_RGB(0x00, 0x00, 0xff));
 }
 
 // Convert from pixels to millimeters...
-inline double WormTracker::ConvertMillimetersToPixels(double const dMillimeters) 
-    const
+double WormTracker::ConvertMillimetersToPixels(double const dMillimeters) const
 {
     // Get the image size...
     CvSize const ImageSize = cvGetSize(pGrayImage);
@@ -196,13 +210,21 @@ inline double WormTracker::ConvertMillimetersToPixels(double const dMillimeters)
 }
 
 // Convert millimeters to pixels...
-inline double WormTracker::ConvertPixelsToMillimeters(double const dPixels) const
+double WormTracker::ConvertPixelsToMillimeters(double const dPixels) const
 {
     // Get the image size...
     CvSize const ImageSize = cvGetSize(pGrayImage);
 
     // Convert units...
     return ((fFieldOfViewDiameter / ImageSize.width) * dPixels);
+}
+
+// Convert from pixels² to millimeters²...
+double WormTracker::ConvertSquarePixelsToSquareMillimeters(
+    double const dPixelsSquared) const
+{
+    // Convert units...
+    return dPixelsSquared * (1.0f / pow(ConvertMillimetersToPixels(1.0f), 2));
 }
 
 // How many underlying rectangles does given one rest upon?
@@ -354,11 +376,16 @@ bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
     // We must have had the field of view diameter set...
     assert(fFieldOfViewDiameter > 0.0f);
 
-    // Calculate the area of the worm...
-    double const dArea = fabs(cvContourArea(&MysteryContour));
+    // Calculate the pixel area of the worm...
+    double const dPixelArea = fabs(cvContourArea(&MysteryContour));
+    
+    // Convert the pixel area to mm²...
+    double const dMillimeterArea = 
+        ConvertSquarePixelsToSquareMillimeters(dPixelArea);
 
     // Too small / too big to be a worm...
-    if((dArea < 200.0) || (800.0 < dArea))
+//    if((dPixelArea < 200.0) || (800.0 < dPixelArea))
+    if((dMillimeterArea < 0.05f) || (0.12f < dMillimeterArea))
         return false;
 
     // Contours with points on image exterior not permitted...

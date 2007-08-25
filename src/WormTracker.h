@@ -47,7 +47,11 @@ class WormTracker
             // Convert from pixels to millimeters...
             double              ConvertPixelsToMillimeters(
                                     double const dPixels) const;
-            
+
+            // Convert from pixels² to millimeters²...
+            double              ConvertSquarePixelsToSquareMillimeters(
+                                    double const dPixelsSquared) const;
+
             // Get a copy of the current thinking image. Caller frees...
             IplImage           *GetThinkingImage() const;
 
