@@ -11,7 +11,8 @@
 
 // Analysis thread constructor locks UI...
 AnalysisThread::AnalysisThread(MainFrame &_Frame)
-    : Frame(_Frame),
+    : wxThread(wxTHREAD_DETACHED),
+      Frame(_Frame),
       pCapture(NULL)
 {
     // Reset the tracker, if not already...

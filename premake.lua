@@ -10,8 +10,8 @@ project.bindir = "./"
 -- Some global variables...
 PACKAGE             = "slither"
 PACKAGE_NAME        = "Slither"
-PACKAGE_VERSION     = "0.0.33a"
-PACKAGE_STRING      = "Slither 0.0.33a"
+PACKAGE_VERSION     = "0.0.35a"
+PACKAGE_STRING      = "Slither 0.0.35a"
 
 wxBinaryToolsPrefix = ""
 
@@ -213,9 +213,11 @@ package.name            = "slither"
     -- Source code...
     package.files = {
         "src/AnalysisThread.cpp",
-        "src/src/AnalysisThread.h",
+        "src/AnalysisThread.h",
         "src/CaptureThread.cpp",
         "src/CaptureThread.h",
+        "src/CheckForUpdateThread.cpp",
+        "src/CheckForUpdateThread.h",
         "src/Experiment.cpp",
         "src/Experiment.h",
         "src/MainFrame.cpp",

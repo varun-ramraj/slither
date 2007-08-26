@@ -14,7 +14,8 @@
 
 // Capture thread constructor...
 CaptureThread::CaptureThread(MainFrame *_pMainFrame)
-    : pMainFrame(_pMainFrame)
+    : wxThread(wxTHREAD_DETACHED),
+      pMainFrame(_pMainFrame)
 {
 
 }

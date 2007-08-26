@@ -46,6 +46,8 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_MENU                (ID_FULLSCREEN,                 MainFrame::OnFullScreen)
     EVT_MENU                (wxID_PREFERENCES,              MainFrame::OnPreferences)
     EVT_MENU                (ID_CAPTURE,                    MainFrame::OnCapture)
+    EVT_MENU                (ID_CHECK_FOR_UPDATE,           MainFrame::OnCheckForUpdate)
+    EVT_BUTTON              (ID_CHECK_FOR_UPDATE_DONE,      MainFrame::OnCheckForUpdateDone)
     EVT_MENU                (wxID_ABOUT,                    MainFrame::OnAbout)
     
     // Media grid popup menu events...
@@ -91,7 +93,8 @@ MainFrame::MainFrame(const wxString &sTitle)
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
       pAnalysisThread(NULL),
-      AnalysisTimer(this, TIMER_ANALYSIS)
+      AnalysisTimer(this, TIMER_ANALYSIS),
+      pUpdateThread(NULL)
 {
     // Set the title...
     SetTitle(wxT(PACKAGE_STRING));
@@ -139,7 +142,10 @@ MainFrame::MainFrame(const wxString &sTitle)
                                    wxT("Toggle full screen mode..."));
 
         // Create help menu...
-        wxMenu *pHelpMenu = new wxMenu;
+        wxMenu *pHelpMenu = new wxMenu; //wxART_TIP
+        pHelpMenu->Append(ID_CHECK_FOR_UPDATE, wxT("&Check for Update"), 
+                          wxT("Check server for latest available version of "
+                              "Slither..."));
         pHelpMenu->Append(wxID_ABOUT, wxT("&About\tF1"), wxT("Show about"));
 
         // Bind menus to menu bar...
@@ -438,6 +444,19 @@ MainFrame::MainFrame(const wxString &sTitle)
         wxPostEvent(this, SizeEvent);
     }
 
+    // Run the check for update...
+
+        // Allocate the update thread and check for error...
+        pUpdateThread = new CheckForUpdateThread(*this, true);
+        if(pUpdateThread->Create() != wxTHREAD_NO_ERROR)
+            return;
+
+        // Disable the check for update menu item...
+        GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
+        
+        // Run the update thread...
+        pUpdateThread->Run();
+
     // Show tip...
     ShowTip();
 
@@ -637,7 +656,7 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
 
     // Create the analysis thread and check for error...
     pAnalysisThread = new AnalysisThread(*this);
-    if(pAnalysisThread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
+    if(pAnalysisThread->Create() != wxTHREAD_NO_ERROR)
     {
         // Alert...
         wxLogError(wxT("Unable to create AnalysisThread..."));
@@ -669,6 +688,50 @@ void MainFrame::OnCancelAnalysis(wxCommandEvent &Event)
 
     // Delete the thread...
     pAnalysisThread->Delete();
+}
+
+// Check for update...
+void MainFrame::OnCheckForUpdate(wxCommandEvent &Event)
+{
+    // Check if thread is already running...
+    if(!GetMenuBar()->IsEnabled(ID_CHECK_FOR_UPDATE))
+        return;
+        
+    // Allocate the update thread and check for error...
+    pUpdateThread = new CheckForUpdateThread(*this, false);
+    if(pUpdateThread->Create() != wxTHREAD_NO_ERROR)
+        return;
+
+    // Disable the check for update menu item...
+    GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
+    
+    // Run the update thread...
+    pUpdateThread->Run();
+}
+
+// Check for update done...
+void MainFrame::OnCheckForUpdateDone(wxCommandEvent &Event)
+{
+    // Was this a silent check?
+    bool const bSilent = pUpdateThread->IsSilent();
+
+    // Cleanup the thread...
+    pUpdateThread->Wait();
+    delete pUpdateThread;
+
+    // Re-enable the check for update menu item...
+    GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, true);
+    
+    // It was either important update message or we are not in silent mode...
+    if(Event.GetInt() || !bSilent)
+    {
+        // Prepare message dialog...
+        wxMessageDialog Message(this, Event.GetString(), wxT("Update"), 
+                                wxICON_INFORMATION);
+        
+        // Display it...
+        Message.ShowModal();
+    }
 }
 
 // An analysis type was chosen...
@@ -843,7 +906,7 @@ void MainFrame::OnCapture(wxCommandEvent &Event)
 
     // Create the capture thread and check for error...
     CaptureThread *pCaptureThread = new CaptureThread(this);
-    if(pCaptureThread->Create(wxTHREAD_DETACHED) != wxTHREAD_NO_ERROR)
+    if(pCaptureThread->Create() != wxTHREAD_NO_ERROR)
     {
         // Alert...
         wxLogError(wxT("Unable to create CaptureThread..."));
@@ -1148,7 +1211,7 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
             AnalysisGrid->SetCellValue(
                 unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
                 wxString::Format(wxT("%.3f mm"), 
-                    Tracker.ConvertMillimetersToPixels(CurrentWorm.Width())));
+                    Tracker.ConvertPixelsToMillimeters(CurrentWorm.Width())));
                     
             // Area...
             AnalysisGrid->SetCellValue(
