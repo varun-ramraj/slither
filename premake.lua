@@ -10,8 +10,8 @@ project.bindir = "./"
 -- Some global variables...
 PACKAGE             = "slither"
 PACKAGE_NAME        = "Slither"
-PACKAGE_VERSION     = "0.0.35a"
-PACKAGE_STRING      = "Slither 0.0.35a"
+PACKAGE_VERSION     = "0.0.40a"
+PACKAGE_STRING      = "Slither 0.0.40a"
 
 wxBinaryToolsPrefix = ""
 
@@ -23,30 +23,30 @@ end
 -- Configure a C/C++ package to use wxWidgets...
 function ConfigureForWxWidgets(package)
 
-    -- Configure for DLL...    
+    -- Configure for DLL...
     if(package.kind == "dll") then
         tinsert(package.defines, "WXMAKINGDLL")
     end
 
     -- Configure for Linux...
     if (OS == "linux") then
-  
+
         -- Alert user...
         print("Configuring source for Linux...")
 
     end
-    
+
     -- Configure for Mac OS X...
     if (OS == "macosx") then
-  
+
         -- Alert user...
         print("Configuring source for Mac OS X...")
-        
+
     end
 
     -- Configure for Win32...
     if(OS == "windows") then
-        
+
         -- Alert user...
         print("Configuring source for M$ Win32...")
 
@@ -71,7 +71,7 @@ package.name            = "slither"
         -- Win32 should not have a console window...
         if(windows) then
             package.kind = "winexe"
-        
+
         -- Linux and Mac OS X are fine as just exe...
         else
             package.kind = "exe"
@@ -82,25 +82,25 @@ package.name            = "slither"
 
         -- User requested to add a path, check in there first...
         if(options["addpath"]) then
-            
+
             -- wx-config under the new path...
             if(os.execute(options["addpath"] .. "/bin/./wx-config --version") == 0) then
-                
+
                 -- Store new path...
                 wxBinaryToolsPrefix = options["addpath"] .. "/bin/./"
-                
+
                 -- Alert user...
                 print("wx-config detected in " .. options["addpath"] .. "/bin/")
-            
+
             -- Check if it is in any system path at all then...
             elseif(os.execute("wx-config --version") == 0) then
-            
+
                 -- No need for full path then, since it is in path...
                 wxBinaryToolsPrefix = ""
-                
+
                 -- Alert user...
                 print("wx-config detected in path...")
-            
+
             -- wx-config not under new path...
             else
 
@@ -110,8 +110,8 @@ package.name            = "slither"
                       " find wx-config if it is located at /foo/bin/wx-config.")
 
             end
-            
-            
+
+
             -- Add paths...
             package.includepaths    = { options["addpath"] .. "/include" }
             package.libpaths        = { options["addpath"] .. "/lib" }
@@ -126,16 +126,16 @@ package.name            = "slither"
 
             -- Check if it is in any system path at all then...
             if(os.execute("wx-config --version") == 0) then
-            
+
                 -- No need for full path then, since it is in path...
                 wxBinaryToolsPrefix = ""
-                
+
                 -- Alert user...
                 print("wx-config detected in path...")
 
             -- wx-config not under new path...
             else
-            
+
                 -- Alert user...
                 error("\nI cannot seem to find wx-config. Check to make sure it" ..
                       " is in your path. You may need to use --addpath /foo to" ..
@@ -145,10 +145,10 @@ package.name            = "slither"
         end
 
     -- Build options...
-        
+
         -- Using a Mac OS X, build universal binary...
         if(macosx) then
-            
+
             -- Set options...
             package.buildoptions
                 = {"-arch ppc -arch i386",
@@ -156,7 +156,7 @@ package.name            = "slither"
 
         -- Use normal build options...
         else
-        
+
             -- Set options...
             package.buildoptions
                 = {"`" .. wxBinaryToolsPrefix .. "wx-config --cxxflags`"}
@@ -183,18 +183,18 @@ package.name            = "slither"
            "fi"}
 
     -- Linker options...
-    
+
         -- Mac OS X needs Quartz for some reason and wx-config bitches about
-        --  being unable to find the media lib even though it's built as a 
+        --  being unable to find the media lib even though it's built as a
         --  single monolithic static lib...
         if(macosx) then
             package.linkoptions
-                = {"`" .. wxBinaryToolsPrefix .. 
-                   "wx-config --libs std,core,base`", 
+                = {"`" .. wxBinaryToolsPrefix ..
+                   "wx-config --libs std,core,base`",
                    "-framework QuartzCore"}
         else
             package.linkoptions
-                = {"`" .. wxBinaryToolsPrefix .. 
+                = {"`" .. wxBinaryToolsPrefix ..
                    "wx-config --libs media,std,core,base`"}
         end
 
@@ -203,7 +203,7 @@ package.name            = "slither"
 
     -- Language we wrote package in...
     package.language = "c++"
-    
+
     -- Defines...
     tinsert(package.defines, { "PACKAGE=\\\"" .. PACKAGE .. "\\\"",
                                "PACKAGE_NAME=\\\"" .. PACKAGE_NAME .. "\\\"",
@@ -245,10 +245,10 @@ function doinstaller(Command, OutputPath)
     if(not OutputPath) then
         OutputPath = "./install"
     end
-    
+
     -- Build an Ubuntu package for Linux
     if (OS == "linux") then
-  
+
         -- Make sure slither binary is built... (release has a bunch of compile
         --  time warnings in the wx headers)
         if not(os.execute("make CONFIG=Debug") == 0) then
@@ -266,7 +266,7 @@ function doinstaller(Command, OutputPath)
         os.copyfile("doc/tips.txt", "install/temp/Ubuntu/usr/share/slither")
         os.copyfile("doc/README", "install/temp/Ubuntu/usr/share/doc/slither")
         os.copyfile("src/resources/slither.png", "install/temp/Ubuntu/usr/share/pixmaps")
-        
+
         -- Generate package...
         print("Generating Ubuntu package...")
         os.execute("dpkg-deb -z9 --build install/temp/Ubuntu install")
@@ -276,61 +276,61 @@ function doinstaller(Command, OutputPath)
         os.execute("rm -Rf install/temp")
 
     end
-    
+
     -- Build a Mac OS X application bundle...
     if (OS == "macosx") then
-  
+
         -- The bundle properties XML...
-        BundleProperties = 
+        BundleProperties =
             "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" ..
             "<!DOCTYPE plist SYSTEM \"file://localhost/System/Library/DTDs/PropertyList.dtd\">\n" ..
             "<plist version=\"0.9\">\n" ..
             " <dict>\n" ..
             "   <key>CFBundleInfoDictionaryVersion</key>\n" ..
             "       <string>6.0</string>\n" ..
-            "	<key>CFBundleIdentifier</key>\n" ..
-            "	    <string>com.kip.Slither</string>\n" ..
-            "	<key>CFBundleDevelopmentRegion</key>\n" ..
-            "	    <string>English</string>\n" ..
-            "	<key>CFBundleDocumentTypes</key>\n" ..
-	        "	<array>\n" ..
-            "	     <dict>\n" ..
-			"	     <key>CFBundleTypeExtensions</key>\n" ..
-			"	     <array>\n" ..
-			"            <string>sex</string>\n" ..
-			"	     </array>\n" ..
-			"	     <key>CFBundleTypeIconFile</key>\n" ..
-			"        	<string>experiment.icns</string>\n" ..
-			"        	<key>CFBundleTypeName</key>\n" ..
-			"        	<string>Slither Experiment File</string>\n" ..
-			"        	<key>CFBundleTypeRole</key>\n" ..
-			"        	<string>Editor</string>\n" ..
-			"	     </dict>\n" ..
-			"	</array>\n" ..
-            "	<key>CFBundleExecutable</key>\n" ..
-            "	    <string>slither</string>\n" ..
-            "	<key>CFBundleIconFile</key>\n" ..
-            "	    <string>slither.icns</string>\n" ..
-            "	<key>CFBundleName</key>\n" ..
-            "	    <string>Slither</string>\n" ..
-            "	<key>CFBundlePackageType</key>\n" ..
-            "	    <string>APPL</string>\n" ..
-            "	<key>CFBundleSignature</key>\n" ..
-            "	    <string>????</string>\n" ..
-            "	<key>CFBundleVersion</key>\n" ..
-            "	    <string>" .. PACKAGE_VERSION .. "</string>\n" ..
-            "	<key>CFBundleShortVersionString</key>\n" ..
-            "	    <string>" .. PACKAGE_VERSION .. "</string>\n" ..
-            "	<key>CFBundleGetInfoString</key>\n" ..
-            "	    <string>" .. PACKAGE_STRING .. ", Kip Warner</string>\n" ..
-            "	<key>CFBundleLongVersionString</key>\n" ..
-            "	    <string>" .. PACKAGE_VERSION .. ", Kip Warner</string>\n" ..
-            "	<key>NSHumanReadableCopyright</key>\n" ..
-            "	    <string>Released under the GPL.</string>\n" ..
-            "	<key>LSRequiresCarbon</key>\n" ..
-            "	    <true/>\n" ..
-            "	<key>CSResourcesFileMapped</key>\n" ..
-            "	    <true/>\n" ..
+            "    <key>CFBundleIdentifier</key>\n" ..
+            "        <string>com.kip.Slither</string>\n" ..
+            "    <key>CFBundleDevelopmentRegion</key>\n" ..
+            "        <string>English</string>\n" ..
+            "    <key>CFBundleDocumentTypes</key>\n" ..
+            "    <array>\n" ..
+            "         <dict>\n" ..
+            "         <key>CFBundleTypeExtensions</key>\n" ..
+            "         <array>\n" ..
+            "            <string>sex</string>\n" ..
+            "         </array>\n" ..
+            "         <key>CFBundleTypeIconFile</key>\n" ..
+            "            <string>experiment.icns</string>\n" ..
+            "            <key>CFBundleTypeName</key>\n" ..
+            "            <string>Slither Experiment File</string>\n" ..
+            "            <key>CFBundleTypeRole</key>\n" ..
+            "            <string>Editor</string>\n" ..
+            "         </dict>\n" ..
+            "    </array>\n" ..
+            "    <key>CFBundleExecutable</key>\n" ..
+            "        <string>slither</string>\n" ..
+            "    <key>CFBundleIconFile</key>\n" ..
+            "        <string>slither.icns</string>\n" ..
+            "    <key>CFBundleName</key>\n" ..
+            "        <string>Slither</string>\n" ..
+            "    <key>CFBundlePackageType</key>\n" ..
+            "        <string>APPL</string>\n" ..
+            "    <key>CFBundleSignature</key>\n" ..
+            "        <string>????</string>\n" ..
+            "    <key>CFBundleVersion</key>\n" ..
+            "        <string>" .. PACKAGE_VERSION .. "</string>\n" ..
+            "    <key>CFBundleShortVersionString</key>\n" ..
+            "        <string>" .. PACKAGE_VERSION .. "</string>\n" ..
+            "    <key>CFBundleGetInfoString</key>\n" ..
+            "        <string>" .. PACKAGE_STRING .. ", Kip Warner</string>\n" ..
+            "    <key>CFBundleLongVersionString</key>\n" ..
+            "        <string>" .. PACKAGE_VERSION .. ", Kip Warner</string>\n" ..
+            "    <key>NSHumanReadableCopyright</key>\n" ..
+            "        <string>Released under the GPL.</string>\n" ..
+            "    <key>LSRequiresCarbon</key>\n" ..
+            "        <true/>\n" ..
+            "    <key>CSResourcesFileMapped</key>\n" ..
+            "        <true/>\n" ..
             " </dict>\n" ..
             "</plist>"
 
@@ -342,7 +342,7 @@ function doinstaller(Command, OutputPath)
         -- Create directory structure for bundle...
         os.execute("mkdir -p install/Mac/Slither.app/Contents/MacOS")
         os.execute("mkdir -p install/Mac/Slither.app/Contents/Resources")
-        
+
         -- Grab documentation...
         os.copyfile("LICENSE", "install/Mac/")
         os.copyfile("AUTHORS", "install/Mac/")
@@ -358,10 +358,10 @@ function doinstaller(Command, OutputPath)
         os.copyfile("src/resources/slither.icns", "install/Mac/Slither.app/Contents/Resources/")
         os.execute("echo -n 'APPL????' > install/Mac/Slither.app/Contents/PkgInfo")
         CreateFileFromString("install/Mac/Slither.app/Contents/Info.plist", BundleProperties)
-        
+
         -- Create disc image...
         print("Generating DMG from application bundle...")
-        os.execute("hdiutil create -ov -srcfolder install/Mac -volname " 
+        os.execute("hdiutil create -ov -srcfolder install/Mac -volname "
                    .. "\"" .. PACKAGE_STRING .. "\" -format UDZO " ..
                    OutputPath .. "/Slither_" .. PACKAGE_VERSION .. ".dmg")
 
@@ -373,7 +373,7 @@ function doinstaller(Command, OutputPath)
 
     -- Build a NSIS for Win32...
     if(OS == "windows") then
-        
+
         -- Stubbed...
         error("\nNullsoft installer support not implemented yet...")
 
@@ -383,13 +383,13 @@ end
 
 -- Create a file from a string...
 function CreateFileFromString(Path, Output)
-    
+
     -- Create the file...
     file = io.open(Path, "w+")
-    
+
     -- Dump contents into it...
     file.write(file, Output)
-    
+
     -- Close the file...
     io.close(file)
 
