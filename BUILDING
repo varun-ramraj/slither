@@ -70,10 +70,11 @@ Mac OS X Building
     - mkdir build; cd build
     - This is what I used to build OpenCV on my OS X system...
     - Get rid of -march=prescott and other -mtune / -mcpu stuff from CXXFLAGS in
-      ./configure, it breaks compile on my lab's old PPC PowerBook G4.
+      configure, it breaks compile on my lab's old PPC PowerBook G4.
+    - Enable libpng, tiff, and jpeg in configure.
     - Get rid of ldconfig from Makefile.am under the install-exec-hook. There is
       no ldconfig under OS X. Who writes this shit?
-    - ../configure CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386" CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386 -I/sw/include" LDFLAGS="-L/sw/lib -framework Foundation -framework CoreFoundation -framework ApplicationServices -framework Carbon -framework QuartzCore -arch i386 -arch ppc" --disable-shared --disable-dependency-tracking --prefix=<some local folder, eg. ~/local>
+    - ../configure CPPFLAGS="-I/sw/include" CFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386" CXXFLAGS="-isysroot /Developer/SDKs/MacOSX10.4u.sdk -arch ppc -arch i386 -I/sw/include" LDFLAGS="-L/sw/lib -framework Foundation -framework CoreFoundation -framework ApplicationServices -framework Carbon -framework QuartzCore -arch i386 -arch ppc" --disable-shared --disable-dependency-tracking --prefix=<some local folder, eg. /Users/Kip/local>
     - make
     - make install
     - If you want to build the samples in $PREFIX/share/opencv/samples/c, you may need to mess with the Makefile in there to get it to work. Remove the '.exe' 
