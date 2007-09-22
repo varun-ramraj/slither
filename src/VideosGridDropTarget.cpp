@@ -69,6 +69,7 @@ bool MediaGridDropTarget::OnDropFiles(wxCoord x, wxCoord y,
              MediaFile.GetExt().Lower() == wxT("mpeg")  ||
              MediaFile.GetExt().Lower() == wxT("png")   ||
              MediaFile.GetExt().Lower() == wxT("jpg")   ||
+             MediaFile.GetExt().Lower() == wxT("jpeg")  ||
              MediaFile.GetExt().Lower() == wxT("bmp")))
         {
             // Log it...
