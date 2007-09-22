@@ -35,7 +35,8 @@ void *CheckForUpdateThread::Entry()
     ServerURL.SetURL(wxT("http://slither:slither@slither.thevertigo.com/update.txt"));
     
         // Check for URL error... (shouldn't ever happen on client machine)
-        if(ServerURL.GetError() != wxURL_NOERR)
+        if(ServerURL.GetError() != wxURL_NOERR ||
+           !ServerURL.IsOk())
         {
             // Format message...
             sMessage.Printf(wxT("URL error: %d\n"), ServerURL.GetError());
