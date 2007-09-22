@@ -24,6 +24,10 @@ void *CheckForUpdateThread::Entry()
     wxString sMessage;
     char     szTemp[128] = {0};
 
+    // Initialize event we will use to inform main thread...
+    wxCommandEvent Event(wxEVT_COMMAND_BUTTON_CLICKED, 
+                         MainFrame::ID_CHECK_FOR_UPDATE_DONE);
+
     // Set the URL...
     wxURL ServerURL;
     
@@ -33,8 +37,19 @@ void *CheckForUpdateThread::Entry()
         // Check for URL error... (shouldn't ever happen on client machine)
         if(ServerURL.GetError() != wxURL_NOERR)
         {
-            // Alert and abort...
-            printf("URL error: %d\n", ServerURL.GetError());
+            // Format message...
+            sMessage.Printf(wxT("URL error: %d\n"), ServerURL.GetError());
+            
+            // This is an important message...
+            Event.SetInt(true);
+            
+            // Pass along the update message...
+            Event.SetString(sMessage);
+
+            // Send in a thread-safe way...
+            wxPostEvent(&Frame, Event);
+
+            // Abort...
             return NULL;
         }
 
@@ -47,10 +62,6 @@ void *CheckForUpdateThread::Entry()
     
     // Grab file...
     InputStream.Read(szUpdateFile, sizeof(szUpdateFile) - 1);
-
-    // Initialize event we will use to inform main thread...
-    wxCommandEvent Event(wxEVT_COMMAND_BUTTON_CLICKED, 
-                         MainFrame::ID_CHECK_FOR_UPDATE_DONE);
 
     // Compare our version to theirs...
     

@@ -1439,7 +1439,7 @@ void MainFrame::OnPlay(wxCommandEvent &Event)
     {
         // Alert and abort...
         wxMessageBox(wxT("Unable to load media. Perhaps it uses an unknown "
-                         "codec or is corrupted?"));
+                         "codec or is corrupt?"));
         return;
     }
 
