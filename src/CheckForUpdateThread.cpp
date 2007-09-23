@@ -7,6 +7,7 @@
 // Includes...
 #include "CheckForUpdateThread.h"
 #include "MainFrame.h"
+#include <wx/fs_inet.h>
 
 // Thread constructor locks UI...
 CheckForUpdateThread::CheckForUpdateThread(MainFrame &_Frame, bool _bSilent)
@@ -24,28 +25,34 @@ void *CheckForUpdateThread::Entry()
     wxString sMessage;
     char     szTemp[128] = {0};
 
+    // Incase we were invoked on startup, wait until main loop is running...
+    while(!::wxGetApp().IsMainLoopRunning())
+        wxThread::Sleep(50);
+
     // Initialize event we will use to inform main thread...
     wxCommandEvent Event(wxEVT_COMMAND_BUTTON_CLICKED, 
                          MainFrame::ID_CHECK_FOR_UPDATE_DONE);
 
-    // Set the URL...
-    wxURL ServerURL;
+    // Add internet I/O file system handler...
+    wxFileSystem::AddHandler(new wxInternetFSHandler);
     
-    // Set the URL...
-    ServerURL.SetURL(wxT("http://slither:slither@slither.thevertigo.com/update.txt"));
+    // Initialize file system...
+    wxFileSystem    FileSystem;
     
-        // Check for URL error... (shouldn't ever happen on client machine)
-        if(ServerURL.GetError() != wxURL_NOERR ||
-           !ServerURL.IsOk())
+    // Prepare download...
+    wxFSFile *pDownload = FileSystem.OpenFile(
+        wxT("http://slither:slither@slither.thevertigo.com/update.txt"));
+
+        // Check for error... (e.g. 404 or timeout)
+        if(!pDownload)
         {
-            // Format message...
-            sMessage.Printf(wxT("URL error: %d\n"), ServerURL.GetError());
-            
             // This is an important message...
             Event.SetInt(true);
             
             // Pass along the update message...
-            Event.SetString(sMessage);
+            Event.SetString(wxT("Unable to check the internet for an update. "
+                                "Either the server or your connection may be "
+                                "down."));
 
             // Send in a thread-safe way...
             wxPostEvent(&Frame, Event);
@@ -55,14 +62,34 @@ void *CheckForUpdateThread::Entry()
         }
 
     // Initialize input stream...
-    wxInputStream &InputStream = *ServerURL.GetInputStream();
+    wxInputStream *pInputStream = pDownload->GetStream();
+    
+        // Check for error...
+        if(!pInputStream || !pInputStream->IsOk())
+        {
+            // This is an important message...
+            Event.SetInt(true);
+            
+            // Pass along the update message...
+            Event.SetString(wxT("A problem occured while reading the response "
+                                "from the update server."));
+
+            // Send in a thread-safe way...
+            wxPostEvent(&Frame, Event);
+
+            // Abort...
+            return NULL;
+        }
 
     // Static sized buffer to hold file...
     char szUpdateFile[1024];
     memset(szUpdateFile, 0, sizeof(szUpdateFile));
     
     // Grab file...
-    InputStream.Read(szUpdateFile, sizeof(szUpdateFile) - 1);
+    pInputStream->Read(szUpdateFile, sizeof(szUpdateFile) - 1);
+
+    // Cleanup...
+    delete pDownload;
 
     // Compare our version to theirs...
     

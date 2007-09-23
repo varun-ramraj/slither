@@ -186,6 +186,7 @@ class MainFrame : public MainFrame_Base
         void OnChooseAnalysisType(wxCommandEvent &Event);
         void OnAnalyze(wxCommandEvent &Event);
         void OnBeginAnalysis(wxCommandEvent &Event);
+        void OnAnalysisCellRightClick(wxGridEvent &Event);
         void OnAnalysisFrameReadyTimer(wxTimerEvent &Event);
         void OnCancelAnalysis(wxCommandEvent &Event);
         void OnEndAnalysis(wxCommandEvent &Event);
@@ -237,7 +238,8 @@ class MainFrame : public MainFrame_Base
             ID_CAPTURE_FRAME_READY,
             ID_START_ANALYSIS,
             ID_STOP_ANALYSIS,
-            ID_ANALYSIS_ENDED
+            ID_ANALYSIS_ENDED,
+            ID_ANALYSIS_EXPORT_CLIPBOARD
         };
         
         // Timer IDs...

@@ -9,11 +9,13 @@
 #include "VideosGridDropTarget.h"
 #include "Experiment.h"
 #include <wx/dcbuffer.h>
+#include <wx/clipbrd.h>
 
 // Bitmaps...
 #include "resources/analyze_32x32.xpm"
 #include "resources/book_64x64.xpm"
 #include "resources/camera_64x64.xpm"
+#include "resources/clipboard_32x32.xpm"
 //#include "resources/folder_64x64.xpm"
 //#include "resources/pause_32x32.xpm"
 #include "resources/play_32x32.xpm"
@@ -74,6 +76,9 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     // Capture...
     EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
 
+    // Analysis grid popup menu events...
+    EVT_MENU                (ID_ANALYSIS_EXPORT_CLIPBOARD,  MainFrame::OnAnalysisExportClipboard)
+
     // Analysis...
     EVT_CHOICE              (XRCID("ChosenMicroscopeName"), MainFrame::OnChooseMicroscopeName)
     EVT_CHOICE              (XRCID("ChosenMicroscopeTotalZoom"),   
@@ -81,6 +86,7 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_TEXT                (XRCID("FieldOfViewDiameter"),  MainFrame::OnChooseFieldOfViewDiameter)
     EVT_CHOICE              (XRCID("ChosenAnalysisType"),   MainFrame::OnChooseAnalysisType)
     EVT_BUTTON              (XRCID("BeginAnalysisButton"),  MainFrame::OnBeginAnalysis)
+    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("AnalysisGrid"),    MainFrame::OnAnalysisCellRightClick)
     EVT_BUTTON              (ID_ANALYSIS_ENDED,             MainFrame::OnEndAnalysis)
     EVT_TIMER               (TIMER_ANALYSIS,                MainFrame::OnAnalysisFrameReadyTimer)
     EVT_BUTTON              (XRCID("CancelAnalysisButton"), MainFrame::OnCancelAnalysis)
@@ -487,6 +493,49 @@ void MainFrame::OnAnalyze(wxCommandEvent &Event)
     // Switch to analysis...
     else
         MainNotebook->ChangeSelection(ANALYSIS_PANE);
+}
+
+// User right clicked on analysis grid cell...
+void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
+{
+    // Control down, add to selection...
+    if(Event.ControlDown())
+        AnalysisGrid->SelectRow(Event.GetRow(), true);
+
+    // Control not down...
+    else
+    {
+        // Over unselected row, select it only...
+        if(!AnalysisGrid->IsInSelection(Event.GetRow(), Event.GetCol()))
+            AnalysisGrid->SelectRow(Event.GetRow());
+    }
+
+    // Create popup menu...
+    wxMenu Menu;
+        
+        // Export to clipboard...
+        wxMenuItem *pExportClipboardItem = 
+            new wxMenuItem(&Menu, ID_ANALYSIS_EXPORT_CLIPBOARD, 
+                           wxT("&Export to clipboard"));
+        pExportClipboardItem->SetBitmap(clipboard_32x32_xpm);
+        Menu.Append(pExportClipboardItem);
+        
+    // Popup menu...
+    AnalysisGrid->PopupMenu(&Menu, Event.GetPosition());
+}
+
+// Export analysis grid contents to clipboard...
+void MainFrame::OnAnalysisExportClipboard(wxCommandEvent &Event)
+{
+    // Try to open the clipboard...
+    if(!wxTheClipboard->Open())
+    {
+        // Alert user...
+        wxMessageBox(wxT("Unable to access the clipboard."));
+        
+        // Abort...
+        return;
+    }
 }
 
 // A frame has just been analyzed and is ready to be displayed...

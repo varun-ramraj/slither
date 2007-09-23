@@ -8,6 +8,6 @@
 - Fix Mac spell check hooking UI
 * JPEG support
 - Corrupt image detection
-- Check for update on mac crash
+* Check for update on mac crash
 - Copy / paste from results
 
