@@ -77,7 +77,7 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
 
     // Analysis grid popup menu events...
-    EVT_MENU                (ID_ANALYSIS_EXPORT_CLIPBOARD,  MainFrame::OnAnalysisExportClipboard)
+    EVT_MENU                (ID_ANALYSIS_COPY_CLIPBOARD,    MainFrame::OnAnalysisCopyClipboard)
 
     // Analysis...
     EVT_CHOICE              (XRCID("ChosenMicroscopeName"), MainFrame::OnChooseMicroscopeName)
@@ -513,19 +513,19 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
     // Create popup menu...
     wxMenu Menu;
         
-        // Export to clipboard...
-        wxMenuItem *pExportClipboardItem = 
-            new wxMenuItem(&Menu, ID_ANALYSIS_EXPORT_CLIPBOARD, 
-                           wxT("&Export to clipboard"));
-        pExportClipboardItem->SetBitmap(clipboard_32x32_xpm);
-        Menu.Append(pExportClipboardItem);
+        // Copy to clipboard...
+        wxMenuItem *pCopyClipboardItem = 
+            new wxMenuItem(&Menu, ID_ANALYSIS_COPY_CLIPBOARD, 
+                           wxT("&Copy all to clipboard"));
+        pCopyClipboardItem->SetBitmap(clipboard_32x32_xpm);
+        Menu.Append(pCopyClipboardItem);
         
     // Popup menu...
     AnalysisGrid->PopupMenu(&Menu, Event.GetPosition());
 }
 
-// Export analysis grid contents to clipboard...
-void MainFrame::OnAnalysisExportClipboard(wxCommandEvent &Event)
+// Copy analysis grid contents to clipboard...
+void MainFrame::OnAnalysisCopyClipboard(wxCommandEvent &Event)
 {
     // Variables...
     wxString    Contents;
