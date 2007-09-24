@@ -527,6 +527,9 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
 // Export analysis grid contents to clipboard...
 void MainFrame::OnAnalysisExportClipboard(wxCommandEvent &Event)
 {
+    // Variables...
+    wxString    Contents;
+
     // Try to open the clipboard...
     if(!wxTheClipboard->Open())
     {
@@ -536,6 +539,50 @@ void MainFrame::OnAnalysisExportClipboard(wxCommandEvent &Event)
         // Abort...
         return;
     }
+
+    // Add worm number column label...
+    Contents += wxT("Worm #\t");
+
+    // Add column names...
+    for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
+    {
+        // Append column label...
+        Contents += AnalysisGrid->GetColLabelValue(nColumn);
+        
+        // Seperate with a tab if not last column...
+        if(nColumn + 1 < AnalysisGrid->GetNumberCols())
+            Contents += wxT("\t");
+    }
+    
+    // Seperate column names from rest of data...
+    Contents += wxT("\n\n");
+    
+    // Add each row...
+    for(int nRow = 0; nRow < AnalysisGrid->GetNumberRows(); ++nRow)
+    {
+        // Append row label...
+        Contents += AnalysisGrid->GetRowLabelValue(nRow) + wxT("\t");
+        
+        // Add each cell's value...
+        for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
+        {
+            // Append column label...
+            Contents += AnalysisGrid->GetCellValue(nRow, nColumn);
+            
+            // Seperate with a tab if not last column...
+            if(nColumn + 1 < AnalysisGrid->GetNumberCols())
+                Contents += wxT("\t");
+        }
+        
+        // Seperate each row by new line...
+        Contents += wxT("\n");
+    }
+    
+    // Add to clipboard...
+    wxTheClipboard->SetData(new wxTextDataObject(Contents));
+
+    // Close the clipboard...
+    wxTheClipboard->Close();
 }
 
 // A frame has just been analyzed and is ready to be displayed...
@@ -836,9 +883,9 @@ void MainFrame::OnChooseAnalysisType(wxCommandEvent &Event)
             switch(nColumn)
             {
                 // Label depends on the column...
-                case 0: sTemp = wxT("     Length    "); break;
-                case 1: sTemp = wxT("     Width    "); break;
-                case 2: sTemp = wxT("     Area     "); break;
+                case 0: sTemp = wxT("Length"); break;
+                case 1: sTemp = wxT("Width"); break;
+                case 2: sTemp = wxT("Area"); break;
             }
             
             // Set column label

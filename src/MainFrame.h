@@ -187,6 +187,7 @@ class MainFrame : public MainFrame_Base
         void OnAnalyze(wxCommandEvent &Event);
         void OnBeginAnalysis(wxCommandEvent &Event);
         void OnAnalysisCellRightClick(wxGridEvent &Event);
+        void OnAnalysisExportClipboard(wxCommandEvent &Event);
         void OnAnalysisFrameReadyTimer(wxTimerEvent &Event);
         void OnCancelAnalysis(wxCommandEvent &Event);
         void OnEndAnalysis(wxCommandEvent &Event);
