@@ -8,6 +8,7 @@
 #include "CheckForUpdateThread.h"
 #include "MainFrame.h"
 #include <wx/fs_inet.h>
+#include <sstream>
 
 // Thread constructor locks UI...
 CheckForUpdateThread::CheckForUpdateThread(MainFrame &_Frame, bool _bSilent)
@@ -22,8 +23,9 @@ CheckForUpdateThread::CheckForUpdateThread(MainFrame &_Frame, bool _bSilent)
 void *CheckForUpdateThread::Entry()
 {
     // Variables...
-    wxString sMessage;
-    char     szTemp[128] = {0};
+    wxString    sMessage;
+    char        cDummy      = '\x0';
+    char        szTemp[128] = {0};
 
     // Incase we were invoked on startup, wait until main loop is running...
     while(!::wxGetApp().IsMainLoopRunning())
@@ -95,13 +97,16 @@ void *CheckForUpdateThread::Entry()
     
         // Format ours...
         int nOurMajor, nOurMinor, nOurRelease = 0;
-        sscanf(PACKAGE_VERSION, "%d.%d.%d", &nOurMajor, &nOurMinor, 
-               &nOurRelease);
+        std::istringstream OurStringStream(PACKAGE_VERSION);
+        OurStringStream >> nOurMajor >> cDummy >> nOurMinor >> cDummy 
+                        >> nOurRelease;
+
         
         // Format theirs...
         int nTheirMajor, nTheirMinor, nTheirRelease = 0;
-        sscanf(szUpdateFile, "%d.%d.%d", &nTheirMajor, &nTheirMinor, 
-               &nTheirRelease);
+        std::istringstream TheirStringStream(szUpdateFile);
+        TheirStringStream >> nTheirMajor >> cDummy >> nTheirMinor >> cDummy 
+                          >> nTheirRelease;
 
         // Compare...
         
@@ -141,7 +146,8 @@ void *CheckForUpdateThread::Entry()
             {
                 // Format message...
                 sMessage.Printf(wxT("A newer version of Slither is now"
-                                    " available, version %d.%d.%d."));
+                                    " available, version %d.%d.%d."),
+                                nTheirMajor, nTheirMinor, nTheirRelease);
                 
                 // This is an important message...
                 Event.SetInt(true);
