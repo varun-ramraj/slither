@@ -191,6 +191,7 @@ package.name            = "slither"
             package.linkoptions
                 = {"`" .. wxBinaryToolsPrefix ..
                    "wx-config --libs std,core,base`",
+                   "-isysroot /Developer/SDKs/MacOSX10.4u.sdk",
                    "-framework QuartzCore"}
         else
             package.linkoptions
