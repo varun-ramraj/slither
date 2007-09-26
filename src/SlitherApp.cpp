@@ -86,9 +86,6 @@ bool SlitherApp::OnInit()
         return false;
     }
 
-    // Initialize OpenCV HighGUI...
-    cvInitSystem(0, NULL);
-
     // Create configuration object...
     pConfiguration = new wxConfig(wxT(PACKAGE), wxT("Vertigo"));
 
