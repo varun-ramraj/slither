@@ -303,7 +303,7 @@
 					</object>
 					<object class="notebookpage">
 						<label>Analysis</label>
-						<selected>0</selected>
+						<selected>1</selected>
 						<object class="wxPanel" name="AnalysisPane">
 							<style>wxTAB_TRAVERSAL</style>
 							<object class="wxBoxSizer">
@@ -365,7 +365,7 @@
 													<flag>wxEXPAND</flag>
 													<border>5</border>
 													<object class="wxStaticBoxSizer">
-														<orient>wxVERTICAL</orient>
+														<orient>wxHORIZONTAL</orient>
 														<label>Field of View Diameter:</label>
 														<object class="sizeritem">
 															<option>1</option>
@@ -376,6 +376,14 @@
 																<tooltip>The field of view diameter is used in all calculations involving area and distance. To set it manually, use the custom microscope option above.</tooltip>
 																<value></value>
 																<maxlength>0</maxlength>
+															</object>
+														</object>
+														<object class="sizeritem">
+															<option>0</option>
+															<flag>wxALL</flag>
+															<border>5</border>
+															<object class="wxStaticText" name="m_staticText121">
+																<label>mm</label>
 															</object>
 														</object>
 													</object>

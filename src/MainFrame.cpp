@@ -1098,43 +1098,26 @@ void MainFrame::OnCaptureFrameReadyTimer(wxTimerEvent &Event)
 void MainFrame::OnChooseFieldOfViewDiameter(wxCommandEvent &Event)
 {
     // Variables...
-    double dWhole               = 1.0;
-    double dFractional          = 0.0;
+    double dFieldOfViewDiameter = 1.0f;
 
-    // Initialize tokenizer...
-    wxStringTokenizer Tokenizer(FieldOfViewDiameter->GetValue(), wxT(".\x20"));
-    
-    // Parse...
-    if(Tokenizer.HasMoreTokens())
-    {
-        // Get left side of decimal place...
-        if(!Tokenizer.GetNextToken().ToDouble(&dWhole))
-            dWhole = 1.0f;
+    // Retrieve current diameter...
+    FieldOfViewDiameter->GetValue().ToDouble(&dFieldOfViewDiameter);
 
-        // Parse right side decimal value if any...
-        if(Tokenizer.GetNextToken() == wxT("."))
-        {
-            // Parse fractional value, if any...
-            if(!Tokenizer.GetNextToken().ToDouble(&dFractional))
-                dFractional = 0.0f;
-        }
-    }
-
-    // Ensure non-zero field of view diameter...
-    if(dWhole + dFractional <= 0.0f)
-        dWhole = 1.0f;
+    // Bounds check...
+    if(dFieldOfViewDiameter <= 0.0f)
+        dFieldOfViewDiameter = 1.0f;
 
     // Set the field of view diameter string with millimeter suffix...
-    FieldOfViewDiameter->SetValue(wxString::Format(wxT("%.2f mm"), 
-                                                   dWhole + dFractional));
+    FieldOfViewDiameter->ChangeValue(wxString::Format(wxT("%.3f"), 
+                                                      dFieldOfViewDiameter));
     
     // Set tracker's field of view diameter...
-    Tracker.SetFieldOfViewDiameter(dWhole + dFractional);
+    Tracker.SetFieldOfViewDiameter(dFieldOfViewDiameter);
 
     // Store the custom diameter...
   ::wxGetApp().pConfiguration->Write(
         wxT("/Analysis/CustomFieldOfViewDiameter"), 
-        wxString::Format(wxT("%f"), dWhole + dFractional));
+        wxString::Format(wxT("%.3f"), dFieldOfViewDiameter));
 }
 
 // A microscope name has been chosen...
@@ -1161,7 +1144,7 @@ void MainFrame::OnChooseMicroscopeName(wxCommandEvent &Event)
         
         // Restore it
         FieldOfViewDiameter->ChangeValue(
-            wxString::Format(wxT("%.2f mm"), dDiameter));
+            wxString::Format(wxT("%.3f"), dDiameter));
         
         // Hide zoom...
         ChosenMicroscopeTotalZoom->Hide();
@@ -1228,7 +1211,7 @@ void MainFrame::OnChooseMicroscopeTotalZoom(wxCommandEvent &Event)
     
     // Format diameter in a string so we can display SI units with it...
     wxString sDiameter;
-    sDiameter.Printf(wxT("%.2f mm"), fFieldOfView);
+    sDiameter.Printf(wxT("%.3f"), fFieldOfView);
     
     // Update diameter text box...
     FieldOfViewDiameter->ChangeValue(sDiameter);
