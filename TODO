@@ -5,9 +5,9 @@
 - Perhaps nematode pencil sketch anatomical diagram for splash...
 - Move our math routines out of Worm and Tracker classes to global
   WormMath namespace...
-- Fix Mac spell check hooking UI
+* Fix Mac spell check hooking UI
+- Analyze specific frame out of video
 * JPEG support
-- Corrupt image detection
 * Check for update on mac crash
 * Copy / paste from results
-
+- Fix crash in analysis window being closed and then re-opened on next analysis...
