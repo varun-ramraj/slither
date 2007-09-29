@@ -10,6 +10,7 @@
 #include "Experiment.h"
 #include <wx/dcbuffer.h>
 #include <wx/clipbrd.h>
+#include <wx/tokenzr.h>
 
 // Bitmaps...
 #include "resources/analyze_32x32.xpm"
@@ -1096,30 +1097,44 @@ void MainFrame::OnCaptureFrameReadyTimer(wxTimerEvent &Event)
 // Field of view has been set either by user or progmatically...
 void MainFrame::OnChooseFieldOfViewDiameter(wxCommandEvent &Event)
 {
-    // Get field of view diameter as string...
-    wxString const sDiameter = FieldOfViewDiameter->GetValue();
+    // Variables...
+    double dWhole               = 1.0;
+    double dFractional          = 0.0;
+
+    // Initialize tokenizer...
+    wxStringTokenizer Tokenizer(FieldOfViewDiameter->GetValue(), wxT(".\x20"));
     
-    // The last three characters are not " mm"...
-    if(!sDiameter.EndsWith(wxT(" mm")))
+    // Parse...
+    if(Tokenizer.HasMoreTokens())
     {
-        // Add it on then...
-        FieldOfViewDiameter->ChangeValue(sDiameter + wxT(" mm"));
-        return;
+        // Get left side of decimal place...
+        if(!Tokenizer.GetNextToken().ToDouble(&dWhole))
+            dWhole = 1.0f;
+
+        // Parse right side decimal value if any...
+        if(Tokenizer.GetNextToken() == wxT("."))
+        {
+            // Parse fractional value, if any...
+            if(!Tokenizer.GetNextToken().ToDouble(&dFractional))
+                dFractional = 0.0f;
+        }
     }
 
-    // Set tracker's field of view diameter...
-    
-        // Convert string to double...
-        double dFieldOfViewDiameter = 0.0f;
-        sDiameter.BeforeFirst('\x20').ToDouble(&dFieldOfViewDiameter);
+    // Ensure non-zero field of view diameter...
+    if(dWhole + dFractional <= 0.0f)
+        dWhole = 1.0f;
 
-        // Notify tracker...
-        Tracker.SetFieldOfViewDiameter(dFieldOfViewDiameter);
+    // Set the field of view diameter string with millimeter suffix...
+    FieldOfViewDiameter->SetValue(wxString::Format(wxT("%.2f mm"), 
+                                                   dWhole + dFractional));
+    
+    // Set tracker's field of view diameter...
+    Tracker.SetFieldOfViewDiameter(dWhole + dFractional);
 
     // Store the custom diameter...
   ::wxGetApp().pConfiguration->Write(
         wxT("/Analysis/CustomFieldOfViewDiameter"), 
-        wxString::Format(wxT("%f"), dFieldOfViewDiameter));
+        wxString::Format(wxT("%f"), dWhole + dFractional));
 }
 
 // A microscope name has been chosen...

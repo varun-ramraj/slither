@@ -66,6 +66,9 @@ Mac OS X Building
     - Download source
         - cvs -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary login
         - cvs -z3 -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary co -P opencv
+    - otherlibs/highgui/window_carbon.cpp needs to be patched. Find cvInitSystem
+      and remove the installation of the event handler. It does not want to play
+      nice with wxMac.
     - cd into the base directory
     - mkdir build; cd build
     - This is what I used to build OpenCV on my OS X system...
