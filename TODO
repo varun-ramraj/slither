@@ -1,3 +1,15 @@
+>1 Slither crashing periodically during analysis.
+>
+>3 Analysis of single frame from entire video.
+>
+>2 Optimization of the worm outline with improved algorithm (right now 
+on
+>about half of them, it has pretty long inlets along the perimeter).
+>
+>4 Allow analysis results to accumulate option instead of replacing old.
+>
+>5 Measure reversals.
+
 - Move progress bar to status bar...
 - Grab user attention when analysis is done and not focused...
 - Recent file list...

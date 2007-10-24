@@ -42,7 +42,7 @@ Mac OS X Building
   external dependencies. It's considered bad practice to 'make install' on a
   Mac, since only Apple's stuff is suppose to be in /usr.
 
-- Building wxWidgets 2.8.5
+- Building wxWidgets 2.8.6
     - Download wxMac and unpack
     - cd into the base dir
     - cd build
@@ -51,11 +51,20 @@ Mac OS X Building
                    --with-opengl
                    --enable-universal_binary
                    --disable-gtk
-                   --with-wx-config=../wxMac-2.8.5/build/wx-config 
+                   --with-wx-config=../../wxMac-2.8.6/build/wx-config 
                    --disable-debug (or enable, but use --enable-debug_gdb --disable-optimise (optimize has no z) too then)
                    --enable-mediactrl
                    --enable-unicode
                    --prefix=/Users/<you>/local
+    - Or if you were cross compiling from Linux or some other platform, perhaps...
+    
+        export PATH=$PATH:/opt/mac/bin/ && ../configure --host /
+            powerpc-apple-darwin8 --enable-monolithic --disable-shared /
+            --with-opengl --enable-universal_binary --disable-gtk /
+            --with-wx-config=../wxMac-2.8.5/build/wx-config --disable-debug /
+            --enable-mediactrl --enable-unicode --prefix=/Users/Kip/local /
+            --with-macosx-sdk=/opt/mac/SDKs/MacOSX10.4u.sdk
+
     - make
     - make install (you may need to use sudo, depending on where you prefixed)
 

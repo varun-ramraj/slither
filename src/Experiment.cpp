@@ -291,7 +291,7 @@ bool Experiment::Load(const wxString _sPath)
                                            wxT("/control/control.xml"));
         
         // Find the root node and verify it is the control node...
-        if(!XmlControlDocument.IsOk() || 
+        if(!XmlControlDocument.IsOk() ||  /* Potential problem, should be && */
            XmlControlDocument.GetRoot()->GetName() != wxT("control"))
         {
             // Alert user...

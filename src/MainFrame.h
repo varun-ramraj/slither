@@ -296,3 +296,4 @@ class MainFrame : public MainFrame_Base
 };
 
 #endif
+

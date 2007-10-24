@@ -5,7 +5,7 @@ Priority: optional
 Architecture: i386
 Depends: libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)
 Maintainer: Kip Warner <kip@thevertigo.com>
-Description: Track the movement of C. elegan worms in a laboratory environment. 
+Description: Track the movement of C.elegans worms in a laboratory environment. 
  You can either use video footage you've already captured from your dissection 
  microscope camera, or you can allow Slither to capture new footage for you.
  .
