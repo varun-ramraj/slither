@@ -16,7 +16,8 @@ CheckForUpdateThread::CheckForUpdateThread(MainFrame &_Frame, bool _bSilent)
        Frame(_Frame),
        bSilent(_bSilent)
 {
-
+    // Disabled for now...
+    assert(false);
 }
 
 // Thread entry point...

@@ -14,8 +14,6 @@
 
 // Bitmaps...
 #include "resources/analyze_32x32.xpm"
-#include "resources/book_64x64.xpm"
-#include "resources/camera_64x64.xpm"
 #include "resources/clipboard_32x32.xpm"
 //#include "resources/folder_64x64.xpm"
 //#include "resources/pause_32x32.xpm"
@@ -23,7 +21,6 @@
 #include "resources/record_60x60.xpm"
 #include "resources/remove_32x32.xpm"
 #include "resources/rename_32x32.xpm"
-#include "resources/robot_64x64.xpm"
 //#include "resources/skip_back_32x32.xpm"
 //#include "resources/skip_forward_32x32.xpm"
 #include "resources/slither.xpm"
@@ -31,6 +28,13 @@
 #include "resources/stop_32x32.xpm"
 //#include "resources/stop_60x60.xpm"
 #include "resources/usb_32x32.xpm"
+
+    // Notebook icons... (look terrible on mac, so don't use)
+    #ifndef __APPLE__
+    #include "resources/book_64x64.xpm"
+    #include "resources/camera_64x64.xpm"
+    #include "resources/robot_64x64.xpm"
+    #endif
 
 // Event table for MainFrame...
 BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
@@ -150,9 +154,9 @@ MainFrame::MainFrame(const wxString &sTitle)
 
         // Create help menu...
         wxMenu *pHelpMenu = new wxMenu; //wxART_TIP
-        pHelpMenu->Append(ID_CHECK_FOR_UPDATE, wxT("&Check for Update"), 
+        /*pHelpMenu->Append(ID_CHECK_FOR_UPDATE, wxT("&Check for Update"), 
                           wxT("Check server for latest available version of "
-                              "Slither..."));
+                              "Slither..."));*/
         pHelpMenu->Append(wxID_ABOUT, wxT("&About\tF1"), wxT("Show about"));
 
         // Bind menus to menu bar...
@@ -249,28 +253,37 @@ MainFrame::MainFrame(const wxString &sTitle)
 
     // Configure the notebook...   
 
-        // Create image list...
-        wxImageList *pNotebookImageList = new wxImageList(64, 64, true, 3);
+        // Prepare graphics...
+        #ifndef __APPLE__
 
-        // Prepare graphics for each tab...
+            // Create image list... (skip Mac, because looks shitty)
+            wxImageList *pNotebookImageList = new wxImageList(64, 64, true, 3);
 
-            // Library tab...
-            wxIcon LibraryIcon(book_64x64_xpm);
-            pNotebookImageList->Add(LibraryIcon);
+            // Prepare graphics for each tab...
+
+
+                // Library tab...
+                wxIcon LibraryIcon(book_64x64_xpm);
+                pNotebookImageList->Add(LibraryIcon);
+                
+                // Video capture tab...
+                wxIcon FilmIcon(camera_64x64_xpm);
+                pNotebookImageList->Add(FilmIcon);
+
+                // Analysis tab...
+                wxIcon LensIcon(robot_64x64_xpm);
+                pNotebookImageList->Add(LensIcon);
             
-            // Video capture tab...
-            wxIcon FilmIcon(camera_64x64_xpm);
-            pNotebookImageList->Add(FilmIcon);
+            // Bind image list to notebook...
+            MainNotebook->AssignImageList(pNotebookImageList);
+            MainNotebook->SetPageImage(0, 0);
+            MainNotebook->SetPageImage(1, 1);
+            MainNotebook->SetPageImage(2, 2);
 
-            // Analysis tab...
-            wxIcon LensIcon(robot_64x64_xpm);
-            pNotebookImageList->Add(LensIcon);
-        
-        // Bind image list to notebook...
-        MainNotebook->AssignImageList(pNotebookImageList);
-        MainNotebook->SetPageImage(0, 0);
-        MainNotebook->SetPageImage(1, 1);
-        MainNotebook->SetPageImage(2, 2);
+        #endif
+
+        // Open up to the data pane...
+        MainNotebook->ChangeSelection(DATA_PANE);
 
         // Connect page changing event...
         Connect(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING,
@@ -283,9 +296,6 @@ MainFrame::MainFrame(const wxString &sTitle)
 
         // Create it...
         MediaGrid->CreateGrid(0, MEDIA_GRID_COLUMNS);
-
-        // Implement drop target... (doesn't work on OS X)
-        MediaGrid->SetDropTarget(new MediaGridDropTarget(this));
 
         // Set label sizes...
         MediaGrid->SetRowLabelSize(0);
@@ -374,9 +384,9 @@ MainFrame::MainFrame(const wxString &sTitle)
             Connect(ID_VIDEO_PLAYER, wxEVT_MEDIA_PLAY,
                     wxMediaEventHandler(MainFrame::OnMediaPlay), (wxObject*) 0, 
                     this);
-        
+
         // Enable it for drag and drop...
-        pMediaPlayer->SetDropTarget(new MediaGridDropTarget(this));
+        SetDropTarget(new MediaGridDropTarget(this));
 
     // Configure recording buttons...
     RecordButton->SetBitmapLabel(record_60x60_xpm);
@@ -386,7 +396,7 @@ MainFrame::MainFrame(const wxString &sTitle)
 
         // Initialize microscope table... /* These tables are dummy values */
 
-            // Leica...
+            /* Leica...
             Microscope Leica(wxT("Leica Wild M3Z"));
             Leica.AddDiameter(6, 55.0f);
             Leica.AddDiameter(40, 7.8f);
@@ -396,7 +406,7 @@ MainFrame::MainFrame(const wxString &sTitle)
             Microscope RandomWorks(wxT("Dummy Microscope"));
             RandomWorks.AddDiameter(7, 52.0f);
             RandomWorks.AddDiameter(35, 6.2f);
-            MicroscopeTable.push_back(RandomWorks);
+            MicroscopeTable.push_back(RandomWorks);*/
             
             // Custom microscope...
             Microscope Custom(wxT("Custom"));
@@ -451,18 +461,18 @@ MainFrame::MainFrame(const wxString &sTitle)
         wxPostEvent(this, SizeEvent);
     }
 
-    // Run the check for update...
+    /* Run the check for update...
 
         // Allocate the update thread and check for error...
         pUpdateThread = new CheckForUpdateThread(*this, true);
         if(pUpdateThread->Create() != wxTHREAD_NO_ERROR)
-            return;
+            return;*/
 
         // Disable the check for update menu item...
         GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
         
         // Run the update thread...
-        pUpdateThread->Run();
+        /*pUpdateThread->Run();*/
 
     // Show tip...
     ShowTip();
@@ -790,7 +800,7 @@ void MainFrame::OnCancelAnalysis(wxCommandEvent &Event)
 // Check for update...
 void MainFrame::OnCheckForUpdate(wxCommandEvent &Event)
 {
-    // Check if thread is already running...
+    /* Check if thread is already running...
     if(!GetMenuBar()->IsEnabled(ID_CHECK_FOR_UPDATE))
         return;
         
@@ -803,7 +813,7 @@ void MainFrame::OnCheckForUpdate(wxCommandEvent &Event)
     GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
     
     // Run the update thread...
-    pUpdateThread->Run();
+    pUpdateThread->Run();*/
 }
 
 // Check for update done...
