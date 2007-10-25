@@ -166,22 +166,6 @@ package.name            = "slither"
     -- Build flags...
     package.buildflags      = {"unicode", "extra-warnings", "fatal-warnings"}
 
-    -- Prebuild commands... (hack until xrc is implemented)
-    package.prebuildcommands
-        = {"-@if test ! -e src/Resources.h ; " ..
-           "then " ..
-               "printf 'Generating relevant C++ source from XRC for the first time...\\n' ; " ..
-               wxBinaryToolsPrefix .. "wxrc src/Resources.xrc -e -c -o src/Resources.cpp ; " ..
-               "mv Resources.h src/ ; " ..
-           "elif test src/Resources.h -ot src/Resources.xrc ; " ..
-           "then " ..
-               "printf 'XRC has been updated, regenerating relevant C++ source...\\n' ; " ..
-               wxBinaryToolsPrefix .. "wxrc src/Resources.xrc -e -c -o src/Resources.cpp ; " ..
-               "mv Resources.h src/ ; " ..
-           "else " ..
-               "printf 'XRC is still up to date...\\n' ; " ..
-           "fi"}
-
     -- Linker options...
 
         -- Mac OS X needs Quartz for some reason and wx-config bitches about
@@ -214,27 +198,15 @@ package.name            = "slither"
     -- Source code...
     package.files = {
         "src/AnalysisThread.cpp",
-        "src/AnalysisThread.h",
         "src/CaptureThread.cpp",
-        "src/CaptureThread.h",
         "src/CheckForUpdateThread.cpp",
-        "src/CheckForUpdateThread.h",
         "src/Experiment.cpp",
-        "src/Experiment.h",
         "src/MainFrame.cpp",
-        "src/MainFrame.h",
         "src/Resources.cpp",
-        "src/Resources.h",
-        "src/Resources.rc",
-        "src/Resources.xrc",
         "src/SlitherApp.cpp",
-        "src/SlitherApp.h",
         "src/VideosGridDropTarget.cpp",
-        "src/VideosGridDropTarget.h",
         "src/Worm.cpp",
-        "src/Worm.h",
-        "src/WormTracker.cpp",
-        "src/WormTracker.h"}
+        "src/WormTracker.cpp"}
 
 -- Configure Slither for wxWidgets and OpenCV...
 ConfigureForWxWidgets(package)
@@ -403,8 +375,6 @@ function doclean(Command, Argument)
     docommand(Command, Argument)
 
     -- Remove installers
-    os.remove("src/Resources.h")
-    os.remove("src/Resources.cpp")
     os.execute("rm -f install/*.deb")
     os.execute("rm -f install/*.exe")
     os.execute("rm -f install/*.dmg")

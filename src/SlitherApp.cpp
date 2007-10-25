@@ -89,12 +89,8 @@ bool SlitherApp::OnInit()
     // Create configuration object...
     pConfiguration = new wxConfig(wxT(PACKAGE), wxT("Vertigo"));
 
-    // Initialize resources...
-    wxXmlResource::Get()->InitAllHandlers();
-    InitXmlResource();
-
     // Create the main application frame...
-    pMainFrame = new MainFrame(wxT(PACKAGE_STRING));
+    pMainFrame = new MainFrame((wxWindow *) NULL);
     
     // Show it...
     pMainFrame->Show(true);

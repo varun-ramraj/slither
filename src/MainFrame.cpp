@@ -15,19 +15,14 @@
 // Bitmaps...
 #include "resources/analyze_32x32.xpm"
 #include "resources/clipboard_32x32.xpm"
-//#include "resources/folder_64x64.xpm"
-//#include "resources/pause_32x32.xpm"
 #include "resources/play_32x32.xpm"
 #include "resources/record_60x60.xpm"
 #include "resources/remove_32x32.xpm"
 #include "resources/rename_32x32.xpm"
-//#include "resources/skip_back_32x32.xpm"
-//#include "resources/skip_forward_32x32.xpm"
 #include "resources/slither.xpm"
 #include "resources/save_60x60.xpm"
 #include "resources/stop_32x32.xpm"
-//#include "resources/stop_60x60.xpm"
-#include "resources/usb_32x32.xpm"
+//#include "resources/usb_32x32.xpm"
 
     // Notebook icons... (look terrible on mac, so don't use)
     #ifndef __APPLE__
@@ -39,23 +34,9 @@
 // Event table for MainFrame...
 BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
 
-    // System events...
-    EVT_CLOSE               (MainFrame::OnSystemClose)
-
     // Toolbar and menu events...
-    EVT_MENU                (wxID_NEW,                      MainFrame::OnNew)
-    EVT_MENU                (wxID_OPEN,                     MainFrame::OnOpen)
-    EVT_MENU                (wxID_SAVE,                     MainFrame::OnSave)
-    EVT_MENU                (wxID_SAVEAS,                   MainFrame::OnSaveAs)
-    EVT_MENU                (wxID_REVERT,                   MainFrame::OnRevert)
-    EVT_MENU                (wxID_CLOSE,                    MainFrame::OnClose)
-    EVT_MENU                (wxID_EXIT,                     MainFrame::OnQuit)
-    EVT_MENU                (ID_FULLSCREEN,                 MainFrame::OnFullScreen)
-    EVT_MENU                (wxID_PREFERENCES,              MainFrame::OnPreferences)
-    EVT_MENU                (ID_CAPTURE,                    MainFrame::OnCapture)
     EVT_MENU                (ID_CHECK_FOR_UPDATE,           MainFrame::OnCheckForUpdate)
     EVT_BUTTON              (ID_CHECK_FOR_UPDATE_DONE,      MainFrame::OnCheckForUpdateDone)
-    EVT_MENU                (wxID_ABOUT,                    MainFrame::OnAbout)
     
     // Media grid popup menu events...
     EVT_MENU                (ID_ANALYZE,                    MainFrame::OnAnalyze)
@@ -66,17 +47,6 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
 
     // Frame moving or resizing...
     EVT_MOVE                (                               MainFrame::OnMove)
-    EVT_SIZE                (                               MainFrame::OnSize)
-
-    // Text edit events...
-    EVT_TEXT                (XRCID("ExperimentTitle"),      MainFrame::OnExperimentChange)
-    EVT_TEXT                (XRCID("ExperimentNotes"),      MainFrame::OnExperimentChange)
-
-    // MediaGrid events...
-    EVT_GRID_CMD_CELL_CHANGE(XRCID("MediaGrid"),            MainFrame::OnExperimentChangeCell)
-    EVT_GRID_CMD_CELL_LEFT_DCLICK(XRCID("MediaGrid"),       MainFrame::OnMediaCellDoubleLeftClick)
-    EVT_GRID_CMD_CELL_LEFT_CLICK(XRCID("MediaGrid"),        MainFrame::OnMediaCellLeftClick)
-    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("MediaGrid"),       MainFrame::OnMediaCellRightClick)
 
     // Capture...
     EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
@@ -85,22 +55,15 @@ BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
     EVT_MENU                (ID_ANALYSIS_COPY_CLIPBOARD,    MainFrame::OnAnalysisCopyClipboard)
 
     // Analysis...
-    EVT_CHOICE              (XRCID("ChosenMicroscopeName"), MainFrame::OnChooseMicroscopeName)
-    EVT_CHOICE              (XRCID("ChosenMicroscopeTotalZoom"),   
-                                                            MainFrame::OnChooseMicroscopeTotalZoom)
-    EVT_TEXT                (XRCID("FieldOfViewDiameter"),  MainFrame::OnChooseFieldOfViewDiameter)
-    EVT_CHOICE              (XRCID("ChosenAnalysisType"),   MainFrame::OnChooseAnalysisType)
-    EVT_BUTTON              (XRCID("BeginAnalysisButton"),  MainFrame::OnBeginAnalysis)
-    EVT_GRID_CMD_CELL_RIGHT_CLICK(XRCID("AnalysisGrid"),    MainFrame::OnAnalysisCellRightClick)
     EVT_BUTTON              (ID_ANALYSIS_ENDED,             MainFrame::OnEndAnalysis)
     EVT_TIMER               (TIMER_ANALYSIS,                MainFrame::OnAnalysisFrameReadyTimer)
-    EVT_BUTTON              (XRCID("CancelAnalysisButton"), MainFrame::OnCancelAnalysis)
 
 END_EVENT_TABLE()
 
 // MainFrame constructor...
-MainFrame::MainFrame(const wxString &sTitle)
-    : pExperiment(NULL),
+MainFrame::MainFrame(wxWindow *Parent)
+    : MainFrame_Base(Parent),
+      pExperiment(NULL),
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
       pAnalysisThread(NULL),
@@ -113,143 +76,15 @@ MainFrame::MainFrame(const wxString &sTitle)
     // Set the icon...
     SetIcon(slither_xpm);
 
-    // Create menu...
-
-        // Create file menu...
-        wxMenu *pFileMenu = new wxMenu;
-        pFileMenu->Append(wxID_NEW, wxT("&New\tCtrl+N"), 
-                          wxT("Create a new experiment..."));
-        pFileMenu->Append(wxID_OPEN, wxT("&Open\tCtrl+O"), 
-                          wxT("Open an existing experiment..."));
-        pFileMenu->AppendSeparator();
-        pFileMenu->Append(wxID_SAVE, wxT("&Save\tCtrl+S"), 
-                          wxT("Save experiment..."));
-        pFileMenu->Append(wxID_SAVEAS, wxT("Save &As\tShift+Ctrl+S"), 
-                          wxT("Save experiment under a new name..."));
-        pFileMenu->Append(wxID_REVERT, wxT("&Revert"), 
-                          wxT("Revert to saved version of experiment..."));
-        pFileMenu->AppendSeparator();
-        pFileMenu->Append(wxID_CLOSE, wxT("&Close\tCtrl+W"), 
-                          wxT("Close the open experiment..."));
-        pFileMenu->Append(wxID_EXIT, wxT("&Quit\tCtrl+Q"), 
-                          wxT("Quit Slither..."));
-
-        // Create edit menu...
-        wxMenu *pEditMenu = new wxMenu;
-        #ifdef __APPLE__
-        pEditMenu->Append(wxID_PREFERENCES, wxT("&Preferences\tCtrl+,"),
-        #else
-        pEditMenu->Append(wxID_PREFERENCES, wxT("&Preferences\tCtrl+P"),
-        #endif
-                          wxT("Configure your camera and other things..."));
-                          
-        // Create view menu...
-        wxMenu *pViewMenu = new wxMenu;
-        #ifdef __APPLE__
-        pViewMenu->AppendCheckItem(ID_FULLSCREEN, wxT("&Full Screen\tCtrl+F"),
-        #else
-        pViewMenu->AppendCheckItem(ID_FULLSCREEN, wxT("&Full Screen\tF11"),
-        #endif
-                                   wxT("Toggle full screen mode..."));
-
-        // Create help menu...
-        wxMenu *pHelpMenu = new wxMenu; //wxART_TIP
-        /*pHelpMenu->Append(ID_CHECK_FOR_UPDATE, wxT("&Check for Update"), 
-                          wxT("Check server for latest available version of "
-                              "Slither..."));*/
-        pHelpMenu->Append(wxID_ABOUT, wxT("&About\tF1"), wxT("Show about"));
-
-        // Bind menus to menu bar...
-        wxMenuBar *pMenuBar = new wxMenuBar();
-        pMenuBar->Append(pFileMenu, wxT("&File"));
-        pMenuBar->Append(pEditMenu, wxT("&Edit"));
-        pMenuBar->Append(pViewMenu, wxT("&View"));
-        pMenuBar->Append(pHelpMenu, wxT("&Help"));
-
-        // Bind menu bar to frame...
-        SetMenuBar(pMenuBar);
-
-    // Create the toolbar... (wxGlade doesn't appear to support this just yet)
-        
-        // Allocate...        
-        wxToolBar* pMainToolBar = new wxToolBar(this, wxID_ANY, 
-                                                wxDefaultPosition, wxDefaultSize, 
-                                                wxTB_HORIZONTAL | wxNO_BORDER |
-                                                wxTB_TEXT);
-
-        // Hold bitmaps as we load them here...
-        wxBitmap Bitmap;
-
-        // Populate toolbar...
-
-            // New...
-            Bitmap = wxArtProvider::GetBitmap(wxART_NEW, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_NEW, wxT("New"), Bitmap, 
-                                  wxT("Create new experiment..."));
-            pMainToolBar->SetToolLongHelp(wxID_NEW, 
-                wxT("Create a brand new experiment..."));
-
-            // Open...
-            Bitmap = wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_OPEN, wxT("Open"), Bitmap,
-                                  wxT("Open existing experiment..."));
-            pMainToolBar->SetToolLongHelp(wxID_OPEN, 
-                wxT("Open an experiment you've already saved..."));
-
-            // Save...
-            Bitmap = wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_SAVE, wxT("Save"), Bitmap,
-                                  wxT("Save experiment..."));
-            pMainToolBar->SetToolLongHelp(wxID_SAVE, 
-                wxT("Save the experiment you are working on now..."));
-
-            // Save As...
-            Bitmap = wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_SAVEAS, wxT("Save As"), Bitmap,
-                                  wxT("Save experiment as..."));
-            pMainToolBar->SetToolLongHelp(wxID_SAVEAS, 
-                wxT("Save the experiment you are working on now under a new "
-                    "name..."));
-
-            // Preferences...
-            Bitmap = wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_PREFERENCES, wxT("Preferences"), Bitmap, 
-                                  wxT("Change preferences..."));
-            pMainToolBar->SetToolLongHelp(wxID_PREFERENCES, 
-                wxT("You can configure your camera and other preferences here..."));
-
-            // Capture...
-            pMainToolBar->AddCheckTool(ID_CAPTURE, wxT("Capture"), usb_32x32_xpm, 
-                                       usb_32x32_xpm, wxT("Capture video..."));
-            pMainToolBar->SetToolLongHelp(ID_CAPTURE, 
-                wxT("Connect to your camera and show what it sees in realtime..."));
-
-            // Seperator...
-            pMainToolBar->AddSeparator();
-
-            // About...
-            Bitmap = wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_ABOUT, wxT("About"), Bitmap, 
-                                  wxT("About the software..."));
-            pMainToolBar->SetToolLongHelp(wxID_ABOUT, 
-                wxT("General " PACKAGE_STRING " build information..."));
-
-            // Seperator...
-            pMainToolBar->AddSeparator();
-
-            // Exit...
-            Bitmap = wxArtProvider::GetBitmap(wxART_QUIT, wxART_TOOLBAR);
-            pMainToolBar->AddTool(wxID_EXIT, wxT("Exit"), Bitmap, 
-                                  wxT("Exit software..."));
-            pMainToolBar->SetToolLongHelp(wxID_EXIT, 
-                wxT("You can exit Slither, but I'll prompt you incase you"
-                    " still need to save your work..."));
-
-        // Update the toolbar now that we've changed it...
-        pMainToolBar->Realize();
-        
-        // Bind toolbar to main frame...
-        SetToolBar(pMainToolBar);
+    /* wxFormBuilder cannot use art provider IDs yet on toolbar...
+    wxArtProvider::GetBitmap(wxART_NEW, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_FILE_OPEN, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_FILE_SAVE, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);
+    wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);
+    */
 
     // Configure the notebook...   
 
@@ -260,7 +95,6 @@ MainFrame::MainFrame(const wxString &sTitle)
             wxImageList *pNotebookImageList = new wxImageList(64, 64, true, 3);
 
             // Prepare graphics for each tab...
-
 
                 // Library tab...
                 wxIcon LibraryIcon(book_64x64_xpm);
@@ -285,17 +119,10 @@ MainFrame::MainFrame(const wxString &sTitle)
         // Open up to the data pane...
         MainNotebook->ChangeSelection(DATA_PANE);
 
-        // Connect page changing event...
-        Connect(wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING,
-                wxNotebookEventHandler(MainFrame::OnPageChanging));
-
     // Initialize media grid...
 
         // Objects...
         wxGridCellAttr *pColumnAttributes   = NULL;
-
-        // Create it...
-        MediaGrid->CreateGrid(0, MEDIA_GRID_COLUMNS);
 
         // Set label sizes...
         MediaGrid->SetRowLabelSize(0);
@@ -426,10 +253,6 @@ MainFrame::MainFrame(const wxString &sTitle)
             OnChooseMicroscopeName(DummyCommandEvent);
 
         // Trigger default analysis type choice...
-        
-            // Allocate analysis grid internal memory first...
-            if(!AnalysisGrid->CreateGrid(1, 1))
-                printf("CreateGrid failed...\n");
 
             // Analysis type...
             ChosenAnalysisType->SetSelection(ANALYSIS_BODY_SIZE);
@@ -1284,42 +1107,51 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
         // Refresh the main frame...
         Refresh();
                     
-    // Remove all rows, if any
-    if(AnalysisGrid->GetNumberRows() > 0)
+    // Remove all rows, if any and if the user doesn't want to accumulate
+    //  results...
+    if(AnalysisGrid->GetNumberRows() > 0 && !AccumulateCheckBox->IsChecked())
         AnalysisGrid->DeleteRows(0, AnalysisGrid->GetNumberRows());
 
     // Body size analysis...
     if(ChosenAnalysisType->GetCurrentSelection() == ANALYSIS_BODY_SIZE)
     {
-        // Append enough rows for number of worms...
-        AnalysisGrid->AppendRows(Tracker.Tracking());
-        
         // Output analysis results for each worm...
         for(unsigned int unWormIndex = 0; unWormIndex < Tracker.Tracking();
             unWormIndex++)
         {
+            // Append a new row for this worm and check if ok...
+            if(!AnalysisGrid->AppendRows())
+            {
+                // Alert user...
+                wxLogError(wxT("Out of memory! Check your field of view"
+                               " diameter."));
+                
+                // Abort...
+                break;
+            }
+            
+            // Get the index of the new row...
+            int const nNewRow = AnalysisGrid->GetNumberRows() - 1;
+
             // Get the worm at this index...
             Worm const &CurrentWorm = Tracker.GetWorm(unWormIndex);
 
             // Set row label...
-            AnalysisGrid->SetRowLabelValue(unWormIndex, 
-                wxString::Format(wxT("Worm %d"), unWormIndex + 1));
+            AnalysisGrid->SetRowLabelValue(nNewRow, 
+                wxString::Format(wxT("Worm %d"), nNewRow + 1));
                 
             // Length...
-            AnalysisGrid->SetCellValue(
-                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_LENGTH,
+            AnalysisGrid->SetCellValue(nNewRow, ANALYSIS_BODY_SIZE_COLUMN_LENGTH,
                 wxString::Format(wxT("%.3f mm"), 
                     Tracker.ConvertPixelsToMillimeters(CurrentWorm.Length())));
 
             // Width...
-            AnalysisGrid->SetCellValue(
-                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
+            AnalysisGrid->SetCellValue(nNewRow, ANALYSIS_BODY_SIZE_COLUMN_WIDTH,
                 wxString::Format(wxT("%.3f mm"), 
                     Tracker.ConvertPixelsToMillimeters(CurrentWorm.Width())));
                     
             // Area...
-            AnalysisGrid->SetCellValue(
-                unWormIndex, ANALYSIS_BODY_SIZE_COLUMN_AREA,
+            AnalysisGrid->SetCellValue(nNewRow, ANALYSIS_BODY_SIZE_COLUMN_AREA,
                 wxString::Format(wxT("%.3f mm²"), 
                     Tracker.ConvertSquarePixelsToSquareMillimeters(
                         CurrentWorm.Area())));
@@ -2082,16 +1914,6 @@ void MainFrame::OnQuit(wxCommandEvent &Event)
 
     // Close the frame...
     Close();
-}
-
-// Preferences command event handler...
-void MainFrame::OnPreferences(wxCommandEvent &Event)
-{
-    // Initialize preferences dialog...
-    PreferencesDialog Preferences(this);
-    
-    // Display it...
-    Preferences.ShowModal();
 }
 
 // User clicked the (X) / system menu (Windows) or Close() was invoked...

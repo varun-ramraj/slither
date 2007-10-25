@@ -113,7 +113,7 @@ class MainFrame : public MainFrame_Base
     public:
 
         // Constructor...
-        MainFrame(const wxString &sTitle);
+        MainFrame(wxWindow *Parent);
 
         // Compare two integers. Used for sorting rows in the media grid...
         static int wxCMPFUNC_CONV 
@@ -143,7 +143,6 @@ class MainFrame : public MainFrame_Base
         void OnClose(wxCommandEvent &Event);
         void OnQuit(wxCommandEvent &Event);
         void OnFullScreen(wxCommandEvent &Event);
-        void OnPreferences(wxCommandEvent &Event);
         void OnAbout(wxCommandEvent &Event);
         void OnCheckForUpdate(wxCommandEvent &Event);
         void OnCheckForUpdateDone(wxCommandEvent &Event);
@@ -227,7 +226,6 @@ class MainFrame : public MainFrame_Base
         enum
         {
             ID_ANALYZE = wxID_HIGHEST + 1,
-            ID_FULLSCREEN,
             ID_CHECK_FOR_UPDATE,
             ID_CHECK_FOR_UPDATE_DONE,
             ID_VIDEO_PLAYER,
@@ -235,7 +233,6 @@ class MainFrame : public MainFrame_Base
             ID_REMOVE,
             ID_RENAME,
             ID_STOP,
-            ID_CAPTURE,
             ID_CAPTURE_FRAME_READY,
             ID_START_ANALYSIS,
             ID_STOP_ANALYSIS,
