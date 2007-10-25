@@ -242,12 +242,12 @@
                         <property name="bitmap"></property>
                         <property name="checked">0</property>
                         <property name="enabled">1</property>
-                        <property name="help">Show the analyzed image dialog...</property>
+                        <property name="help">Show image analysis window...</property>
                         <property name="id">ID_TOGGLE_IMAGE_ANALYSIS_WINDOW</property>
                         <property name="kind">wxITEM_CHECK</property>
                         <property name="label">&amp;Show image analysis window</property>
                         <property name="name">ShowImageAnalysisMenuItem</property>
-                        <property name="shortcut"></property>
+                        <property name="shortcut">Ctrl+i</property>
                         <property name="unchecked_bitmap"></property>
                         <event name="OnMenuSelection">OnToggleImageAnalysisWindow</event>
                         <event name="OnUpdateUI"></event>
@@ -2955,7 +2955,7 @@
             <property name="center"></property>
             <property name="context_help"></property>
             <property name="enabled">1</property>
-            <property name="extra_style">wxFRAME_EX_METAL</property>
+            <property name="extra_style"></property>
             <property name="fg"></property>
             <property name="font"></property>
             <property name="hidden">0</property>

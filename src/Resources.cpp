@@ -55,7 +55,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	ViewMenu = new wxMenu();
 	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
 	ViewMenu->Append( FullScreenMenuItem );
-	wxMenuItem* ShowImageAnalysisMenuItem = new wxMenuItem( ViewMenu, ID_TOGGLE_IMAGE_ANALYSIS_WINDOW, wxString( wxT("&Show image analysis window") ) , wxT("Show the analyzed image dialog..."), wxITEM_CHECK );
+	wxMenuItem* ShowImageAnalysisMenuItem = new wxMenuItem( ViewMenu, ID_TOGGLE_IMAGE_ANALYSIS_WINDOW, wxString( wxT("&Show image analysis window") ) + wxT('\t') + wxT("Ctrl+i"), wxT("Show image analysis window..."), wxITEM_CHECK );
 	ViewMenu->Append( ShowImageAnalysisMenuItem );
 	MenuBar->Append( ViewMenu, wxT("&View") );
 	
@@ -515,7 +515,6 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 ImageAnalysisWindow_Base::ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
-	this->SetExtraStyle( wxFRAME_EX_METAL );
 	this->SetBackgroundColour( wxColour( 0, 0, 0 ) );
 	this->SetToolTip( wxT("The image analysis window...") );
 	
