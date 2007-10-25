@@ -71,7 +71,7 @@
             <event name="OnSetFocus"></event>
             <event name="OnSize">OnSize</event>
             <event name="OnUpdateUI"></event>
-            <object class="wxMenuBar" expanded="0">
+            <object class="wxMenuBar" expanded="1">
                 <property name="bg"></property>
                 <property name="context_help"></property>
                 <property name="enabled">1</property>
@@ -230,7 +230,7 @@
                         <property name="enabled">1</property>
                         <property name="help">Toggle full screen mode...</property>
                         <property name="id">ID_FULLSCREEN</property>
-                        <property name="kind">wxITEM_NORMAL</property>
+                        <property name="kind">wxITEM_CHECK</property>
                         <property name="label">&amp;Full Screen</property>
                         <property name="name">FullScreenMenuItem</property>
                         <property name="shortcut"></property>

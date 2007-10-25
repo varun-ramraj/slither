@@ -53,7 +53,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	MenuBar->Append( FileMenu, wxT("&File") );
 	
 	ViewMenu = new wxMenu();
-	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full Screen") ) , wxT("Toggle full screen mode..."), wxITEM_NORMAL );
+	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full Screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
 	ViewMenu->Append( FullScreenMenuItem );
 	MenuBar->Append( ViewMenu, wxT("&View") );
 	
