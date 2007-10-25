@@ -20,7 +20,6 @@
     
     // For initializing OpenCV...
     #include <opencv/cv.h>
-    #include <opencv/highgui.h>
 
 // Give wxWidgets the means to create a SlitherApp object...
 IMPLEMENT_APP(SlitherApp)

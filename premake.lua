@@ -201,6 +201,7 @@ package.name            = "slither"
         "src/CaptureThread.cpp",
         "src/CheckForUpdateThread.cpp",
         "src/Experiment.cpp",
+        "src/ImageAnalysisWindow.cpp",
         "src/MainFrame.cpp",
         "src/Resources.cpp",
         "src/SlitherApp.cpp",

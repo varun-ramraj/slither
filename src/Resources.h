@@ -47,6 +47,7 @@ class MainFrame_Base : public wxFrame
 		enum
 		{
 			ID_FULLSCREEN = 1000,
+			ID_TOGGLE_IMAGE_ANALYSIS_WINDOW,
 			ID_CAPTURE,
 			ID_TITLE,
 			ID_EMBEDDEDVIDEOS,
@@ -121,6 +122,7 @@ class MainFrame_Base : public wxFrame
 		virtual void OnClose( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnQuit( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnFullScreen( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnToggleImageAnalysisWindow( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAbout( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCapture( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnPageChanging( wxNotebookEvent& event ){ event.Skip(); }
@@ -141,6 +143,25 @@ class MainFrame_Base : public wxFrame
 	
 	public:
 		MainFrame_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Slither"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 640,480 ), long style = wxDEFAULT_FRAME_STYLE );
+	
+};
+
+///////////////////////////////////////////////////////////////////////////////
+/// Class ImageAnalysisWindow_Base
+///////////////////////////////////////////////////////////////////////////////
+class ImageAnalysisWindow_Base : public wxFrame 
+{
+	private:
+	
+	protected:
+		
+		// Virtual event handlers, overide them in your derived class
+		virtual void OnClose( wxCloseEvent& event ){ event.Skip(); }
+		virtual void OnPaint( wxPaintEvent& event ){ event.Skip(); }
+		
+	
+	public:
+		ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Image Analysis"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 320,240 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxTAB_TRAVERSAL );
 	
 };
 

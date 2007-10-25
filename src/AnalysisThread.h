@@ -16,7 +16,6 @@
     
     // OpenCV...
     #include <opencv/cv.h>
-    #include <opencv/highgui.h>
     
     // Worm tracker...
     #include "WormTracker.h"

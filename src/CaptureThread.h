@@ -15,7 +15,6 @@
     
     // OpenCV...
     #include <opencv/cv.h>
-    #include <opencv/highgui.h>
 
 // Forward declarations...
 class MainFrame;

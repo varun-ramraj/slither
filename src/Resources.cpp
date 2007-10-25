@@ -53,8 +53,10 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	MenuBar->Append( FileMenu, wxT("&File") );
 	
 	ViewMenu = new wxMenu();
-	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full Screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
+	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
 	ViewMenu->Append( FullScreenMenuItem );
+	wxMenuItem* ShowImageAnalysisMenuItem = new wxMenuItem( ViewMenu, ID_TOGGLE_IMAGE_ANALYSIS_WINDOW, wxString( wxT("&Show image analysis window") ) , wxT("Show the analyzed image dialog..."), wxITEM_CHECK );
+	ViewMenu->Append( ShowImageAnalysisMenuItem );
 	MenuBar->Append( ViewMenu, wxT("&View") );
 	
 	HelpMenu = new wxMenu();
@@ -484,6 +486,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	this->Connect( CloseMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnClose ) );
 	this->Connect( QuitMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnQuit ) );
 	this->Connect( FullScreenMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnFullScreen ) );
+	this->Connect( ShowImageAnalysisMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnToggleImageAnalysisWindow ) );
 	this->Connect( AboutMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnAbout ) );
 	this->Connect( wxID_NEW, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnNew ));
 	this->Connect( wxID_OPEN, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnOpen ));
@@ -507,4 +510,17 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	BeginAnalysisButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnBeginAnalysis ), NULL, this );
 	CancelAnalysisButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnCancelAnalysis ), NULL, this );
 	AnalysisGrid->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnAnalysisCellRightClick ), NULL, this );
+}
+
+ImageAnalysisWindow_Base::ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
+{
+	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
+	this->SetExtraStyle( wxFRAME_EX_METAL );
+	this->SetBackgroundColour( wxColour( 0, 0, 0 ) );
+	this->SetToolTip( wxT("The image analysis window...") );
+	
+	
+	// Connect Events
+	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ImageAnalysisWindow_Base::OnClose ) );
+	this->Connect( wxEVT_PAINT, wxPaintEventHandler( ImageAnalysisWindow_Base::OnPaint ) );
 }

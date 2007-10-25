@@ -24,7 +24,6 @@
     
     // OpenCV...
     #include <opencv/cv.h>
-    #include <opencv/highgui.h>
 
     // STL stuff...
     #include <list>
@@ -33,6 +32,7 @@
 
 // Forward declarations...
 class Experiment;
+class ImageAnalysisWindow;
 
 // Helper classes...
 
@@ -108,6 +108,7 @@ class MainFrame : public MainFrame_Base
     friend class CaptureThread;
     friend class Experiment;
     friend class MediaGridDropTarget;
+    friend class ImageAnalysisWindow;
 
     // Public stuff...
     public:
@@ -191,6 +192,9 @@ class MainFrame : public MainFrame_Base
         void OnCancelAnalysis(wxCommandEvent &Event);
         void OnEndAnalysis(wxCommandEvent &Event);
 
+        // Image analysis window has been toggled...
+        void OnToggleImageAnalysisWindow(wxCommandEvent &Event);
+
         // Show the tip window...
         void ShowTip();
 
@@ -269,6 +273,9 @@ class MainFrame : public MainFrame_Base
     // Protected stuff...
     protected:
         
+        // Image analysis window...
+        ImageAnalysisWindow    *pImageAnalysisWindow;
+
         // Experiment...
         Experiment             *pExperiment;
 

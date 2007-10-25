@@ -7,6 +7,7 @@
 // Includes...
 #include "MainFrame.h"
 #include "VideosGridDropTarget.h"
+#include "ImageAnalysisWindow.h"
 #include "Experiment.h"
 #include <wx/dcbuffer.h>
 #include <wx/clipbrd.h>
@@ -63,6 +64,7 @@ END_EVENT_TABLE()
 // MainFrame constructor...
 MainFrame::MainFrame(wxWindow *Parent)
     : MainFrame_Base(Parent),
+      pImageAnalysisWindow(new ImageAnalysisWindow(this)),
       pExperiment(NULL),
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
@@ -433,7 +435,7 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
             return;
 
     // Display the image...
-    cvShowImage("Analysis", pThinkingImage);
+    pImageAnalysisWindow->SetImage(*pThinkingImage);
     
     // Cleanup...
     cvReleaseImage(&pThinkingImage);
@@ -511,10 +513,6 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
         // Reset the status update timer...
         pAnalysisThread->StatusUpdateStopWatch.Start();
     }
-
-    // Let HighGUI and wxWidgets main thread's event loop process events...
-    cvWaitKey(10);
-  ::wxGetApp().Yield();
 }
 
 // Begin analysis button hit...
@@ -581,8 +579,8 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         // Refresh the main frame...
         Refresh();
         
-        // Create analysis window...
-        cvNamedWindow("Analysis", CV_WINDOW_AUTOSIZE);
+        // Show the image analysis window...
+        pImageAnalysisWindow->Show();
 
     // Create the analysis thread and check for error...
     pAnalysisThread = new AnalysisThread(*this);
@@ -1063,7 +1061,7 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
     if(pThinkingImage)
     {
         // Display the image...
-        cvShowImage("Analysis", pThinkingImage);
+        pImageAnalysisWindow->SetImage(*pThinkingImage);
     
         // Cleanup...
         cvReleaseImage(&pThinkingImage);
@@ -1698,6 +1696,13 @@ void MainFrame::OnStop(wxCommandEvent &Event)
     // Stop...
     if(pMediaPlayer)
         pMediaPlayer->Stop();
+}
+
+// Image analysis window has been toggled...
+void MainFrame::OnToggleImageAnalysisWindow(wxCommandEvent &Event)
+{
+    // Show or hide...
+    pImageAnalysisWindow->Show(Event.IsChecked());
 }
 
 // Close command event handler...

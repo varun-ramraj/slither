@@ -231,11 +231,25 @@
                         <property name="help">Toggle full screen mode...</property>
                         <property name="id">ID_FULLSCREEN</property>
                         <property name="kind">wxITEM_CHECK</property>
-                        <property name="label">&amp;Full Screen</property>
+                        <property name="label">&amp;Full screen</property>
                         <property name="name">FullScreenMenuItem</property>
                         <property name="shortcut"></property>
                         <property name="unchecked_bitmap"></property>
                         <event name="OnMenuSelection">OnFullScreen</event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help">Show the analyzed image dialog...</property>
+                        <property name="id">ID_TOGGLE_IMAGE_ANALYSIS_WINDOW</property>
+                        <property name="kind">wxITEM_CHECK</property>
+                        <property name="label">&amp;Show image analysis window</property>
+                        <property name="name">ShowImageAnalysisMenuItem</property>
+                        <property name="shortcut"></property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection">OnToggleImageAnalysisWindow</event>
                         <event name="OnUpdateUI"></event>
                     </object>
                 </object>
@@ -2935,6 +2949,59 @@
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
             </object>
+        </object>
+        <object class="Frame" expanded="1">
+            <property name="bg">0,0,0</property>
+            <property name="center"></property>
+            <property name="context_help"></property>
+            <property name="enabled">1</property>
+            <property name="extra_style">wxFRAME_EX_METAL</property>
+            <property name="fg"></property>
+            <property name="font"></property>
+            <property name="hidden">0</property>
+            <property name="id">wxID_ANY</property>
+            <property name="maximum_size"></property>
+            <property name="minimum_size"></property>
+            <property name="name">ImageAnalysisWindow_Base</property>
+            <property name="pos"></property>
+            <property name="size">320,240</property>
+            <property name="style">wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT</property>
+            <property name="subclass"></property>
+            <property name="title">Image Analysis</property>
+            <property name="tooltip">The image analysis window...</property>
+            <property name="window_extra_style"></property>
+            <property name="window_name"></property>
+            <property name="window_style">wxTAB_TRAVERSAL</property>
+            <property name="xrc_skip_sizer">1</property>
+            <event name="OnActivate"></event>
+            <event name="OnActivateApp"></event>
+            <event name="OnChar"></event>
+            <event name="OnClose">OnClose</event>
+            <event name="OnEnterWindow"></event>
+            <event name="OnEraseBackground"></event>
+            <event name="OnHibernate"></event>
+            <event name="OnIconize"></event>
+            <event name="OnIdle"></event>
+            <event name="OnKeyDown"></event>
+            <event name="OnKeyUp"></event>
+            <event name="OnKillFocus"></event>
+            <event name="OnLeaveWindow"></event>
+            <event name="OnLeftDClick"></event>
+            <event name="OnLeftDown"></event>
+            <event name="OnLeftUp"></event>
+            <event name="OnMiddleDClick"></event>
+            <event name="OnMiddleDown"></event>
+            <event name="OnMiddleUp"></event>
+            <event name="OnMotion"></event>
+            <event name="OnMouseEvents"></event>
+            <event name="OnMouseWheel"></event>
+            <event name="OnPaint">OnPaint</event>
+            <event name="OnRightDClick"></event>
+            <event name="OnRightDown"></event>
+            <event name="OnRightUp"></event>
+            <event name="OnSetFocus"></event>
+            <event name="OnSize"></event>
+            <event name="OnUpdateUI"></event>
         </object>
     </object>
 </wxFormBuilder_Project>
