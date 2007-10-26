@@ -22,9 +22,9 @@
 #include <wx/sizer.h>
 #include <wx/statbox.h>
 #include <wx/panel.h>
+#include <wx/button.h>
 #include <wx/grid.h>
 #include <wx/bmpbuttn.h>
-#include <wx/button.h>
 #include <wx/choice.h>
 #include <wx/slider.h>
 #include <wx/listbox.h>
@@ -74,6 +74,7 @@ class MainFrame_Base : public wxFrame
 		wxStaticText* m_staticText1221;
 		wxTextCtrl* ExperimentNotes;
 		wxPanel* VideoPreviewPanel;
+		wxButton* ExtractFrameButton;
 		
 		wxGrid* MediaGrid;
 		wxPanel* CapturePane;
@@ -128,6 +129,7 @@ class MainFrame_Base : public wxFrame
 		virtual void OnPageChanging( wxNotebookEvent& event ){ event.Skip(); }
 		virtual void OnExperimentChange( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnTitleEdit( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnExtractFrame( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnExperimentChangeCell( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnMediaCellLeftClick( wxGridEvent& event ){ event.Skip(); }
 		virtual void OnMediaCellDoubleLeftClick( wxGridEvent& event ){ event.Skip(); }

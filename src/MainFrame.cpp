@@ -1176,6 +1176,54 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
     AnalysisGrid->GetContainingSizer()->Layout();
 }
 
+// Extract frame button...
+void MainFrame::OnExtractFrame(wxCommandEvent &Event)
+{
+    // Variables...
+    CvCapture  *pCapture    = NULL;
+
+    // Pause the video...
+    pMediaPlayer->Pause();
+
+    // Initialize capture from AVI...
+    pCapture = cvCreateFileCapture(sCurrentMediaPath.fn_str());
+
+        // Failed...
+        if(!pCapture)
+            return;
+    
+    // Seek...
+    cvSetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC, pMediaPlayer->Tell());
+    
+    // Retrieve the captured image...
+    IplImage const *pOriginalImage = cvQueryFrame(pCapture);
+    
+        // Can't read it...
+        if(!pOriginalImage)
+        {
+            // Cleanup and abort...
+            cvReleaseCapture(&pCapture);
+            return;
+        }
+
+    // Convert to grayscale 8-bit unsigned format...
+
+        // Allocate blank grayscale image...
+        IplImage *pGrayImage = 
+                    cvCreateImage(cvGetSize(pOriginalImage), IPL_DEPTH_8U, 1);
+
+        // Convert original to grayscale...
+        cvConvertImage(pOriginalImage, pGrayImage);
+
+    // Release the capture...
+    cvReleaseCapture(&pCapture);
+
+    cvSaveImage("/home/kip/Desktop/foo.png", pGrayImage);
+        
+    // Release the grayscale image...
+    cvReleaseImage(&pGrayImage);
+}
+
 // User has selected to go fullscreen...
 void MainFrame::OnFullScreen(wxCommandEvent &Event)
 {
@@ -1272,6 +1320,8 @@ void MainFrame::OnMediaLoaded(wxMediaEvent& Event)
     if(pMediaPlayer)
         pMediaPlayer->ShowPlayerControls();
     
+    // Enable the extract frame button...
+    ExtractFrameButton->Enable();
 }
 
 // Media has stopped...
@@ -1376,6 +1426,9 @@ void MainFrame::OnPlay(wxCommandEvent &Event)
                          "codec or is corrupt?"));
         return;
     }
+    
+    // Store the file name for extract frame button...
+    sCurrentMediaPath = sPath;
 
     // Update media length in the media grid...
 

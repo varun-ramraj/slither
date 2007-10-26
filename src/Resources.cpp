@@ -163,6 +163,12 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	VideoPreviewSizer->Add( VideoPreviewPanel, 1, wxALL|wxEXPAND|wxSHAPED|wxALIGN_CENTER_HORIZONTAL, 5 );
 	
+	ExtractFrameButton = new wxButton( DataPane, wxID_ANY, wxT("Extract Frame"), wxDefaultPosition, wxDefaultSize, 0 );
+	ExtractFrameButton->Enable( false );
+	ExtractFrameButton->SetToolTip( wxT("Click this to extract the currently displayed image in the playback window to your list of media...") );
+	
+	VideoPreviewSizer->Add( ExtractFrameButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
+	
 	DataPaneTopSizer->Add( VideoPreviewSizer, 1, wxEXPAND, 5 );
 	
 	DataPaneSizer->Add( DataPaneTopSizer, 1, wxEXPAND, 5 );
@@ -499,6 +505,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	EmbeddedMedia->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnTitleEdit ), NULL, this );
 	TotalSize->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnTitleEdit ), NULL, this );
 	ExperimentNotes->Connect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnExperimentChange ), NULL, this );
+	ExtractFrameButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnExtractFrame ), NULL, this );
 	MediaGrid->Connect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( MainFrame_Base::OnExperimentChangeCell ), NULL, this );
 	MediaGrid->Connect( wxEVT_GRID_CELL_LEFT_CLICK, wxGridEventHandler( MainFrame_Base::OnMediaCellLeftClick ), NULL, this );
 	MediaGrid->Connect( wxEVT_GRID_CELL_LEFT_DCLICK, wxGridEventHandler( MainFrame_Base::OnMediaCellDoubleLeftClick ), NULL, this );

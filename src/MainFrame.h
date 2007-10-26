@@ -157,6 +157,9 @@ class MainFrame : public MainFrame_Base
         void OnRemove(wxCommandEvent &Event);
         void OnRename(wxCommandEvent &Event);
 
+        // Extract frame button...
+        void OnExtractFrame(wxCommandEvent &Event);
+
         // Experiment has changed handler...
         void OnExperimentChange(wxCommandEvent &Event);
         void OnExperimentChangeCell(wxGridEvent &Event);
@@ -272,6 +275,9 @@ class MainFrame : public MainFrame_Base
 
     // Protected stuff...
     protected:
+        
+        // The path to the current media in the playback window...
+        wxString                sCurrentMediaPath;
         
         // Image analysis window...
         ImageAnalysisWindow    *pImageAnalysisWindow;
