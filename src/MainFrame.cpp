@@ -1206,18 +1206,6 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
             return;
         }
 
-    // Convert to grayscale 8-bit unsigned format...
-
-        // Allocate blank grayscale image...
-        IplImage *pGrayImage = 
-                    cvCreateImage(cvGetSize(pOriginalImage), IPL_DEPTH_8U, 1);
-
-        // Convert original to grayscale...
-        cvConvertImage(pOriginalImage, pGrayImage);
-
-    // Release the capture...
-    cvReleaseCapture(&pCapture);
-
     // Prompt user to add it now...
 
         // Remove old, if present...
@@ -1225,10 +1213,7 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
             ::wxRemoveFile(wxT("Frame.png"));
 
         // Save to temporary file name..
-        cvSaveImage("Frame.png", pGrayImage);
-
-        // Release the grayscale image...
-        cvReleaseImage(&pGrayImage);
+        cvSaveImage("Frame.png", pOriginalImage);
 
         // Get the media grid drop target...
         MediaGridDropTarget *pDropTarget = 
@@ -1242,6 +1227,9 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
         // Cleanup...
         if(::wxFileExists(wxT("Frame.png")))
             ::wxRemoveFile(wxT("Frame.png"));
+
+    // Release the capture...
+    cvReleaseCapture(&pCapture);
 }
 
 // User has selected to go fullscreen...
