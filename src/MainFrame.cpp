@@ -1218,10 +1218,30 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
     // Release the capture...
     cvReleaseCapture(&pCapture);
 
-    cvSaveImage("/home/kip/Desktop/foo.png", pGrayImage);
+    // Prompt user to add it now...
+
+        // Remove old, if present...
+        if(::wxFileExists(wxT("Frame.png")))
+            ::wxRemoveFile(wxT("Frame.png"));
+
+        // Save to temporary file name..
+        cvSaveImage("Frame.png", pGrayImage);
+
+        // Release the grayscale image...
+        cvReleaseImage(&pGrayImage);
+
+        // Get the media grid drop target...
+        MediaGridDropTarget *pDropTarget = 
+            (MediaGridDropTarget *) GetDropTarget();
         
-    // Release the grayscale image...
-    cvReleaseImage(&pGrayImage);
+        // Prompt to add...
+        wxArrayString sFileNameArray;
+        sFileNameArray.Add(wxT("Frame.png"));
+        pDropTarget->OnDropFiles(0, 0, sFileNameArray);
+
+        // Cleanup...
+        if(::wxFileExists(wxT("Frame.png")))
+            ::wxRemoveFile(wxT("Frame.png"));
 }
 
 // User has selected to go fullscreen...
@@ -1320,8 +1340,10 @@ void MainFrame::OnMediaLoaded(wxMediaEvent& Event)
     if(pMediaPlayer)
         pMediaPlayer->ShowPlayerControls();
     
-    // Enable the extract frame button...
+    // Enable the extract frame button... (only works on non-gtk backend)
+    #ifndef __LINUX__
     ExtractFrameButton->Enable();
+    #endif
 }
 
 // Media has stopped...
