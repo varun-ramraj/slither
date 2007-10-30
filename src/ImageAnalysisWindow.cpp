@@ -15,8 +15,13 @@ ImageAnalysisWindow::ImageAnalysisWindow(MainFrame *Parent)
     :   ImageAnalysisWindow_Base(Parent),
         Bitmap(slither_xpm)
 {
-    // For now, resize window for default image
-    SetSize(Bitmap.GetWidth(), Bitmap.GetHeight());
+printf("%s\n", __PRETTY_FUNCTION__);
+    // For now, resize window for default image...
+    SetClientSize(Bitmap.GetWidth(), Bitmap.GetHeight());
+    
+    // Repaint now...
+    Refresh();
+    Update();
 }
 
 // Close command event handler...
@@ -40,6 +45,23 @@ void ImageAnalysisWindow::OnPaint(wxPaintEvent &Event)
     // Prepare device context...
     wxPaintDC DeviceContext(this);
 
+    // Get the bitmap size...
+    wxSize const ImageSize(Bitmap.GetWidth(), Bitmap.GetHeight());
+
+    // Not the right size yet...
+    if(GetClientSize() != ImageSize)
+    {
+        // Resize the window...
+        SetClientSize(Bitmap.GetWidth(), Bitmap.GetHeight());
+        
+        // Repaint now...
+        Refresh();
+        Update();
+        
+        // Done...
+        return;
+    }
+
     // Draw our bitmap...
     DeviceContext.DrawBitmap(Bitmap, 0, 0, true);
 }
@@ -58,19 +80,20 @@ void ImageAnalysisWindow::SetImage(IplImage const &IntelImage)
     wxImage Image = wxImage(IntelImage.width, IntelImage.height, pRawImageData, 
                             true);
 
-    // Turn the image into a bitmap, scaled to the panel's dimensions...
+    // Turn the image into a bitmap...
     Bitmap = wxBitmap(Image);
     
     // Resize the window...
-    SetSize(Bitmap.GetWidth(), Bitmap.GetHeight());
+    SetClientSize(Bitmap.GetWidth(), Bitmap.GetHeight());
     
-    // Repaint when we get a chance...
+    // Repaint now...
     Refresh();
+    Update();
 }
 
 // Deconstructor...
 ImageAnalysisWindow::~ImageAnalysisWindow()
 {
-
+printf("%s\n", __PRETTY_FUNCTION__);
 }
 

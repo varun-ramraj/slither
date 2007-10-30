@@ -242,8 +242,6 @@ class MainFrame : public MainFrame_Base
             ID_RENAME,
             ID_STOP,
             ID_CAPTURE_FRAME_READY,
-            ID_START_ANALYSIS,
-            ID_STOP_ANALYSIS,
             ID_ANALYSIS_ENDED,
             ID_ANALYSIS_COPY_CLIPBOARD
         };

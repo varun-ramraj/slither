@@ -50,12 +50,6 @@ class MainFrame_Base : public wxFrame
 			ID_FULLSCREEN,
 			ID_TOGGLE_IMAGE_ANALYSIS_WINDOW,
 			ID_CAPTURE,
-			ID_TITLE,
-			ID_EMBEDDEDVIDEOS,
-			ID_TOTALSIZE,
-			ID_NOTES,
-			ID_START_ANALYSIS,
-			ID_STOP_ANALYSIS,
 		};
 		
 		wxMenuBar* MenuBar;

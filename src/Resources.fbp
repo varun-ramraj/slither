@@ -656,7 +656,7 @@
                                                                     <property name="fg"></property>
                                                                     <property name="font"></property>
                                                                     <property name="hidden">0</property>
-                                                                    <property name="id">ID_TITLE</property>
+                                                                    <property name="id">wxID_ANY</property>
                                                                     <property name="maximum_size"></property>
                                                                     <property name="maxlength">128</property>
                                                                     <property name="minimum_size"></property>
@@ -762,7 +762,7 @@
                                                                     <property name="fg"></property>
                                                                     <property name="font"></property>
                                                                     <property name="hidden">0</property>
-                                                                    <property name="id">ID_EMBEDDEDVIDEOS</property>
+                                                                    <property name="id">wxID_ANY</property>
                                                                     <property name="maximum_size"></property>
                                                                     <property name="maxlength">128</property>
                                                                     <property name="minimum_size"></property>
@@ -868,7 +868,7 @@
                                                                     <property name="fg"></property>
                                                                     <property name="font"></property>
                                                                     <property name="hidden">0</property>
-                                                                    <property name="id">ID_TOTALSIZE</property>
+                                                                    <property name="id">wxID_ANY</property>
                                                                     <property name="maximum_size"></property>
                                                                     <property name="maxlength">128</property>
                                                                     <property name="minimum_size"></property>
@@ -974,7 +974,7 @@
                                                                     <property name="fg"></property>
                                                                     <property name="font"></property>
                                                                     <property name="hidden">0</property>
-                                                                    <property name="id">ID_NOTES</property>
+                                                                    <property name="id">wxID_ANY</property>
                                                                     <property name="maximum_size"></property>
                                                                     <property name="maxlength">4096</property>
                                                                     <property name="minimum_size">-1,-1</property>
@@ -1646,7 +1646,7 @@
                                         <property name="border">5</property>
                                         <property name="flag">wxEXPAND|wxFIXED_MINSIZE</property>
                                         <property name="proportion">0</property>
-                                        <object class="wxBoxSizer" expanded="0">
+                                        <object class="wxBoxSizer" expanded="1">
                                             <property name="minimum_size"></property>
                                             <property name="name">bSizer7</property>
                                             <property name="orient">wxHORIZONTAL</property>
@@ -1655,7 +1655,7 @@
                                                 <property name="border">5</property>
                                                 <property name="flag">wxALL|wxEXPAND</property>
                                                 <property name="proportion">1</property>
-                                                <object class="wxStaticBoxSizer" expanded="0">
+                                                <object class="wxStaticBoxSizer" expanded="1">
                                                     <property name="label">Setup:</property>
                                                     <property name="minimum_size"></property>
                                                     <property name="name">AnalysisSetupSizer</property>
@@ -1997,7 +1997,7 @@
                                                         <property name="border">5</property>
                                                         <property name="flag">wxEXPAND</property>
                                                         <property name="proportion">0</property>
-                                                        <object class="wxStaticBoxSizer" expanded="0">
+                                                        <object class="wxStaticBoxSizer" expanded="1">
                                                             <property name="label">Processor Throttle:</property>
                                                             <property name="minimum_size"></property>
                                                             <property name="name">sbSizer10</property>
@@ -2195,7 +2195,7 @@
                                                 <property name="border">5</property>
                                                 <property name="flag">wxALL|wxEXPAND</property>
                                                 <property name="proportion">1</property>
-                                                <object class="wxStaticBoxSizer" expanded="0">
+                                                <object class="wxStaticBoxSizer" expanded="1">
                                                     <property name="label">Status:</property>
                                                     <property name="minimum_size"></property>
                                                     <property name="name">StatusSizer</property>
@@ -2205,7 +2205,7 @@
                                                         <property name="border">5</property>
                                                         <property name="flag">wxEXPAND</property>
                                                         <property name="proportion">1</property>
-                                                        <object class="wxBoxSizer" expanded="0">
+                                                        <object class="wxBoxSizer" expanded="1">
                                                             <property name="minimum_size"></property>
                                                             <property name="name">StatusSizer2</property>
                                                             <property name="orient">wxVERTICAL</property>
@@ -2396,7 +2396,7 @@
                                                                             <property name="fg"></property>
                                                                             <property name="font"></property>
                                                                             <property name="hidden">0</property>
-                                                                            <property name="id">ID_START_ANALYSIS</property>
+                                                                            <property name="id">wxID_ANY</property>
                                                                             <property name="label">Begin</property>
                                                                             <property name="maximum_size"></property>
                                                                             <property name="minimum_size"></property>
@@ -2564,7 +2564,7 @@
                                                                             <property name="fg"></property>
                                                                             <property name="font"></property>
                                                                             <property name="hidden">0</property>
-                                                                            <property name="id">ID_STOP_ANALYSIS</property>
+                                                                            <property name="id">wxID_ANY</property>
                                                                             <property name="label">Cancel</property>
                                                                             <property name="maximum_size"></property>
                                                                             <property name="minimum_size"></property>

@@ -118,7 +118,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText72->Wrap( -1 );
 	GeneralSizer->Add( m_staticText72, 0, wxALL, 5 );
 	
-	ExperimentTitle = new wxTextCtrl( DataPane, ID_TITLE, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), 0 );
+	ExperimentTitle = new wxTextCtrl( DataPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	ExperimentTitle->SetMaxLength( 128 ); 
 	ExperimentTitle->SetToolTip( wxT("Enter a descriptive name for your tap experiment. It can be whatever you like.") );
 	
@@ -128,7 +128,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText92->Wrap( -1 );
 	GeneralSizer->Add( m_staticText92, 0, wxALL, 5 );
 	
-	EmbeddedMedia = new wxTextCtrl( DataPane, ID_EMBEDDEDVIDEOS, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_CENTRE|wxTE_READONLY );
+	EmbeddedMedia = new wxTextCtrl( DataPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_CENTRE|wxTE_READONLY );
 	EmbeddedMedia->SetMaxLength( 128 ); 
 	EmbeddedMedia->SetToolTip( wxT("This is the total number of videos in your experiment.") );
 	
@@ -138,7 +138,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText911->Wrap( -1 );
 	GeneralSizer->Add( m_staticText911, 0, wxALL, 5 );
 	
-	TotalSize = new wxTextCtrl( DataPane, ID_TOTALSIZE, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_CENTRE|wxTE_READONLY );
+	TotalSize = new wxTextCtrl( DataPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_CENTRE|wxTE_READONLY );
 	TotalSize->SetMaxLength( 128 ); 
 	TotalSize->SetToolTip( wxT("This is the combined size of all of your microscope videos, indicating the size of your experiment.") );
 	
@@ -148,7 +148,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText1221->Wrap( -1 );
 	GeneralSizer->Add( m_staticText1221, 0, wxALL, 5 );
 	
-	ExperimentNotes = new wxTextCtrl( DataPane, ID_NOTES, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_MULTILINE );
+	ExperimentNotes = new wxTextCtrl( DataPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize( -1,-1 ), wxTE_MULTILINE );
 	ExperimentNotes->SetMaxLength( 4096 ); 
 	ExperimentNotes->SetToolTip( wxT("You may enter notes specific to this experiment here.") );
 	
@@ -387,7 +387,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	StatusFlexSizer->Add( AnalysisCurrentFrameStatus, 1, wxALL, 5 );
 	
-	BeginAnalysisButton = new wxButton( AnalysisPane, ID_START_ANALYSIS, wxT("Begin"), wxDefaultPosition, wxDefaultSize, 0 );
+	BeginAnalysisButton = new wxButton( AnalysisPane, wxID_ANY, wxT("Begin"), wxDefaultPosition, wxDefaultSize, 0 );
 	StatusFlexSizer->Add( BeginAnalysisButton, 0, wxALL, 5 );
 	
 	
@@ -402,7 +402,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	StatusFlexSizer->Add( AnalysisRateStatus, 1, wxALL, 5 );
 	
-	CancelAnalysisButton = new wxButton( AnalysisPane, ID_STOP_ANALYSIS, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
+	CancelAnalysisButton = new wxButton( AnalysisPane, wxID_ANY, wxT("Cancel"), wxDefaultPosition, wxDefaultSize, 0 );
 	CancelAnalysisButton->Enable( false );
 	
 	StatusFlexSizer->Add( CancelAnalysisButton, 0, wxALL, 5 );

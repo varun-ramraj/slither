@@ -294,7 +294,7 @@ MainFrame::MainFrame(wxWindow *Parent)
             return;*/
 
         // Disable the check for update menu item...
-        GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
+//        GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
         
         // Run the update thread...
         /*pUpdateThread->Run();*/
@@ -1814,8 +1814,9 @@ void MainFrame::OnClose(wxCommandEvent &Event)
     }
 
     // Stop the analysis and capture threads if running...
-    ProcessCommand(ID_STOP_ANALYSIS);
-    
+    wxCommandEvent DummyEvent;
+    CancelAnalysisButton->Command(DummyEvent);
+
     // Remove current experiment...
     delete pExperiment;
     pExperiment = NULL;
