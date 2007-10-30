@@ -138,6 +138,7 @@ class MainFrame : public MainFrame_Base
         // Menu and button handlers...
         void OnNew(wxCommandEvent &Event);
         void OnOpen(wxCommandEvent &Event);
+        void OnImportMedia(wxCommandEvent &Event);
         void OnSave(wxCommandEvent &Event);
         void OnSaveAs(wxCommandEvent &Event);
         void OnRevert(wxCommandEvent &Event);

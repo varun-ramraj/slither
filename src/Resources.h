@@ -46,7 +46,8 @@ class MainFrame_Base : public wxFrame
 	protected:
 		enum
 		{
-			ID_FULLSCREEN = 1000,
+			ID_IMPORT_MEDIA = 1000,
+			ID_FULLSCREEN,
 			ID_TOGGLE_IMAGE_ANALYSIS_WINDOW,
 			ID_CAPTURE,
 			ID_TITLE,
@@ -117,6 +118,7 @@ class MainFrame_Base : public wxFrame
 		virtual void OnSize( wxSizeEvent& event ){ event.Skip(); }
 		virtual void OnNew( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnOpen( wxCommandEvent& event ){ event.Skip(); }
+		virtual void OnImportMedia( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSave( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnSaveAs( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnRevert( wxCommandEvent& event ){ event.Skip(); }

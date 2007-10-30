@@ -115,7 +115,7 @@
                 <event name="OnSetFocus"></event>
                 <event name="OnSize"></event>
                 <event name="OnUpdateUI"></event>
-                <object class="wxMenu" expanded="0">
+                <object class="wxMenu" expanded="1">
                     <property name="label">&amp;File</property>
                     <property name="name">FileMenu</property>
                     <property name="permission">protected</property>
@@ -145,6 +145,21 @@
                         <property name="shortcut">Ctrl+O</property>
                         <property name="unchecked_bitmap"></property>
                         <event name="OnMenuSelection">OnOpen</event>
+                        <event name="OnUpdateUI"></event>
+                    </object>
+                    <object class="separator" expanded="1" />
+                    <object class="wxMenuItem" expanded="1">
+                        <property name="bitmap"></property>
+                        <property name="checked">0</property>
+                        <property name="enabled">1</property>
+                        <property name="help">Import new media into the experiment...</property>
+                        <property name="id">ID_IMPORT_MEDIA</property>
+                        <property name="kind">wxITEM_NORMAL</property>
+                        <property name="label">&amp;Import Media</property>
+                        <property name="name">ImportMediaMenuItem</property>
+                        <property name="shortcut">Ctrl-m</property>
+                        <property name="unchecked_bitmap"></property>
+                        <event name="OnMenuSelection">OnImportMedia</event>
                         <event name="OnUpdateUI"></event>
                     </object>
                     <object class="separator" expanded="1" />

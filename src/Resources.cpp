@@ -38,6 +38,10 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	FileMenu->Append( OpenMenuItem );
 	
 	FileMenu->AppendSeparator();
+	wxMenuItem* ImportMediaMenuItem = new wxMenuItem( FileMenu, ID_IMPORT_MEDIA, wxString( wxT("&Import Media") ) + wxT('\t') + wxT("Ctrl-m"), wxT("Import new media into the experiment..."), wxITEM_NORMAL );
+	FileMenu->Append( ImportMediaMenuItem );
+	
+	FileMenu->AppendSeparator();
 	wxMenuItem* SaveMenuItem = new wxMenuItem( FileMenu, wxID_SAVE, wxString( wxT("&Save") ) + wxT('\t') + wxT("Ctrl+S"), wxT("Save experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( SaveMenuItem );
 	wxMenuItem* SaveAsMenuItem = new wxMenuItem( FileMenu, wxID_SAVEAS, wxString( wxT("Save &As") ) + wxT('\t') + wxT("Shift+Ctrl+S"), wxT("Save an experiment as..."), wxITEM_NORMAL );
@@ -486,6 +490,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	this->Connect( wxEVT_SIZE, wxSizeEventHandler( MainFrame_Base::OnSize ) );
 	this->Connect( NewMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnNew ) );
 	this->Connect( OpenMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnOpen ) );
+	this->Connect( ImportMediaMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnImportMedia ) );
 	this->Connect( SaveMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSave ) );
 	this->Connect( SaveAsMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSaveAs ) );
 	this->Connect( RevertMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnRevert ) );

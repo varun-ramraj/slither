@@ -89,6 +89,7 @@ wxString Experiment::CreateTempDirectory() const
 void Experiment::EnableUI(bool bEnable, bool bReset)
 {
     // Toggle menus...
+    pMainFrame->GetMenuBar()->Enable(MainFrame::ID_IMPORT_MEDIA, bEnable);
     pMainFrame->GetMenuBar()->Enable(wxID_SAVE, bEnable);
     pMainFrame->GetMenuBar()->Enable(wxID_SAVEAS, bEnable);
     pMainFrame->GetMenuBar()->Enable(wxID_REVERT, bEnable);

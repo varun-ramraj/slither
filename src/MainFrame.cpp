@@ -214,8 +214,8 @@ MainFrame::MainFrame(wxWindow *Parent)
                     wxMediaEventHandler(MainFrame::OnMediaPlay), (wxObject*) 0, 
                     this);
 
-        // Enable it for drag and drop...
-        SetDropTarget(new MediaGridDropTarget(this));
+    // Enable it for drag and drop...
+    SetDropTarget(new MediaGridDropTarget(this));
 
     // Configure recording buttons...
     RecordButton->SetBitmapLabel(record_60x60_xpm);
@@ -1242,6 +1242,33 @@ void MainFrame::OnFullScreen(wxCommandEvent &Event)
     // Resize the media player because Quicktime is shit...
     if(pMediaPlayer)
         pMediaPlayer->SetSize(VideoPreviewPanel->GetSize());
+}
+
+// User selected to import media from menu...
+void MainFrame::OnImportMedia(wxCommandEvent &Event)
+{
+    // Variables...
+    wxArrayString   sFileNameArray;
+
+    // Prepare import dialog...
+    wxFileDialog FileDialog(this, wxT("Please select media to import..."), 
+      ::wxGetApp().StandardPaths.GetDocumentsDir(), wxEmptyString, 
+        wxT("Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|"
+            "Videos (*.mov;*.avi;*.mpg;*.mpeg)|*.mov;*.avi;*.mpg;*.mpeg"),
+        wxOPEN | wxFD_PREVIEW | wxMULTIPLE | wxFD_FILE_MUST_EXIST);
+
+    // Show open dialog and check if user hit cancel...
+    if(wxID_CANCEL == FileDialog.ShowModal())
+        return;
+                
+    // Store the file names...
+    FileDialog.GetPaths(sFileNameArray);
+            
+    // Get the media grid drop target...
+    MediaGridDropTarget *pDropTarget = (MediaGridDropTarget *) GetDropTarget();
+        
+    // Prompt to add...
+    pDropTarget->OnDropFiles(0, 0, sFileNameArray);
 }
 
 // Get the total size of all media in the media grid...
