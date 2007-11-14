@@ -10,8 +10,8 @@ project.bindir = "./"
 -- Some global variables...
 PACKAGE             = "slither"
 PACKAGE_NAME        = "Slither"
-PACKAGE_VERSION     = "0.0.43a"
-PACKAGE_STRING      = "Slither 0.0.43a"
+PACKAGE_VERSION     = "0.0.44a"
+PACKAGE_STRING      = "Slither 0.0.44a"
 
 wxBinaryToolsPrefix = ""
 

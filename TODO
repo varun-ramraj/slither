@@ -12,8 +12,8 @@ on
 - Move our math routines out of Worm and Tracker classes to global
   WormMath namespace...
 * Fix Mac spell check hooking UI
-- Analyze specific frame out of video
+* Analyze specific frame out of video
 * JPEG support
 * Check for update on mac crash
 * Copy / paste from results
-- Fix crash in analysis window being closed and then re-opened on next analysis...
+* Fix crash in analysis window being closed and then re-opened on next analysis...
