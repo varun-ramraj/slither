@@ -16,7 +16,7 @@ AnalysisThread::AnalysisThread(MainFrame &_Frame)
       pCapture(NULL)
 {
     // Reset the tracker, if not already...
-    Frame.Tracker.Reset();
+    Frame.Tracker.Reset(0);
     
     // Initiate the analysis timer...
     Frame.AnalysisTimer.Start(100, wxTIMER_CONTINUOUS);
@@ -68,6 +68,9 @@ void AnalysisThread::AnalyzeImage(wxString sPath)
     IplImage           *pGrayImage              = NULL;
     wxString            sTemp;
 
+    // Reset the tracker, if not already...
+    Frame.Tracker.Reset(0);
+
     // Load the image...
     pGrayImage = cvLoadImage(sPath.mb_str(), CV_LOAD_IMAGE_GRAYSCALE);
 
@@ -109,6 +112,10 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
             // Abort...
             return;
         }
+
+    // Reset the tracker, if not already...
+    Frame.Tracker.Reset((unsigned int) 
+        cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT));
 
     // Start the analysis stop watch...
     StatusUpdateStopWatch.Start();

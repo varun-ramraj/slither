@@ -17,7 +17,9 @@ WormTracker::WormTracker()
     : fFieldOfViewDiameter(0.0f),
       pGrayImage(NULL),
       pThinkingImage(NULL),
-      unWormsJustAdded(0)
+      unWormsJustAdded(0),
+      unCurrentFrame(0),
+      unTotalFrames(0)
 {
     // Initialize the thinking label font...
     
@@ -197,6 +199,9 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         cvPutText(pThinkingImage, "1 mm", 
                     cvPoint(50 + unLegendLength + 5, ImageSize.height - 3), 
                     &ThinkingLabelFont, CV_RGB(0x00, 0x00, 0xff));
+
+    // Advance frame counter...
+  ++unCurrentFrame;
 }
 
 // Convert from pixels to millimeters...
@@ -251,6 +256,16 @@ unsigned int const WormTracker::CountRectanglesIntersected(
     return unIntersections;
 }
 
+// Get the current frame index...
+unsigned int const WormTracker::GetCurrentFrameIndex() const
+{
+    // Lock resources...
+    wxMutexLocker   Lock(ResourcesMutex);
+
+    // Return count...
+    return unCurrentFrame;
+}
+
 // Get a copy of the current thinking image. Caller frees...
 IplImage *WormTracker::GetThinkingImage() const
 {
@@ -268,6 +283,16 @@ IplImage *WormTracker::GetThinkingImage() const
     // Otherwise, no thinking image available yet...
     else
         return NULL;
+}
+
+// Get the total number of frames...
+unsigned int const WormTracker::GetTotalFrames() const
+{
+    // Lock resources...
+    wxMutexLocker   Lock(ResourcesMutex);
+
+    // Return count...
+    return unTotalFrames;
 }
 
 // Get the nth worm, or null worm if no more...
@@ -415,7 +440,7 @@ unsigned int WormTracker::Tracking() const
 }
 
 // Reset the tracker...
-void WormTracker::Reset()
+void WormTracker::Reset(unsigned int const _unTotalFrames)
 {
     // Lock resources...
     wxMutexLocker   Lock(ResourcesMutex);
@@ -446,6 +471,10 @@ void WormTracker::Reset()
         
     // Worms just added in this frame...
     unWormsJustAdded = 0;
+    
+    // Reset current frame and total count...
+    unCurrentFrame  = 0;
+    unTotalFrames   = _unTotalFrames;
 }
 
 // Set the field of view diameter...

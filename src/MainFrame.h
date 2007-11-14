@@ -120,6 +120,9 @@ class MainFrame : public MainFrame_Base
         static int wxCMPFUNC_CONV 
             CompareIntegers(int *pnFirst, int *pnSecond);
 
+        // Get the analysis results formatted into a string...
+        wxString const GetAnalysisResults();
+
         // Get the total size of all media in the media grid...
         wxULongLong GetTotalMediaSize();
 
@@ -192,6 +195,7 @@ class MainFrame : public MainFrame_Base
         void OnBeginAnalysis(wxCommandEvent &Event);
         void OnAnalysisCellRightClick(wxGridEvent &Event);
         void OnAnalysisCopyClipboard(wxCommandEvent &Event);
+        void OnAnalysisSaveToDisk(wxCommandEvent &Event);
         void OnAnalysisFrameReadyTimer(wxTimerEvent &Event);
         void OnCancelAnalysis(wxCommandEvent &Event);
         void OnEndAnalysis(wxCommandEvent &Event);
@@ -243,7 +247,8 @@ class MainFrame : public MainFrame_Base
             ID_STOP,
             ID_CAPTURE_FRAME_READY,
             ID_ANALYSIS_ENDED,
-            ID_ANALYSIS_COPY_CLIPBOARD
+            ID_ANALYSIS_COPY_CLIPBOARD,
+            ID_ANALYSIS_SAVE_TO_DISK
         };
         
         // Timer IDs...

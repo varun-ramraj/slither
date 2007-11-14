@@ -12,10 +12,11 @@
 #include <wx/dcbuffer.h>
 #include <wx/clipbrd.h>
 #include <wx/tokenzr.h>
+#include <iostream>
+#include <fstream>
 
 // Bitmaps...
 #include "resources/analyze_32x32.xpm"
-#include "resources/clipboard_32x32.xpm"
 #include "resources/play_32x32.xpm"
 #include "resources/record_60x60.xpm"
 #include "resources/remove_32x32.xpm"
@@ -36,28 +37,33 @@
 BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
 
     // Toolbar and menu events...
-    EVT_MENU                (ID_CHECK_FOR_UPDATE,           MainFrame::OnCheckForUpdate)
-    EVT_BUTTON              (ID_CHECK_FOR_UPDATE_DONE,      MainFrame::OnCheckForUpdateDone)
+    EVT_MENU                (ID_CHECK_FOR_UPDATE, MainFrame::OnCheckForUpdate)
+    EVT_BUTTON              (ID_CHECK_FOR_UPDATE_DONE,
+                                MainFrame::OnCheckForUpdateDone)
     
     // Media grid popup menu events...
-    EVT_MENU                (ID_ANALYZE,                    MainFrame::OnAnalyze)
-    EVT_MENU                (ID_PLAY,                       MainFrame::OnPlay)
-    EVT_MENU                (ID_REMOVE,                     MainFrame::OnRemove)
-    EVT_MENU                (ID_RENAME,                     MainFrame::OnRename)    
-    EVT_MENU                (ID_STOP,                       MainFrame::OnStop)
+    EVT_MENU                (ID_ANALYZE, MainFrame::OnAnalyze)
+    EVT_MENU                (ID_PLAY, MainFrame::OnPlay)
+    EVT_MENU                (ID_REMOVE, MainFrame::OnRemove)
+    EVT_MENU                (ID_RENAME, MainFrame::OnRename)    
+    EVT_MENU                (ID_STOP, MainFrame::OnStop)
 
     // Frame moving or resizing...
-    EVT_MOVE                (                               MainFrame::OnMove)
+    EVT_MOVE                (MainFrame::OnMove)
 
     // Capture...
-    EVT_TIMER               (TIMER_CAPTURE,                 MainFrame::OnCaptureFrameReadyTimer)
+    EVT_TIMER               (TIMER_CAPTURE, MainFrame::OnCaptureFrameReadyTimer)
 
     // Analysis grid popup menu events...
-    EVT_MENU                (ID_ANALYSIS_COPY_CLIPBOARD,    MainFrame::OnAnalysisCopyClipboard)
+    EVT_MENU                (ID_ANALYSIS_COPY_CLIPBOARD,
+                                MainFrame::OnAnalysisCopyClipboard)
+    EVT_MENU                (ID_ANALYSIS_SAVE_TO_DISK,
+                                MainFrame::OnAnalysisSaveToDisk)
 
     // Analysis...
-    EVT_BUTTON              (ID_ANALYSIS_ENDED,             MainFrame::OnEndAnalysis)
-    EVT_TIMER               (TIMER_ANALYSIS,                MainFrame::OnAnalysisFrameReadyTimer)
+    EVT_BUTTON              (ID_ANALYSIS_ENDED, MainFrame::OnEndAnalysis)
+    EVT_TIMER               (TIMER_ANALYSIS, 
+                                MainFrame::OnAnalysisFrameReadyTimer)
 
 END_EVENT_TABLE()
 
@@ -347,15 +353,25 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
     }
 
     // Create popup menu...
-    wxMenu Menu;
+    wxMenu      Menu;
+    wxMenuItem *pMenuItem   = NULL;
         
-        // Copy to clipboard...
-        wxMenuItem *pCopyClipboardItem = 
-            new wxMenuItem(&Menu, ID_ANALYSIS_COPY_CLIPBOARD, 
-                           wxT("&Copy all to clipboard"));
-        pCopyClipboardItem->SetBitmap(clipboard_32x32_xpm);
-        Menu.Append(pCopyClipboardItem);
+        // Copy to clipboard and check for stable support...
+        pMenuItem = new wxMenuItem(&Menu, ID_ANALYSIS_COPY_CLIPBOARD, 
+                                   wxT("&Copy to clipboard"));
+        pMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_MENU));
+        #ifdef __WXMAC__ && !wxCHECK_VERSION(2,8,7)
+        pMenuItem->Enable(false);
+        #endif
+        Menu.Append(pMenuItem);
         
+        // Save to file...
+        pMenuItem = new wxMenuItem(&Menu, ID_ANALYSIS_SAVE_TO_DISK, 
+                                   wxT("&Save to file"));
+        pMenuItem->SetBitmap(
+            wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_MENU));
+        Menu.Append(pMenuItem);
+
     // Popup menu...
     AnalysisGrid->PopupMenu(&Menu, Event.GetPosition());
 }
@@ -364,61 +380,36 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
 void MainFrame::OnAnalysisCopyClipboard(wxCommandEvent &Event)
 {
     // Variables...
-    wxString    Contents;
+    wxString    sContents;
+    
+    // Lock the clipboard...
+    wxClipboardLocker ClipboardLocker;
 
-    // Try to open the clipboard...
-    if(!wxTheClipboard->Open())
+        // Failed...
+        if(!ClipboardLocker)
+        {
+            // Alert user...
+            wxMessageBox(wxT("Unable to access the clipboard."));
+            
+            // Abort...
+            return;
+        }
+
+    // Check to make sure format is supported...
+    if(!wxTheClipboard->IsSupported(wxDF_TEXT))
     {
         // Alert user...
-        wxMessageBox(wxT("Unable to access the clipboard."));
+        wxMessageBox(wxT("Clipboard format is unsupported."));
         
         // Abort...
         return;
     }
 
-    // Add worm number column label...
-    Contents += wxT("Worm #\t");
+    // Get the contents of the analysis results grid...
+    sContents = GetAnalysisResults();
 
-    // Add column names...
-    for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
-    {
-        // Append column label...
-        Contents += AnalysisGrid->GetColLabelValue(nColumn);
-        
-        // Seperate with a tab if not last column...
-        if(nColumn + 1 < AnalysisGrid->GetNumberCols())
-            Contents += wxT("\t");
-    }
-    
-    // Seperate column names from rest of data...
-    Contents += wxT("\n\n");
-    
-    // Add each row...
-    for(int nRow = 0; nRow < AnalysisGrid->GetNumberRows(); ++nRow)
-    {
-        // Append row label...
-        Contents += AnalysisGrid->GetRowLabelValue(nRow) + wxT("\t");
-        
-        // Add each cell's value...
-        for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
-        {
-            // Append column label...
-            Contents += AnalysisGrid->GetCellValue(nRow, nColumn);
-            
-            // Seperate with a tab if not last column...
-            if(nColumn + 1 < AnalysisGrid->GetNumberCols())
-                Contents += wxT("\t");
-        }
-        
-        // Seperate each row by new line...
-        Contents += wxT("\n");
-    }
-    
     // Add to clipboard...
-    wxTheClipboard->SetData(new wxTextDataObject(Contents));
-
-    // Close the clipboard...
-    wxTheClipboard->Close();
+    wxTheClipboard->SetData(new wxTextDataObject(sContents));
 }
 
 // A frame has just been analyzed and is ready to be displayed...
@@ -462,14 +453,10 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
             }
 
         // Get current position...
-        int const nCurrentFrame = (int) 
-            cvGetCaptureProperty(pAnalysisThread->pCapture, 
-                                 CV_CAP_PROP_POS_FRAMES);
+        int const nCurrentFrame = Tracker.GetCurrentFrameIndex();
 
         // Get total number of frames...
-        int const nTotalFrames = (int) 
-            cvGetCaptureProperty(pAnalysisThread->pCapture, 
-                                 CV_CAP_PROP_FRAME_COUNT);
+        int const nTotalFrames = Tracker.GetTotalFrames();
 
         // Show number tracking...
         sTemp.Printf(wxT("%d"), Tracker.Tracking());
@@ -513,6 +500,42 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
         // Reset the status update timer...
         pAnalysisThread->StatusUpdateStopWatch.Start();
     }
+}
+
+// Save the results of the analysis window to disk...
+void MainFrame::OnAnalysisSaveToDisk(wxCommandEvent &Event)
+{
+    // Cache the last location saved to...
+    static wxString sLastPath = ::wxGetApp().StandardPaths.GetDocumentsDir();
+
+    // Prepare save dialog...
+    wxFileDialog FileDialog(this, wxT("Save analysis results..."), sLastPath, 
+                            ExperimentTitle->GetValue() + 
+                                wxT(" Analysis Results.txt"),
+                            wxT("Tab delimited text file (*.txt)|*.txt"),
+                            wxSAVE | wxOVERWRITE_PROMPT | wxFD_PREVIEW);
+
+        // Show save as dialog and check if user hit cancel...
+        if(wxID_CANCEL == FileDialog.ShowModal())
+            return;
+
+    // Open the file to save to...
+    std::ofstream UserFile(FileDialog.GetPath().fn_str(), 
+                           std::ios::out | std::ios::trunc);
+
+    // Could not open for writing...
+    if(!UserFile.is_open())
+    {
+        // Alert and abort...
+        wxLogError(wxT("There was a problem saving the analysis results."));
+        return;
+    }
+
+    // Write out the file...
+    UserFile << GetAnalysisResults().mb_str();
+
+    // Update the last location saved to...
+    sLastPath = ::wxPathOnly(FileDialog.GetPath());
 }
 
 // Begin analysis button hit...
@@ -1271,6 +1294,54 @@ void MainFrame::OnImportMedia(wxCommandEvent &Event)
     pDropTarget->OnDropFiles(0, 0, sFileNameArray);
 }
 
+// Get the analysis results formatted into a string...
+wxString const MainFrame::GetAnalysisResults()
+{
+    // Variables...
+    wxString sContents;
+    
+    // Add worm number column label...
+    sContents += wxT("Worm #\t");
+
+    // Add column names...
+    for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
+    {
+        // Append column label...
+        sContents += AnalysisGrid->GetColLabelValue(nColumn);
+        
+        // Seperate with a tab if not last column...
+        if(nColumn + 1 < AnalysisGrid->GetNumberCols())
+            sContents += wxT("\t");
+    }
+    
+    // Seperate column names from rest of data...
+    sContents += wxT("\n\n");
+    
+    // Add each row...
+    for(int nRow = 0; nRow < AnalysisGrid->GetNumberRows(); ++nRow)
+    {
+        // Append row label...
+        sContents += AnalysisGrid->GetRowLabelValue(nRow) + wxT("\t");
+        
+        // Add each cell's value...
+        for(int nColumn = 0; nColumn < AnalysisGrid->GetNumberCols(); ++nColumn)
+        {
+            // Append column label...
+            sContents += AnalysisGrid->GetCellValue(nRow, nColumn);
+            
+            // Seperate with a tab if not last column...
+            if(nColumn + 1 < AnalysisGrid->GetNumberCols())
+                sContents += wxT("\t");
+        }
+        
+        // Seperate each row by new line...
+        sContents += wxT("\n");
+    }
+    
+    // Done...
+    return sContents;
+}
+
 // Get the total size of all media in the media grid...
 wxULongLong MainFrame::GetTotalMediaSize()
 {
@@ -1478,7 +1549,6 @@ void MainFrame::OnPlay(wxCommandEvent &Event)
         wxString sDuration;
         sDuration.Printf(wxT("%2i:%02i"), nMinutes, nSeconds);
         MediaGrid->SetCellValue(nRow, LENGTH, sDuration);
-    
 }
 
 // Experiment has changed handler...

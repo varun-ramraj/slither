@@ -52,8 +52,14 @@ class WormTracker
             double              ConvertSquarePixelsToSquareMillimeters(
                                     double const dPixelsSquared) const;
 
+            // Get the current frame index...
+            unsigned int const  GetCurrentFrameIndex() const;
+
             // Get a copy of the current thinking image. Caller frees...
             IplImage           *GetThinkingImage() const;
+            
+            // Get the total number of frames...
+            unsigned int const  GetTotalFrames() const;
 
             // Get the nth worm, or null worm if no more...
             Worm const         &GetWorm(unsigned int const unIndex) const;
@@ -70,7 +76,7 @@ class WormTracker
             unsigned int const  GetWormsAddedSinceLastCheck();
             
             // Reset the tracker...
-            void                Reset();
+            void                Reset(unsigned int const _unTotalFrames);
             
             // Set the field of view diameter...
             void                SetFieldOfViewDiameter(float const fDiameter);
@@ -136,6 +142,10 @@ class WormTracker
         
         // Resources mutex...
         mutable wxMutex     ResourcesMutex;
+        
+        // The current frame and the total number of frames...
+        unsigned int        unCurrentFrame;
+        unsigned int        unTotalFrames;
 };
 
 #endif
