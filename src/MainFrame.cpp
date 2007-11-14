@@ -360,7 +360,7 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
         pMenuItem = new wxMenuItem(&Menu, ID_ANALYSIS_COPY_CLIPBOARD, 
                                    wxT("&Copy to clipboard"));
         pMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_MENU));
-        #ifdef __WXMAC__ && !wxCHECK_VERSION(2,8,7)
+        #ifdef __WXMAC__
         pMenuItem->Enable(false);
         #endif
         Menu.Append(pMenuItem);
