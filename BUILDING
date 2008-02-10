@@ -1,9 +1,3 @@
-Win32 Building
-==============
-
-- Follow these instructions to install wxWidgets in a MinGW / MSYS build
-  environment: http://max.berger.name/howto/wxWidgets/wxWidgets_MinGW.jsp
-
 Ubuntu Feisty Building
 ======================
 
@@ -42,7 +36,7 @@ Mac OS X Building
   external dependencies. It's considered bad practice to 'make install' on a
   Mac, since only Apple's stuff is suppose to be in /usr.
 
-- Building wxWidgets 2.8.6
+- Building wxWidgets 2.8.7
     - Download wxMac and unpack
     - cd into the base dir
     - cd build
@@ -102,4 +96,12 @@ Mac OS X Building
     - ./premake-mac --installer --addpath <wx / opencv path>
     - If building was successfull, you should have a Slither bundle with a 
       universal binary in it now (for PPC and Intel based Macs).
+
+
+Win32 Building
+==============
+
+- Follow these instructions to install wxWidgets in a MinGW / MSYS build
+  environment: http://max.berger.name/howto/wxWidgets/wxWidgets_MinGW.jsp
+
 

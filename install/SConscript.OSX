@@ -1,0 +1,13 @@
+# SCons declarative input file that controls how Slither ubuntu package is
+#  built. Thanks to Quentin Stafford-Fraser's tutorial...
+
+# Imported libraries...
+import os, shutil, sys, posix, platform
+
+# Import the environment of our parent SConstruct...
+Import('env')
+
+# Stubbed...
+print "OS X disk image target stubbed..."
+
+

@@ -17,3 +17,6 @@ on
 * Check for update on mac crash
 * Copy / paste from results
 * Fix crash in analysis window being closed and then re-opened on next analysis...
+- Update wxMac to 2.8.7
+- Get rid of premake and replace with SCons
+

@@ -1,0 +1,121 @@
+# SCons declarative input file that controls how Slither ubuntu package is
+#  built. Thanks to Quentin Stafford-Fraser's tutorial...
+
+# Imported libraries...
+import os, shutil, sys, posix, platform
+
+# Import the environment of our parent SConstruct...
+Import('env')
+
+# Prepare package control variables...
+DEBNAME     = "slither"
+DEBVERSION  = str(env.VERSION_MAJOR) + "." + str(env.VERSION_MINOR)
+DEBMAINT    = "Kip Warner [kip@thevertigo.com]"
+if platform.architecture()[0] == "32bit":
+    print "Platform architecture is 32-bit, so building package for i386..."
+    DEBARCH     = "i386"
+elif platform.architecture()[0] == "64bit":
+    print "Platform architecture is 64-bit, so building package for amd64..."
+    DEBARCH     = "amd64"
+DEBDEPENDS  = "libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
+DEBDESC     = """Track the movement of C.elegans worms in a laboratory environment. 
+ You can either use video footage you've already captured from your dissection 
+ microscope camera, or you can allow Slither to capture new footage for you.
+ .
+ It is being developed by individuals under the Small Neural Systems Group of Dr.
+ Catharine Rankin, at the Brain Research Centre located at the University of 
+ British Columbia.
+ .
+ Slither is released under the GNU General Public License and is available for 
+ Linux, Windows, and Mac OS X. Accessibility is important, and thus porting to 
+ other operating systems is encouraged.
+ .
+ Homepage: http://slither.thevertigo.com
+"""
+
+# List of file pairs to package... (package_internal_dest, source)
+DEBFILES = [
+    ("usr/bin/slither", "#slither"),
+]
+
+# If building in debug mode, append to package name...
+if int(ARGUMENTS.get('debug', 1)):
+    DEBUG_TAG = "-dbg"
+    print "Package will be built with debugging symbols..."
+else:
+    DEBUG_TAG = ""
+    print "Package will be built in release mode..."
+
+# This is the debian package we're going to create...
+debpkg = '#%s_%s-svn%s_%s%s.deb' % (DEBNAME, DEBVERSION, env.VERSION_SVN, DEBARCH, DEBUG_TAG)
+
+# and we want it to be built when we build 'ubuntu'
+env.Alias("ubuntu", debpkg)
+
+DEBCONTROLFILE = os.path.join(".", "tmp/Ubuntu/DEBIAN/control")
+
+# This copies the necessary files into place into place.
+# Fortunately, SCons creates the necessary directories for us.
+for f in DEBFILES:
+
+    # Export out of subversion to temporary location...
+    os.system("rm -Rf tmp")
+    os.mkdir("tmp")
+    if os.system("svn export --quiet Ubuntu tmp/Ubuntu") is not posix.EX_OK:
+        sys.exit(posix.EX_DATAERR)
+
+    # We put things into their fake FHS directory...
+    dest = os.path.join("tmp/Ubuntu", f[0])
+
+    # The .deb package will depend on this file
+    env.Depends(debpkg, dest)
+
+    # Copy from the the source tree.
+    env.Command(dest, f[1], Copy('$TARGET','$SOURCE'))
+
+    # The control file also depends on each source because we'd like
+    # to know the total installed size of the package
+    env.Depends(DEBCONTROLFILE, dest)
+
+# Now to create the control file:
+
+CONTROL_TEMPLATE = """
+Package: %s
+Priority: extra
+Section: science
+Installed-Size: %s
+Maintainer: %s
+Architecture: %s
+Version: %s-svn%s
+Depends: %s
+Description: %s
+
+"""
+env.Depends(debpkg, DEBCONTROLFILE)
+
+# The control file should be updated when the SVN version changes
+env.Depends(DEBCONTROLFILE, env.Value(env.VERSION_SVN))
+
+# This function creates the control file from the template and info
+# specified above, and works out the final size of the package.
+def GenerateDebianControl(target=None, source=None, env=None):
+    installed_size = 0
+    for i in DEBFILES:
+        installed_size += os.stat(str(env.File(i[1])))[6]
+    control_info = CONTROL_TEMPLATE % (
+        DEBNAME, installed_size, DEBMAINT, DEBARCH, DEBVERSION,
+        env.VERSION_SVN, DEBDEPENDS, DEBDESC)
+    f = open(str(target[0]), 'w')
+    f.write(control_info)
+    f.close()
+    
+# We can generate the control file by calling GenerateDebianControl...
+env.Command(DEBCONTROLFILE, None, GenerateDebianControl)
+
+# And we can generate the .deb file by calling dpkg-deb
+env.Command(debpkg, DEBCONTROLFILE,
+            ["rm -fv $TARGET",
+             "dpkg-deb -b %s %s" % ("install/tmp/Ubuntu", "$TARGET"),
+             "cd install && rm -Rf tmp"]
+           )
+
