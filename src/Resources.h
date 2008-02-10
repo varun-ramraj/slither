@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Sep 28 2007)
+// C++ code generated with wxFormBuilder (version Feb  1 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -141,6 +141,7 @@ class MainFrame_Base : public wxFrame
 	
 	public:
 		MainFrame_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Slither"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 640,480 ), long style = wxDEFAULT_FRAME_STYLE );
+		~MainFrame_Base();
 	
 };
 
@@ -160,6 +161,7 @@ class ImageAnalysisWindow_Base : public wxFrame
 	
 	public:
 		ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Image Analysis"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 320,240 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxTAB_TRAVERSAL );
+		~ImageAnalysisWindow_Base();
 	
 };
 

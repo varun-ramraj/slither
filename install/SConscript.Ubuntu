@@ -11,12 +11,10 @@ Import('env')
 DEBNAME     = "slither"
 DEBVERSION  = str(env.VERSION_MAJOR) + "." + str(env.VERSION_MINOR)
 DEBMAINT    = "Kip Warner [kip@thevertigo.com]"
-if platform.architecture()[0] == "32bit":
-    print "Platform architecture is 32-bit, so building package for i386..."
-    DEBARCH     = "i386"
-elif platform.architecture()[0] == "64bit":
-    print "Platform architecture is 64-bit, so building package for amd64..."
-    DEBARCH     = "amd64"
+DEBARCH = platform.machine()
+if str(DEBARCH) == "i686": # We don't use special i686 instructions, increase compatibility...
+    DEBARCH = str("i386")
+print "Building Ubuntu package for " + str(DEBARCH) + "..."
 DEBDEPENDS  = "libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
 DEBDESC     = """Track the movement of C.elegans worms in a laboratory environment. 
  You can either use video footage you've already captured from your dissection 

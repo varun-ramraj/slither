@@ -36,6 +36,9 @@ Mac OS X Building
   external dependencies. It's considered bad practice to 'make install' on a
   Mac, since only Apple's stuff is suppose to be in /usr.
 
+- Download and install Fink. Make sure it is latest. Install scons either
+  through it, or manually.
+
 - Building wxWidgets 2.8.7
     - Download wxMac and unpack
     - cd into the base dir
@@ -63,15 +66,11 @@ Mac OS X Building
     - make install (you may need to use sudo, depending on where you prefixed)
 
 - Building OpenCV
-    - Download and install Fink
     - Use Fink to install cvs, libjpeg, libpng3, and libtiff, if you don't have 
       it already
     - Download source
         - cvs -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary login
         - cvs -z3 -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary co -P opencv
-    - otherlibs/highgui/window_carbon.cpp needs to be patched. Find cvInitSystem
-      and remove the installation of the event handler. It does not want to play
-      nice with wxMac.
     - cd into the base directory
     - mkdir build; cd build
     - This is what I used to build OpenCV on my OS X system...

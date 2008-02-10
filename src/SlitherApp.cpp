@@ -80,13 +80,18 @@ bool SlitherApp::OnInit()
     // Check if the user asked for the version
     if(CommandLineParser.Found(wxT("v")))
     {
+        // Format...
+        wxString sVersion;
+        sVersion.Printf(wxT("%d.%d\nSubversion %s"), 
+            VERSION_MAJOR, VERSION_MINOR, VERSION_SVN);
+
         // Display version...
-        printf("%s\n", PACKAGE_STRING);
+        printf("%s\n", (char const *) sVersion.mb_str(wxConvUTF8));
         return false;
     }
 
     // Create configuration object...
-    pConfiguration = new wxConfig(wxT(PACKAGE), wxT("Vertigo"));
+    pConfiguration = new wxConfig(wxT("Slither"), wxT("Vertigo"));
 
     // Create the main application frame...
     pMainFrame = new MainFrame((wxWindow *) NULL);

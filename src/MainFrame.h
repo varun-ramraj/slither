@@ -19,9 +19,6 @@
     // Analysis thread...
     #include "AnalysisThread.h"
     
-    // Check for update thread...
-    #include "CheckForUpdateThread.h"
-    
     // OpenCV...
     #include <opencv/cv.h>
 
@@ -104,7 +101,6 @@ class MainFrame : public MainFrame_Base
     // Friends...
     friend class SlitherApp;
     friend class AnalysisThread;
-    friend class CheckForUpdateThread;
     friend class CaptureThread;
     friend class Experiment;
     friend class MediaGridDropTarget;
@@ -149,8 +145,6 @@ class MainFrame : public MainFrame_Base
         void OnQuit(wxCommandEvent &Event);
         void OnFullScreen(wxCommandEvent &Event);
         void OnAbout(wxCommandEvent &Event);
-        void OnCheckForUpdate(wxCommandEvent &Event);
-        void OnCheckForUpdateDone(wxCommandEvent &Event);
 
         // Notebook event handlers...
         void OnPageChanging(wxNotebookEvent &Event);
@@ -304,9 +298,6 @@ class MainFrame : public MainFrame_Base
         
         // Worm tracker...
         WormTracker             Tracker;
-        
-        // Check for update joinable thread...
-        CheckForUpdateThread   *pUpdateThread;
 };
 
 #endif

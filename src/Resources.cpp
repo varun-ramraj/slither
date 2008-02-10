@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Sep 28 2007)
+// C++ code generated with wxFormBuilder (version Feb  1 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -28,44 +28,65 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	this->SetSizeHints( wxSize( 640,480 ), wxDefaultSize );
 	this->SetExtraStyle( wxFRAME_EX_CONTEXTHELP );
 	this->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
-	this->Centre( wxBOTH );
 	
 	MenuBar = new wxMenuBar( 0 );
 	FileMenu = new wxMenu();
-	wxMenuItem* NewMenuItem = new wxMenuItem( FileMenu, wxID_NEW, wxString( wxT("&New") ) + wxT('\t') + wxT("Ctrl+N"), wxT("Create a new experiment..."), wxITEM_NORMAL );
+	wxMenuItem* NewMenuItem;
+	NewMenuItem = new wxMenuItem( FileMenu, wxID_NEW, wxString( wxT("&New") ) + wxT('\t') + wxT("Ctrl+N"), wxT("Create a new experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( NewMenuItem );
-	wxMenuItem* OpenMenuItem = new wxMenuItem( FileMenu, wxID_OPEN, wxString( wxT("&Open") ) + wxT('\t') + wxT("Ctrl+O"), wxT("Open an existing experiment..."), wxITEM_NORMAL );
+	
+	wxMenuItem* OpenMenuItem;
+	OpenMenuItem = new wxMenuItem( FileMenu, wxID_OPEN, wxString( wxT("&Open") ) + wxT('\t') + wxT("Ctrl+O"), wxT("Open an existing experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( OpenMenuItem );
 	
 	FileMenu->AppendSeparator();
-	wxMenuItem* ImportMediaMenuItem = new wxMenuItem( FileMenu, ID_IMPORT_MEDIA, wxString( wxT("&Import Media") ) + wxT('\t') + wxT("Ctrl-m"), wxT("Import new media into the experiment..."), wxITEM_NORMAL );
+	
+	wxMenuItem* ImportMediaMenuItem;
+	ImportMediaMenuItem = new wxMenuItem( FileMenu, ID_IMPORT_MEDIA, wxString( wxT("&Import Media") ) + wxT('\t') + wxT("Ctrl-m"), wxT("Import new media into the experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( ImportMediaMenuItem );
 	
 	FileMenu->AppendSeparator();
-	wxMenuItem* SaveMenuItem = new wxMenuItem( FileMenu, wxID_SAVE, wxString( wxT("&Save") ) + wxT('\t') + wxT("Ctrl+S"), wxT("Save experiment..."), wxITEM_NORMAL );
+	
+	wxMenuItem* SaveMenuItem;
+	SaveMenuItem = new wxMenuItem( FileMenu, wxID_SAVE, wxString( wxT("&Save") ) + wxT('\t') + wxT("Ctrl+S"), wxT("Save experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( SaveMenuItem );
-	wxMenuItem* SaveAsMenuItem = new wxMenuItem( FileMenu, wxID_SAVEAS, wxString( wxT("Save &As") ) + wxT('\t') + wxT("Shift+Ctrl+S"), wxT("Save an experiment as..."), wxITEM_NORMAL );
+	
+	wxMenuItem* SaveAsMenuItem;
+	SaveAsMenuItem = new wxMenuItem( FileMenu, wxID_SAVEAS, wxString( wxT("Save &As") ) + wxT('\t') + wxT("Shift+Ctrl+S"), wxT("Save an experiment as..."), wxITEM_NORMAL );
 	FileMenu->Append( SaveAsMenuItem );
-	wxMenuItem* RevertMenuItem = new wxMenuItem( FileMenu, wxID_REVERT, wxString( wxT("&Revert") ) , wxT("Revert to experiment in the previously saved state..."), wxITEM_NORMAL );
+	
+	wxMenuItem* RevertMenuItem;
+	RevertMenuItem = new wxMenuItem( FileMenu, wxID_REVERT, wxString( wxT("&Revert") ) , wxT("Revert to experiment in the previously saved state..."), wxITEM_NORMAL );
 	FileMenu->Append( RevertMenuItem );
 	
 	FileMenu->AppendSeparator();
-	wxMenuItem* CloseMenuItem = new wxMenuItem( FileMenu, wxID_CLOSE, wxString( wxT("&Close") ) + wxT('\t') + wxT("Ctrl+W"), wxT("Close the open experiment..."), wxITEM_NORMAL );
+	
+	wxMenuItem* CloseMenuItem;
+	CloseMenuItem = new wxMenuItem( FileMenu, wxID_CLOSE, wxString( wxT("&Close") ) + wxT('\t') + wxT("Ctrl+W"), wxT("Close the open experiment..."), wxITEM_NORMAL );
 	FileMenu->Append( CloseMenuItem );
-	wxMenuItem* QuitMenuItem = new wxMenuItem( FileMenu, wxID_EXIT, wxString( wxT("&Quit") ) + wxT('\t') + wxT("Ctrl+Q"), wxT("Quit Slither..."), wxITEM_NORMAL );
+	
+	wxMenuItem* QuitMenuItem;
+	QuitMenuItem = new wxMenuItem( FileMenu, wxID_EXIT, wxString( wxT("&Quit") ) + wxT('\t') + wxT("Ctrl+Q"), wxT("Quit Slither..."), wxITEM_NORMAL );
 	FileMenu->Append( QuitMenuItem );
+	
 	MenuBar->Append( FileMenu, wxT("&File") );
 	
 	ViewMenu = new wxMenu();
-	wxMenuItem* FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
+	wxMenuItem* FullScreenMenuItem;
+	FullScreenMenuItem = new wxMenuItem( ViewMenu, ID_FULLSCREEN, wxString( wxT("&Full screen") ) , wxT("Toggle full screen mode..."), wxITEM_CHECK );
 	ViewMenu->Append( FullScreenMenuItem );
-	wxMenuItem* ShowImageAnalysisMenuItem = new wxMenuItem( ViewMenu, ID_TOGGLE_IMAGE_ANALYSIS_WINDOW, wxString( wxT("&Show image analysis window") ) + wxT('\t') + wxT("Ctrl+i"), wxT("Show image analysis window..."), wxITEM_CHECK );
+	
+	wxMenuItem* ShowImageAnalysisMenuItem;
+	ShowImageAnalysisMenuItem = new wxMenuItem( ViewMenu, ID_TOGGLE_IMAGE_ANALYSIS_WINDOW, wxString( wxT("&Show image analysis window") ) + wxT('\t') + wxT("Ctrl+i"), wxT("Show image analysis window..."), wxITEM_CHECK );
 	ViewMenu->Append( ShowImageAnalysisMenuItem );
+	
 	MenuBar->Append( ViewMenu, wxT("&View") );
 	
 	HelpMenu = new wxMenu();
-	wxMenuItem* AboutMenuItem = new wxMenuItem( HelpMenu, wxID_ABOUT, wxString( wxT("&About") ) + wxT('\t') + wxT("F1"), wxT("Some general information about this version of Slither..."), wxITEM_NORMAL );
+	wxMenuItem* AboutMenuItem;
+	AboutMenuItem = new wxMenuItem( HelpMenu, wxID_ABOUT, wxString( wxT("&About") ) + wxT('\t') + wxT("F1"), wxT("Some general information about this version of Slither..."), wxITEM_NORMAL );
 	HelpMenu->Append( AboutMenuItem );
+	
 	MenuBar->Append( HelpMenu, wxT("&Help") );
 	
 	this->SetMenuBar( MenuBar );
@@ -105,7 +126,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	DataPaneTopSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	wxStaticBoxSizer* GeneralStaticSizer;
-	GeneralStaticSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, -1, wxT("General:") ), wxVERTICAL );
+	GeneralStaticSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, wxID_ANY, wxT("General:") ), wxVERTICAL );
 	
 	wxFlexGridSizer* GeneralSizer;
 	GeneralSizer = new wxFlexGridSizer( 4, 2, 0, 0 );
@@ -159,7 +180,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	DataPaneTopSizer->Add( GeneralStaticSizer, 1, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* VideoPreviewSizer;
-	VideoPreviewSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, -1, wxT("Playback:") ), wxVERTICAL );
+	VideoPreviewSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, wxID_ANY, wxT("Playback:") ), wxVERTICAL );
 	
 	VideoPreviewPanel = new wxPanel( DataPane, wxID_ANY, wxDefaultPosition, wxSize( 160,120 ), wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
 	VideoPreviewPanel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_3DDKSHADOW ) );
@@ -188,7 +209,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	DataPaneBottomSizer->SetNonFlexibleGrowMode( wxFLEX_GROWMODE_SPECIFIED );
 	
 	wxStaticBoxSizer* MediaGridSizer;
-	MediaGridSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, -1, wxT("Media:") ), wxHORIZONTAL );
+	MediaGridSizer = new wxStaticBoxSizer( new wxStaticBox( DataPane, wxID_ANY, wxT("Media:") ), wxHORIZONTAL );
 	
 	MediaGrid = new wxGrid( DataPane, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0 );
 	
@@ -233,7 +254,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	CapturePaneSizer = new wxBoxSizer( wxHORIZONTAL );
 	
 	wxStaticBoxSizer* PreviewImageSizer;
-	PreviewImageSizer = new wxStaticBoxSizer( new wxStaticBox( CapturePane, -1, wxT("Preview:") ), wxVERTICAL );
+	PreviewImageSizer = new wxStaticBoxSizer( new wxStaticBox( CapturePane, wxID_ANY, wxT("Preview:") ), wxVERTICAL );
 	
 	CaptureImagePanel = new wxPanel( CapturePane, wxID_ANY, wxDefaultPosition, wxSize( 320,240 ), wxSUNKEN_BORDER|wxTAB_TRAVERSAL );
 	CaptureImagePanel->SetBackgroundColour( wxSystemSettings::GetColour( wxSYS_COLOUR_3DDKSHADOW ) );
@@ -253,7 +274,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	CapturePaneSizer->Add( 10, 0, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* SetupSizer;
-	SetupSizer = new wxStaticBoxSizer( new wxStaticBox( CapturePane, -1, wxT("Setup:") ), wxVERTICAL );
+	SetupSizer = new wxStaticBoxSizer( new wxStaticBox( CapturePane, wxID_ANY, wxT("Setup:") ), wxVERTICAL );
 	
 	RecordButton = new wxBitmapButton( CapturePane, wxID_ANY, wxNullBitmap, wxDefaultPosition, wxDefaultSize, wxBU_AUTODRAW );
 	RecordButton->Enable( false );
@@ -283,22 +304,24 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer7 = new wxBoxSizer( wxHORIZONTAL );
 	
 	wxStaticBoxSizer* AnalysisSetupSizer;
-	AnalysisSetupSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Setup:") ), wxVERTICAL );
+	AnalysisSetupSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Setup:") ), wxVERTICAL );
 	
 	
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* MicroscopeStaticSizer;
-	MicroscopeStaticSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Microscope / Total Zoom:") ), wxHORIZONTAL );
+	MicroscopeStaticSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Microscope / Total Zoom:") ), wxHORIZONTAL );
 	
 	wxArrayString ChosenMicroscopeNameChoices;
 	ChosenMicroscopeName = new wxChoice( AnalysisPane, wxID_ANY, wxDefaultPosition, wxDefaultSize, ChosenMicroscopeNameChoices, 0 );
+	ChosenMicroscopeName->SetSelection( 0 );
 	ChosenMicroscopeName->SetToolTip( wxT("The specific make and model of your camera determines the available zooms.") );
 	
 	MicroscopeStaticSizer->Add( ChosenMicroscopeName, 1, wxALL|wxEXPAND, 5 );
 	
 	wxArrayString ChosenMicroscopeTotalZoomChoices;
 	ChosenMicroscopeTotalZoom = new wxChoice( AnalysisPane, wxID_ANY, wxDefaultPosition, wxDefaultSize, ChosenMicroscopeTotalZoomChoices, 0 );
+	ChosenMicroscopeTotalZoom->SetSelection( 0 );
 	ChosenMicroscopeTotalZoom->SetToolTip( wxT("This zoom is the total zoom factor and not just for the objective or ocular lense. The total zoom factor is used to calculate the field of view diameter.") );
 	
 	MicroscopeStaticSizer->Add( ChosenMicroscopeTotalZoom, 0, wxALL, 5 );
@@ -309,7 +332,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer81;
-	sbSizer81 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Field of View Diameter:") ), wxHORIZONTAL );
+	sbSizer81 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Field of View Diameter:") ), wxHORIZONTAL );
 	
 	FieldOfViewDiameter = new wxTextCtrl( AnalysisPane, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_CENTRE|wxTE_READONLY );
 	FieldOfViewDiameter->SetToolTip( wxT("The field of view diameter is used in all calculations involving area and distance. To set it manually, use the custom microscope option above.") );
@@ -326,11 +349,12 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer9;
-	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Analysis Type:") ), wxVERTICAL );
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Analysis Type:") ), wxVERTICAL );
 	
 	wxString ChosenAnalysisTypeChoices[] = { wxT("Body Size"), wxT("Long Term Habituation"), wxT("Short Term Habituation") };
 	int ChosenAnalysisTypeNChoices = sizeof( ChosenAnalysisTypeChoices ) / sizeof( wxString );
 	ChosenAnalysisType = new wxChoice( AnalysisPane, wxID_ANY, wxDefaultPosition, wxDefaultSize, ChosenAnalysisTypeNChoices, ChosenAnalysisTypeChoices, 0 );
+	ChosenAnalysisType->SetSelection( 0 );
 	ChosenAnalysisType->SetToolTip( wxT("Select the type of analysis you wish to run on your video.") );
 	
 	sbSizer9->Add( ChosenAnalysisType, 1, wxALL|wxEXPAND, 5 );
@@ -341,7 +365,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer10;
-	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Processor Throttle:") ), wxHORIZONTAL );
+	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Processor Throttle:") ), wxHORIZONTAL );
 	
 	m_staticText6 = new wxStaticText( AnalysisPane, wxID_ANY, wxT("-"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText6->Wrap( -1 );
@@ -364,7 +388,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer7->Add( AnalysisSetupSizer, 1, wxALL|wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* StatusSizer;
-	StatusSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Status:") ), wxVERTICAL );
+	StatusSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Status:") ), wxVERTICAL );
 	
 	wxBoxSizer* StatusSizer2;
 	StatusSizer2 = new wxBoxSizer( wxVERTICAL );
@@ -443,7 +467,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer8 = new wxBoxSizer( wxVERTICAL );
 	
 	wxStaticBoxSizer* AnalysisResultsSizer;
-	AnalysisResultsSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, -1, wxT("Results:") ), wxHORIZONTAL );
+	AnalysisResultsSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Results:") ), wxHORIZONTAL );
 	
 	AnalysisGrid = new wxGrid( AnalysisPane, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), 0 );
 	
@@ -486,6 +510,8 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	this->Layout();
 	MainFrame_Base_statusbar = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
 	
+	this->Centre( wxBOTH );
+	
 	// Connect Events
 	this->Connect( wxEVT_SIZE, wxSizeEventHandler( MainFrame_Base::OnSize ) );
 	this->Connect( NewMenuItem->GetId(), wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnNew ) );
@@ -524,6 +550,46 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisGrid->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnAnalysisCellRightClick ), NULL, this );
 }
 
+MainFrame_Base::~MainFrame_Base()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_SIZE, wxSizeEventHandler( MainFrame_Base::OnSize ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnNew ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnOpen ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnImportMedia ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSave ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSaveAs ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnRevert ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnClose ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnQuit ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnFullScreen ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnToggleImageAnalysisWindow ) );
+	this->Disconnect( wxID_ANY, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnAbout ) );
+	this->Disconnect( wxID_NEW, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnNew ));
+	this->Disconnect( wxID_OPEN, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnOpen ));
+	this->Disconnect( wxID_SAVE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSave ));
+	this->Disconnect( wxID_SAVEAS, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnSaveAs ));
+	this->Disconnect( ID_CAPTURE, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnCapture ));
+	this->Disconnect( wxID_ABOUT, wxEVT_COMMAND_MENU_SELECTED, wxCommandEventHandler( MainFrame_Base::OnAbout ));
+	MainNotebook->Disconnect( wxEVT_COMMAND_NOTEBOOK_PAGE_CHANGING, wxNotebookEventHandler( MainFrame_Base::OnPageChanging ), NULL, this );
+	ExperimentTitle->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnExperimentChange ), NULL, this );
+	EmbeddedMedia->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnTitleEdit ), NULL, this );
+	TotalSize->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnTitleEdit ), NULL, this );
+	ExperimentNotes->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnExperimentChange ), NULL, this );
+	ExtractFrameButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnExtractFrame ), NULL, this );
+	MediaGrid->Disconnect( wxEVT_GRID_CELL_CHANGE, wxGridEventHandler( MainFrame_Base::OnExperimentChangeCell ), NULL, this );
+	MediaGrid->Disconnect( wxEVT_GRID_CELL_LEFT_CLICK, wxGridEventHandler( MainFrame_Base::OnMediaCellLeftClick ), NULL, this );
+	MediaGrid->Disconnect( wxEVT_GRID_CELL_LEFT_DCLICK, wxGridEventHandler( MainFrame_Base::OnMediaCellDoubleLeftClick ), NULL, this );
+	MediaGrid->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnMediaCellRightClick ), NULL, this );
+	ChosenMicroscopeName->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrame_Base::OnChooseMicroscopeName ), NULL, this );
+	ChosenMicroscopeTotalZoom->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrame_Base::OnChooseMicroscopeTotalZoom ), NULL, this );
+	FieldOfViewDiameter->Disconnect( wxEVT_COMMAND_TEXT_UPDATED, wxCommandEventHandler( MainFrame_Base::OnChooseFieldOfViewDiameter ), NULL, this );
+	ChosenAnalysisType->Disconnect( wxEVT_COMMAND_CHOICE_SELECTED, wxCommandEventHandler( MainFrame_Base::OnChooseAnalysisType ), NULL, this );
+	BeginAnalysisButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnBeginAnalysis ), NULL, this );
+	CancelAnalysisButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnCancelAnalysis ), NULL, this );
+	AnalysisGrid->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnAnalysisCellRightClick ), NULL, this );
+}
+
 ImageAnalysisWindow_Base::ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
 	this->SetSizeHints( wxDefaultSize, wxDefaultSize );
@@ -534,4 +600,11 @@ ImageAnalysisWindow_Base::ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID
 	// Connect Events
 	this->Connect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ImageAnalysisWindow_Base::OnClose ) );
 	this->Connect( wxEVT_PAINT, wxPaintEventHandler( ImageAnalysisWindow_Base::OnPaint ) );
+}
+
+ImageAnalysisWindow_Base::~ImageAnalysisWindow_Base()
+{
+	// Disconnect Events
+	this->Disconnect( wxEVT_CLOSE_WINDOW, wxCloseEventHandler( ImageAnalysisWindow_Base::OnClose ) );
+	this->Disconnect( wxEVT_PAINT, wxPaintEventHandler( ImageAnalysisWindow_Base::OnPaint ) );
 }

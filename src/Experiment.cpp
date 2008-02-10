@@ -36,7 +36,7 @@ Experiment::Experiment(MainFrame *_pMainFrame)
 void Experiment::ClearNeedSave()
 {
     // Update title bar...
-    pMainFrame->SetTitle(wxT(PACKAGE_STRING));
+    pMainFrame->SetTitle(wxT("Slither"));
 
     // Untoggle...
     bNeedSave = false;
@@ -677,7 +677,7 @@ bool Experiment::SaveAs(const wxString _sPath)
 void Experiment::TriggerNeedSave()
 {
     // Update title bar...
-    pMainFrame->SetTitle(wxString(wxT("*")) + wxT(PACKAGE_STRING));
+    pMainFrame->SetTitle(wxString(wxT("*")) + wxT("Slither"));
 
     // Set...
     bNeedSave = true;

@@ -35,11 +35,6 @@
 
 // Event table for MainFrame...
 BEGIN_EVENT_TABLE(MainFrame, MainFrame_Base)
-
-    // Toolbar and menu events...
-    EVT_MENU                (ID_CHECK_FOR_UPDATE, MainFrame::OnCheckForUpdate)
-    EVT_BUTTON              (ID_CHECK_FOR_UPDATE_DONE,
-                                MainFrame::OnCheckForUpdateDone)
     
     // Media grid popup menu events...
     EVT_MENU                (ID_ANALYZE, MainFrame::OnAnalyze)
@@ -75,11 +70,10 @@ MainFrame::MainFrame(wxWindow *Parent)
       pMediaPlayer(NULL),
       CaptureTimer(this, TIMER_CAPTURE),
       pAnalysisThread(NULL),
-      AnalysisTimer(this, TIMER_ANALYSIS),
-      pUpdateThread(NULL)
+      AnalysisTimer(this, TIMER_ANALYSIS)
 {
     // Set the title...
-    SetTitle(wxT(PACKAGE_STRING));
+    SetTitle(wxT("Slither"));
 
     // Set the icon...
     SetIcon(slither_xpm);
@@ -291,19 +285,6 @@ MainFrame::MainFrame(wxWindow *Parent)
         // Fire off resize event...
         wxPostEvent(this, SizeEvent);
     }
-
-    /* Run the check for update...
-
-        // Allocate the update thread and check for error...
-        pUpdateThread = new CheckForUpdateThread(*this, true);
-        if(pUpdateThread->Create() != wxTHREAD_NO_ERROR)
-            return;*/
-
-        // Disable the check for update menu item...
-//        GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
-        
-        // Run the update thread...
-        /*pUpdateThread->Run();*/
 
     // Show tip...
     ShowTip();
@@ -639,50 +620,6 @@ void MainFrame::OnCancelAnalysis(wxCommandEvent &Event)
 
     // Delete the thread...
     pAnalysisThread->Delete();
-}
-
-// Check for update...
-void MainFrame::OnCheckForUpdate(wxCommandEvent &Event)
-{
-    /* Check if thread is already running...
-    if(!GetMenuBar()->IsEnabled(ID_CHECK_FOR_UPDATE))
-        return;
-        
-    // Allocate the update thread and check for error...
-    pUpdateThread = new CheckForUpdateThread(*this, false);
-    if(pUpdateThread->Create() != wxTHREAD_NO_ERROR)
-        return;
-
-    // Disable the check for update menu item...
-    GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, false);
-    
-    // Run the update thread...
-    pUpdateThread->Run();*/
-}
-
-// Check for update done...
-void MainFrame::OnCheckForUpdateDone(wxCommandEvent &Event)
-{
-    // Was this a silent check?
-    bool const bSilent = pUpdateThread->IsSilent();
-
-    // Cleanup the thread...
-    pUpdateThread->Wait();
-    delete pUpdateThread;
-
-    // Re-enable the check for update menu item...
-    GetMenuBar()->Enable(ID_CHECK_FOR_UPDATE, true);
-    
-    // It was either important update message or we are not in silent mode...
-    if(Event.GetInt() || !bSilent)
-    {
-        // Prepare message dialog...
-        wxMessageDialog Message(this, Event.GetString(), wxT("Update"), 
-                                wxICON_INFORMATION);
-        
-        // Display it...
-        Message.ShowModal();
-    }
 }
 
 // An analysis type was chosen...
@@ -1902,9 +1839,10 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
     // Initialize about box information...
     
         // Name and version...    
-        AboutDialogInfo.SetName(wxT(PACKAGE_NAME));
-        AboutDialogInfo.SetVersion(wxT(PACKAGE_VERSION));
-    
+        AboutDialogInfo.SetName(wxT("Slither"));
+        AboutDialogInfo.SetVersion(
+            wxString::Format(wxT("%d.%d\nSubversion %s"), 
+                             VERSION_MAJOR, VERSION_MINOR, VERSION_SVN));
     
         // Description...
         AboutDialogInfo.SetDescription(wxString::Format(
@@ -1922,7 +1860,7 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
                 "You are running %s. This is of the %s\n"
                 "family of operating systems.\n\n"
                         
-                "%s was built on %s at\n"
+                "Slither was built on %s at\n"
                 "%s. It was developed using %s\n"
                 "(provided by the %s port).\n\n"
                 
@@ -1934,7 +1872,6 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
                                                 MakeLower().c_str(),
                 PlatformInfo.GetOperatingSystemIdName().c_str(),
                 PlatformInfo.GetOperatingSystemFamilyName().c_str(),
-                wxT(PACKAGE_STRING),
                 wxT(__DATE__),
                 wxT(__TIME__),
                 wxVERSION_STRING,
@@ -1945,14 +1882,13 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
         AboutDialogInfo.AddDeveloper(wxT("\tKip Warner <Kip@TheVertigo.com>"));
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Beta Testers:"));
-        AboutDialogInfo.AddDeveloper(wxT("\tAaron Dowler <adowlerb@shaw.ca>"));
+        AboutDialogInfo.AddDeveloper(wxT("\tEvan Ardiel <eardiel@yahoo.ca>"));
         AboutDialogInfo.AddDeveloper(wxT("\tMike Butterfield <butter@interchange.ubc.ca>"));
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Thanks:"));
-        AboutDialogInfo.AddDeveloper(wxT("\tAaron Dowler <adowlerb@shaw.ca> (hardware)"));
-        AboutDialogInfo.AddDeveloper(wxT("\tCatharine Rankin <crankin@psych.ubc.ca> (the opportunity)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tCatharine Rankin <crankin@psych.ubc.ca> (opportunity)"));
         AboutDialogInfo.AddDeveloper(wxT("\tEd Knorr <knorr@cs.ubc.ca> (criticisms)"));
-        AboutDialogInfo.AddDeveloper(wxT("\tThomas L. Adelman <tadelman2@yahoo.com> (guidance)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tThomas L. Adelman <tadelman2@yahoo.com> (advice)"));
         AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <silverballer47@gmail.com> (criticisms)"));
         
         // Documentation writers...
