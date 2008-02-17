@@ -11,9 +11,7 @@ Import('env')
 DEBNAME     = "slither"
 DEBVERSION  = str(env.VERSION_MAJOR) + "." + str(env.VERSION_MINOR)
 DEBMAINT    = "Kip Warner [kip@thevertigo.com]"
-DEBARCH = platform.machine()
-if str(DEBARCH) == "i686": # We don't use special i686 instructions, increase compatibility...
-    DEBARCH = str("i386")
+DEBARCH     = os.popen('dpkg-architecture -qDEB_HOST_ARCH').read()[:-1]
 print "Building Ubuntu package for " + str(DEBARCH) + "..."
 DEBDEPENDS  = "libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
 DEBDESC     = """Track the movement of C.elegans worms in a laboratory environment. 

@@ -7,7 +7,8 @@ Ubuntu Feisty Building
 - Note that insight is built wrong for Ubuntu and you must use...
     set solib-absolute-prefix /.
   ...in the console window to make it work properly if you intend to use it for
-  debugging.
+  debugging. This enables it to find shared objects needed for looking up
+  debugging symbols.
 
 - Follow these instructions to get the latest OpenCV off of CVS, or use packages.
   http://www.ryanbruce.org/2006/11/30/installing-opencv-from-cvs-on-ubuntu-edgy/
@@ -18,18 +19,24 @@ Ubuntu Feisty Building
                                                              --prefix=/home/kip/Projects/OpenCV/install/
 
 - To build slither...
-
     - cd trunk
-    - ./premake-linux --target gnu
-    - make [CONFIG=Release|Debug]
-    - If you want an installer, ./premake-linux --installer
+    - scons -Q [debug=0|1]
+    
+- Building installer
+    scons -Q ubuntu
 
 Mac OS X Building
 =================
 
-- Install Apple Developer Tools
+- Install Apple Developer Tools (v 3.0 at time of writing). These instructions
+  assume you are using Leopard. Owing to the lack of a package manager and the
+  paranoia a company like Apple would have about such things, it is too 
+  difficult to adequately support multiple platform SDKs, so we require our
+  users to be on Leopard (10.5) or greater.
+
 - Apple Developer Tools come with an older unstable version of wxWidgets (2.5).
-  Find a way to get rid of it by removing / renaming the existing wx-config.
+  Find a way to get rid of it by removing / renaming the wx-config it ships
+  with.
 
 - We will build both wxWidgets and OpenCV as static libraries. This means
   Slither can be distributed as a single OS X package and will not require any
@@ -37,33 +44,44 @@ Mac OS X Building
   Mac, since only Apple's stuff is suppose to be in /usr.
 
 - Download and install Fink. Make sure it is latest. Install scons either
-  through it, or manually.
+  through it, or manually. If you are upgrading from a previous version of OS X
+  or the pseudo-open-source "Apple Developer Tools", these instructions are
+  useful:
+  
+    http://www.finkproject.org/download/upgrade.php
 
 - Building wxWidgets 2.8.7
+    - Read this: http://www.wxwidgets.org/wiki/index.php/Getting_started_on_OS_X#Leopard_a.k.a_Mac_OS_X_10.5_Notes
     - Download wxMac and unpack
     - cd into the base dir
-    - cd build
+    - mkdir build-debug ; cd build-debug
     - ../configure --enable-monolithic
                    --disable-shared 
                    --with-opengl
                    --enable-universal_binary
                    --disable-gtk
-                   --with-wx-config=../../wxMac-2.8.6/build/wx-config 
-                   --disable-debug (or enable, but use --enable-debug_gdb --disable-optimise (optimize has no z) too then)
+                   --disable-debug (or enable, BUT use --enable-debug_gdb and --disable-optimise (optimize has no z) as well)
                    --enable-mediactrl
                    --enable-unicode
                    --prefix=/Users/<you>/local
-    - Or if you were cross compiling from Linux or some other platform, perhaps...
-    
-        export PATH=$PATH:/opt/mac/bin/ && ../configure --host /
-            powerpc-apple-darwin8 --enable-monolithic --disable-shared /
-            --with-opengl --enable-universal_binary --disable-gtk /
-            --with-wx-config=../wxMac-2.8.5/build/wx-config --disable-debug /
-            --enable-mediactrl --enable-unicode --prefix=/Users/Kip/local /
-            --with-macosx-sdk=/opt/mac/SDKs/MacOSX10.4u.sdk
+                   --with-macosx-version-min=10.4
+                   --with-macosx-sdk=/Developer/SDKs/MacOSX10.4u.sdk
+                   --with-libjpeg=builtin
+                   --with-libpng=builtin
+                   --with-regex=builtin
+                   --with-libtiff=builtin
+                   --with-zlib=builtin
+                   --with-expat=builtin
 
     - make
     - make install (you may need to use sudo, depending on where you prefixed)
+    - Rinse and repeat for a release mode build, if you like.
+
+- If you intend to install wxWidgets or OpenCV to any place other than 
+  /usr/local, you should make sure it is in your path by putting something like
+  this in your ~/.profile
+  
+  export PATH=$PATH:/usr/local/bin:/Users/Kip/local/bin:~/local/include:~/local/lib
 
 - Building OpenCV
     - Use Fink to install cvs, libjpeg, libpng3, and libtiff, if you don't have 
@@ -90,12 +108,10 @@ Mac OS X Building
       in it.
 
 - Building Slither
-    - From the /trunk folder, execute       \/---- NOTE NO equal sign below
-        ./premake-mac --target gnu --addpath <wx / opencv path>
-    - ./premake-mac --installer --addpath <wx / opencv path>
-    - If building was successfull, you should have a Slither bundle with a 
-      universal binary in it now (for PPC and Intel based Macs).
+    - scons -Q [debug=0|1]
 
+- Building Slither installer
+    - scons -Q osx
 
 Win32 Building
 ==============
