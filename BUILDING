@@ -88,9 +88,11 @@ Mac OS X Building
   
   export PATH=$PATH:/usr/local/bin:/Users/Kip/local/bin:~/local/include:~/local/lib
 
+- Building libjpeg and libpng3
+    - fink fetch libjpeg libpng3
+    - Unpack libjpeg source 
+
 - Building OpenCV
-    - fink install libjpeg libpng3, and libtiff, if you don't have 
-      it already
     - Download source
         - cvs -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary login
         - cvs -z3 -d:pserver:anonymous@opencvlibrary.cvs.sourceforge.net:/cvsroot/opencvlibrary co -P opencv
@@ -121,12 +123,12 @@ Mac OS X Building
                 -framework ApplicationServices 
                 -framework Carbon 
                 -framework QuartzCore 
-                -framework ImageIO
                 -arch i386 -arch ppc" 
             --disable-shared 
             --enable-debug (your choice)
             --disable-dependency-tracking // Trying without this for now with scons
-            --with-python=no
+            --without-python
+            --without-swig
     - make
     - make install
     - If you want to build the samples in $PREFIX/share/opencv/samples/c, you may need to mess with the Makefile in there to get it to work. Remove the '.exe' 
