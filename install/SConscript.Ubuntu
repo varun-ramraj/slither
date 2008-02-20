@@ -13,7 +13,7 @@ DEBVERSION  = str(env.VERSION_MAJOR) + "." + str(env.VERSION_MINOR)
 DEBMAINT    = "Kip Warner [kip@thevertigo.com]"
 DEBARCH     = os.popen('dpkg-architecture -qDEB_HOST_ARCH').read()[:-1]
 print "Building Ubuntu package for " + str(DEBARCH) + "..."
-DEBDEPENDS  = "libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
+DEBDEPENDS  = "wx-common, libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
 DEBDESC     = """Track the movement of C.elegans worms in a laboratory environment. 
  You can either use video footage you've already captured from your dissection 
  microscope camera, or you can allow Slither to capture new footage for you.
@@ -31,7 +31,13 @@ DEBDESC     = """Track the movement of C.elegans worms in a laboratory environme
 
 # List of file pairs to package... (package_internal_dest, source)
 DEBFILES = [
-    ("usr/bin/slither", "#slither"),
+    ("usr/bin/slither",                 "#slither"),
+    ("usr/share/slither/tips.txt",      "#src/resources/tips.txt"),
+    ("usr/share/doc/slither/AUTHORS",   "#AUTHORS"),
+    ("usr/share/doc/slither/LICENSE",   "#LICENSE"),
+    ("usr/share/doc/slither/README",    "#doc/README"),
+    ("usr/share/doc/slither/TODO",      "#TODO"),
+    ("usr/share/pixmaps/slither.png",   "#src/resources/slither.png")
 ]
 
 # If building in debug mode, append to package name...
@@ -53,6 +59,9 @@ DEBCONTROLFILE = os.path.join(".", "tmp/Ubuntu/DEBIAN/control")
 # This copies the necessary files into place into place.
 # Fortunately, SCons creates the necessary directories for us.
 for f in DEBFILES:
+
+    # Alert developer of which files will be packaged...
+    print "\tWill package " + str(f[0])
 
     # Export out of subversion to temporary location...
     os.system("rm -Rf tmp")

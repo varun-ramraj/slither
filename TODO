@@ -20,4 +20,5 @@ on
 - Update wxMac to 2.8.7
 - Get rid of premake and replace with SCons
 - Update OpenCV to cvs head
+- Implement dmg target for OS X
 

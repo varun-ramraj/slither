@@ -15,7 +15,6 @@ ImageAnalysisWindow::ImageAnalysisWindow(MainFrame *Parent)
     :   ImageAnalysisWindow_Base(Parent),
         Bitmap(slither_xpm)
 {
-printf("%s\n", __PRETTY_FUNCTION__);
     // For now, resize window for default image...
     SetClientSize(Bitmap.GetWidth(), Bitmap.GetHeight());
     
@@ -94,6 +93,6 @@ void ImageAnalysisWindow::SetImage(IplImage const &IntelImage)
 // Deconstructor...
 ImageAnalysisWindow::~ImageAnalysisWindow()
 {
-printf("%s\n", __PRETTY_FUNCTION__);
+
 }
 

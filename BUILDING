@@ -2,21 +2,26 @@ Ubuntu Feisty Building
 ======================
 
 - All the packages you need are already good to go in the Ubuntu Feisty 
-  repository.
+  repository. To prepare build environment, enable all repositories under the
+  Software Sources
+
+    $ sudo apt-get update
+    $ sudo apt-get install 
+        build-essential     (compiler)
+        dpkg                (making Ubuntu package)
+        dpkg-dev            (making Ubuntu package)
+        libwxgtk2.8-0       (wxWidgets runtime)
+        libwxgtk2.8-dev     (wxWidgets headers)
+        libwxgtk2.8-dbg     (wxWidgets debug runtime)
+        scons               (scons build tool, a Make replacement)
+        subversion          (for source control management and packaging)
+        wx-common           (wxWidgets utility executables, e.g. wx-config)
   
 - Note that insight is built wrong for Ubuntu and you must use...
     set solib-absolute-prefix /.
   ...in the console window to make it work properly if you intend to use it for
   debugging. This enables it to find shared objects needed for looking up
   debugging symbols.
-
-- Follow these instructions to get the latest OpenCV off of CVS, or use packages.
-  http://www.ryanbruce.org/2006/11/30/installing-opencv-from-cvs-on-ubuntu-edgy/
-
-    - Options I am using to configure for building local static library...
-        kip@kip-laptop:~/Projects/OpenCV/build$ ../configure --disable-shared 
-                                                             --enable-debug 
-                                                             --prefix=/home/kip/Projects/OpenCV/install/
 
 - To build slither...
     $ cd trunk
@@ -34,9 +39,9 @@ Mac OS X Building
   difficult to adequately support multiple platform SDKs, so we require our
   users to be on Leopard (10.5) or greater.
 
-- Apple Developer Tools come with an older unstable version of wxWidgets (2.5).
-  Find a way to get rid of it by removing / renaming the wx-config it ships
-  with.
+- Apple Developer Tools come with an older unstable version of wxWidgets 
+  (2.7.6). Find a way to get rid of it by removing / renaming the wx-config it 
+  ships with.
 
 - We will build both wxWidgets and OpenCV as static libraries. This means
   Slither can be distributed as a single OS X package and will not require any
@@ -50,17 +55,13 @@ Mac OS X Building
   
     http://www.finkproject.org/download/upgrade.php
 
-- If you get this, ld: library not found for -lcrt1.10.5.o, when linking under
-  Leopard against the Tiger 10.4 SDK, run this...
-  
-    $ sudo ln -s /Developer/SDKs/MacOSX10.4u.sdk/usr/lib/crt1.o /Developer/SDKs/MacOSX10.4u.sdk/usr/lib/crt1.10.5.o
-
 - Building wxWidgets 2.8.7
     - Read this: http://www.wxwidgets.org/wiki/index.php/Getting_started_on_OS_X#Leopard_a.k.a_Mac_OS_X_10.5_Notes
     - Download wxMac and unpack
     - cd into the base dir
     - mkdir build-debug ; cd build-debug
     - ../configure --enable-monolithic
+                   --enable-static
                    --disable-shared 
                    --with-opengl
                    --enable-universal_binary
@@ -69,8 +70,8 @@ Mac OS X Building
                    --enable-mediactrl
                    --enable-unicode
                    --prefix=/Users/<you>/local
-                   --with-macosx-version-min=10.4 (require at least this version)
-                   --with-macosx-sdk=/Developer/SDKs/MacOSX10.4u.sdk (use APIs no greater than this)
+                   --with-macosx-version-min=10.5 (require at least this version)
+                   --with-macosx-sdk=/Developer/SDKs/MacOSX10.5.sdk (use APIs no greater than this)
                    --with-libjpeg=builtin
                    --with-libpng=builtin
                    --with-regex=builtin
@@ -86,11 +87,8 @@ Mac OS X Building
   /usr/local, you should make sure it is in your path by putting something like
   this in your ~/.profile
   
-  export PATH=$PATH:/usr/local/bin:/Users/Kip/local/bin:~/local/include:~/local/lib
-
-- Building libjpeg and libpng3
-    - fink fetch libjpeg libpng3
-    - Unpack libjpeg source 
+      export PATH=$PATH:/usr/local/bin:/Users/Kip/local/bin: /
+        ~/local/include:~/local/lib
 
 - Building OpenCV
     - Download source
@@ -103,16 +101,16 @@ Mac OS X Building
       configure, it breaks compile on my lab's old PPC PowerBook G4.
     - Enable libpng, tiff, and jpeg in configure.
     - Get rid of ldconfig from Makefile.am under the install-exec-hook. There is
-      no ldconfig under OS X. Who writes this shit?
+      no ldconfig under BSD systems.
     - ../configure 
             --prefix=<folder> (e.g. /Users/Charlie/local)
             CPPFLAGS="-I/sw/include" 
             CFLAGS=
-                "-isysroot /Developer/SDKs/MacOSX10.4u.sdk 
+                "-isysroot /Developer/SDKs/MacOSX10.5.sdk 
                 -arch ppc 
                 -arch i386" 
             CXXFLAGS=
-                "-isysroot /Developer/SDKs/MacOSX10.4u.sdk 
+                "-isysroot /Developer/SDKs/MacOSX10.5.sdk 
                 -arch ppc 
                 -arch i386 
                 -I/sw/include" 
@@ -125,18 +123,25 @@ Mac OS X Building
                 -framework QuartzCore 
                 -arch i386 -arch ppc" 
             --disable-shared 
+            --enable-static
             --enable-debug (your choice)
-            --disable-dependency-tracking // Trying without this for now with scons
+            --disable-dependency-tracking
             --without-python
             --without-swig
     - make
     - make install
-    - If you want to build the samples in $PREFIX/share/opencv/samples/c, you may need to mess with the Makefile in there to get it to work. Remove the '.exe' 
-      extensions from inside of the Makefile, since they aren't needed on OS X. Make sure the OpenCV include and lib directories that you installed to are
-      listed in the makefile. You may need to add a bunch of frameworks to the LINKFLAGS also:
-      -framework QuartzCore -framework QuickTime -framework Carbon -framework ApplicationServices -framework CoreFoundation
-      I also had to move -lcxcore to the end of the linker options since ld complained on my box about not being able to find symbols that are actually defined
-      in it.
+    - If you want to build the samples in $PREFIX/share/opencv/samples/c, you 
+      may need to mess with the Makefile in there to get it to work. Remove the 
+      '.exe' extensions from inside of the Makefile, since they aren't needed on 
+      OS X. Make sure the OpenCV include and lib directories that you installed 
+      to are listed in the makefile. You may need to add a bunch of frameworks 
+      to the LINKFLAGS also: 
+        -framework QuartzCore -framework QuickTime -framework Carbon /
+        -framework ApplicationServices -framework CoreFoundation 
+
+      I also had to move -lcxcore to the end of the linker options since ld 
+      complained on my box about not being able to find symbols that are 
+      actually defined in it.
 
 - Building Slither
     - scons -Q [debug=0|1]
@@ -150,4 +155,5 @@ Win32 Building
 - Follow these instructions to install wxWidgets in a MinGW / MSYS build
   environment: http://max.berger.name/howto/wxWidgets/wxWidgets_MinGW.jsp
 
+- At this time, a Win32 port has not been tested.
 

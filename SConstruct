@@ -43,6 +43,7 @@ SlitherProgram = env.Program(
                 'src/MainFrame.cpp',
                 'src/Resources.cpp',
                 'src/SlitherApp.cpp',
+                'src/SlitherMath.cpp',
                 'src/VideosGridDropTarget.cpp',
                 'src/Worm.cpp',
                 'src/WormTracker.cpp'],
