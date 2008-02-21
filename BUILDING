@@ -41,7 +41,7 @@ Mac OS X Building
 
 - Apple Developer Tools come with an older unstable version of wxWidgets 
   (2.7.6). Find a way to get rid of it by removing / renaming the wx-config it 
-  ships with.
+  ships with, along with all headers and libraries. This is very important.
 
 - We will build both wxWidgets and OpenCV as static libraries. This means
   Slither can be distributed as a single OS X package and will not require any
@@ -60,8 +60,7 @@ Mac OS X Building
     - Download wxMac and unpack
     - cd into the base dir
     - mkdir build-debug ; cd build-debug
-    - ../configure --enable-monolithic
-                   --enable-static
+    - ../configure --enable-static
                    --disable-shared 
                    --with-opengl
                    --enable-universal_binary
