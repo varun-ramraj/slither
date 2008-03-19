@@ -122,9 +122,12 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         pStorage = cvCreateMemStorage(0);
         
         // Find contours...
-        cvFindContours(pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
-                       sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
-                       cvPoint(0, 0));
+        cvFindContours(
+            pThresholdImage, pStorage, (CvSeq **) &pFirstContour, 
+            sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
+            cvPoint(0, 0));
+
+cvDilate(
 
         // Cleanup...
         cvReleaseImage(&pThresholdImage);

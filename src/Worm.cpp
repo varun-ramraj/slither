@@ -5,10 +5,21 @@
 */
 
 // Includes...
-#include "Worm.h"
-#include <new>
-#include <cmath>
-#include <cassert>
+    
+    // Our declaration...
+    #include "Worm.h"
+
+    // For dynamic memory allocation...
+    #include <new>
+
+    // Ad-hoc worm-related math routines...
+    #include "SlitherMath.h"
+
+    // For assistance with debugging...
+    #include <cassert>
+
+// Within the SlitherMath namespace...
+using namespace SlitherMath;
 
 // Statics...
 

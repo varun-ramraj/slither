@@ -8,12 +8,15 @@
 
     // Our definitions...
     #include "SlitherMath.h"
-    
-    // Standard math routines...
-    #include <cmath>
-    
+
+    // Min / max templates...
+    #include <algorithm>
+
     // Runtime assertion checks for debug builds...
     #include <cassert>
+
+    // Standard math routines...
+    #include <cmath>
 
 // Within the SlitherMath namespace...
 namespace SlitherMath
