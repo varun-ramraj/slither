@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Feb  1 2008)
+// C++ code generated with wxFormBuilder (version Feb 21 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -25,7 +25,7 @@
 
 MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )
 {
-	this->SetSizeHints( wxSize( 640,480 ), wxDefaultSize );
+	this->SetSizeHints( wxSize( -1,-1 ), wxDefaultSize );
 	this->SetExtraStyle( wxFRAME_EX_CONTEXTHELP );
 	this->SetFont( wxFont( wxNORMAL_FONT->GetPointSize(), 70, 90, 90, false, wxEmptyString ) );
 	
@@ -464,7 +464,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisPaneSizer->Add( bSizer7, 0, wxEXPAND|wxFIXED_MINSIZE, 5 );
 	
 	wxBoxSizer* bSizer8;
-	bSizer8 = new wxBoxSizer( wxVERTICAL );
+	bSizer8 = new wxBoxSizer( wxHORIZONTAL );
 	
 	wxStaticBoxSizer* AnalysisResultsSizer;
 	AnalysisResultsSizer = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Results:") ), wxHORIZONTAL );
@@ -495,7 +495,108 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisGrid->SetDefaultCellAlignment( wxALIGN_CENTRE, wxALIGN_CENTRE );
 	AnalysisResultsSizer->Add( AnalysisGrid, 1, wxALL|wxEXPAND, 5 );
 	
-	bSizer8->Add( AnalysisResultsSizer, 1, wxALL|wxEXPAND, 5 );
+	bSizer8->Add( AnalysisResultsSizer, 2, wxALL|wxEXPAND, 5 );
+	
+	wxStaticBoxSizer* sbSizer16;
+	sbSizer16 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Artificial Intelligence:") ), wxVERTICAL );
+	
+	m_scrolledWindow1 = new wxScrolledWindow( AnalysisPane, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxHSCROLL|wxVSCROLL );
+	m_scrolledWindow1->SetScrollRate( 5, 5 );
+	wxBoxSizer* bSizer9;
+	bSizer9 = new wxBoxSizer( wxVERTICAL );
+	
+	wxStaticBoxSizer* sbSizer17;
+	sbSizer17 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Image Threshold:") ), wxVERTICAL );
+	
+	wxBoxSizer* bSizer10;
+	bSizer10 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText131 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Lower:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText131->Wrap( -1 );
+	bSizer10->Add( m_staticText131, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	LowerThresholdSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 150 );
+	bSizer10->Add( LowerThresholdSpinner, 0, wxALL, 5 );
+	
+	sbSizer17->Add( bSizer10, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	wxBoxSizer* bSizer11;
+	bSizer11 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText141 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Upper:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText141->Wrap( -1 );
+	bSizer11->Add( m_staticText141, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	UpperThresholdSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 255 );
+	bSizer11->Add( UpperThresholdSpinner, 0, wxALL, 5 );
+	
+	sbSizer17->Add( bSizer11, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	bSizer9->Add( sbSizer17, 0, wxEXPAND, 5 );
+	
+	
+	bSizer9->Add( 0, 5, 0, 0, 5 );
+	
+	wxStaticBoxSizer* sbSizer18;
+	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Candidate Size:") ), wxVERTICAL );
+	
+	wxBoxSizer* bSizer101;
+	bSizer101 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText1311 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Min:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1311->Wrap( -1 );
+	bSizer101->Add( m_staticText1311, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	MinimumCandidateSize = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 150 );
+	bSizer101->Add( MinimumCandidateSize, 0, wxALL, 5 );
+	
+	sbSizer18->Add( bSizer101, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	wxBoxSizer* bSizer111;
+	bSizer111 = new wxBoxSizer( wxHORIZONTAL );
+	
+	m_staticText1411 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Max:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1411->Wrap( -1 );
+	bSizer111->Add( m_staticText1411, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
+	
+	MaximumCandidateSize = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 255 );
+	bSizer111->Add( MaximumCandidateSize, 0, wxALL, 5 );
+	
+	sbSizer18->Add( bSizer111, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	bSizer9->Add( sbSizer18, 0, wxEXPAND, 5 );
+	
+	
+	bSizer9->Add( 0, 5, 0, 0, 5 );
+	
+	wxStaticBoxSizer* sbSizer14;
+	sbSizer14 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Inlet Detection:") ), wxVERTICAL );
+	
+	InletDetectionCheckBox = new wxCheckBox( m_scrolledWindow1, wxID_ANY, wxT("Enabled"), wxDefaultPosition, wxDefaultSize, 0 );
+	InletDetectionCheckBox->SetValue(true);
+	
+	sbSizer14->Add( InletDetectionCheckBox, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	wxBoxSizer* bSizer18;
+	bSizer18 = new wxBoxSizer( wxVERTICAL );
+	
+	m_staticText19 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Morphology Size:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText19->Wrap( -1 );
+	bSizer18->Add( m_staticText19, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	InletCorrectionSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 2, 20, 5 );
+	bSizer18->Add( InletCorrectionSpinner, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
+	sbSizer14->Add( bSizer18, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
+	
+	bSizer9->Add( sbSizer14, 0, wxEXPAND, 5 );
+	
+	m_scrolledWindow1->SetSizer( bSizer9 );
+	m_scrolledWindow1->Layout();
+	bSizer9->Fit( m_scrolledWindow1 );
+	sbSizer16->Add( m_scrolledWindow1, 1, wxALL|wxEXPAND, 5 );
+	
+	bSizer8->Add( sbSizer16, 1, wxEXPAND, 5 );
 	
 	AnalysisPaneSizer->Add( bSizer8, 1, wxEXPAND, 5 );
 	
@@ -508,6 +609,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	this->SetSizer( EverythingSizer );
 	this->Layout();
+	EverythingSizer->Fit( this );
 	MainFrame_Base_statusbar = this->CreateStatusBar( 1, wxST_SIZEGRIP, wxID_ANY );
 	
 	this->Centre( wxBOTH );

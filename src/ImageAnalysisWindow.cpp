@@ -76,8 +76,8 @@ void ImageAnalysisWindow::SetImage(IplImage const &IntelImage)
     cvGetRawData(&IntelImage, &pRawImageData, NULL, &ImageSize);
 
     // Convert the raw data into something wxWidgets understands...
-    wxImage Image = wxImage(IntelImage.width, IntelImage.height, pRawImageData, 
-                            true);
+    wxImage Image = wxImage(
+        IntelImage.width, IntelImage.height, pRawImageData, true);
 
     // Turn the image into a bitmap...
     Bitmap = wxBitmap(Image);

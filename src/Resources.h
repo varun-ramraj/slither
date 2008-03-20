@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Feb  1 2008)
+// C++ code generated with wxFormBuilder (version Feb 21 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -30,6 +30,8 @@
 #include <wx/listbox.h>
 #include <wx/checkbox.h>
 #include <wx/gauge.h>
+#include <wx/spinctrl.h>
+#include <wx/scrolwin.h>
 #include <wx/notebook.h>
 #include <wx/statusbr.h>
 #include <wx/frame.h>
@@ -106,6 +108,20 @@ class MainFrame_Base : public wxFrame
 		wxCheckBox* AccumulateCheckBox;
 		wxGauge* AnalysisGauge;
 		wxGrid* AnalysisGrid;
+		wxScrolledWindow* m_scrolledWindow1;
+		wxStaticText* m_staticText131;
+		wxSpinCtrl* LowerThresholdSpinner;
+		wxStaticText* m_staticText141;
+		wxSpinCtrl* UpperThresholdSpinner;
+		
+		wxStaticText* m_staticText1311;
+		wxSpinCtrl* MinimumCandidateSize;
+		wxStaticText* m_staticText1411;
+		wxSpinCtrl* MaximumCandidateSize;
+		
+		wxCheckBox* InletDetectionCheckBox;
+		wxStaticText* m_staticText19;
+		wxSpinCtrl* InletCorrectionSpinner;
 		wxStatusBar* MainFrame_Base_statusbar;
 		
 		// Virtual event handlers, overide them in your derived class
@@ -140,7 +156,7 @@ class MainFrame_Base : public wxFrame
 		
 	
 	public:
-		MainFrame_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Slither"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 640,480 ), long style = wxDEFAULT_FRAME_STYLE );
+		MainFrame_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Slither"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( -1,-1 ), long style = wxDEFAULT_FRAME_STYLE );
 		~MainFrame_Base();
 	
 };

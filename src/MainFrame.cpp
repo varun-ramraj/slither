@@ -187,10 +187,9 @@ MainFrame::MainFrame(wxWindow *Parent)
     // Initialize video player...
 
         // Allocate media control... (wxFormBuilder can't do this yet via XRC)
-        pMediaPlayer = new wxMediaCtrl(VideoPreviewPanel, ID_VIDEO_PLAYER, 
-                                       wxEmptyString, wxPoint(0, 0), 
-                                       VideoPreviewPanel->GetSize(), 0, 
-                                       wxEmptyString);
+        pMediaPlayer = new wxMediaCtrl(
+            VideoPreviewPanel, ID_VIDEO_PLAYER, wxEmptyString, wxPoint(0, 0), 
+            VideoPreviewPanel->GetSize(), 0, wxEmptyString);
 
         // Connect events...
 

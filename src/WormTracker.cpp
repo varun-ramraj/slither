@@ -112,11 +112,34 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
     // Image must not have a region of interest set...
     assert(pGrayImage->roi == NULL);
 
+    // Apply morphological operations to get rid of inlets in worm contours...
+
+        // Duplicate the gray image before editing...
+        IplImage *pMorphologicalImage = cvCloneImage(pGrayImage);
+
+        // Allocate conversion kernel...
+        IplConvKernel *pConversionKernel = cvCreateStructuringElementEx(
+            21, 21, 10, 10, CV_SHAPE_RECT);
+
+        // Eroding and then dilating the image is same as the higher order
+        //  operation of opening...
+        
+            // Erode...
+            cvErode(pGrayImage, pMorphologicalImage, pConversionKernel, 1);
+        
+            // Dilate...
+            cvDilate(
+                pMorphologicalImage, pMorphologicalImage, pConversionKernel, 1);
+
+        // Done with conversion kernel...
+        cvReleaseStructuringElement(&pConversionKernel);
+
     // Find the contours in the threshold image...
 
         // Create threshold...
-        IplImage *pThresholdImage = cvCloneImage(pGrayImage);
-        cvThreshold(pGrayImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
+        IplImage *pThresholdImage = cvCloneImage(pMorphologicalImage);
+        cvThreshold(
+            pMorphologicalImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
 
         // Allocate contour storage space...
         pStorage = cvCreateMemStorage(0);
@@ -127,10 +150,9 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
             sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_NONE, 
             cvPoint(0, 0));
 
-cvDilate(
-
         // Cleanup...
         cvReleaseImage(&pThresholdImage);
+        cvReleaseImage(&pMorphologicalImage);
 
     // Check to see if the tracker is being shown all the worms at once for
     //  the first time...
