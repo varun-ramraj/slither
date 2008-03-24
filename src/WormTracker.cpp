@@ -19,7 +19,13 @@ WormTracker::WormTracker()
       pThinkingImage(NULL),
       unWormsJustAdded(0),
       unCurrentFrame(0),
-      unTotalFrames(0)
+      unTotalFrames(0),
+      unLowerThreshold(150),
+      unUpperThreshold(255),
+      unMinimumCandidateSize(150),
+      unMaximumCandidateSize(255),
+      bInletDetection(true),
+      unMorphologySize
 {
     // Initialize the thinking label font...
     
@@ -40,7 +46,7 @@ void WormTracker::Add(CvContour const &WormContour)
     // We cannot do anything without at least the gray image...
     assert(pGrayImage);
 
-    // Breath life into a new worm from the given contour...
+    // Breathe life into a new worm from the given contour...
     Worm &NewWorm = *(new Worm(WormContour, *pGrayImage));
 
     // Add new worm...

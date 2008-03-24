@@ -573,6 +573,18 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         // Analysis grid...
         AnalysisGrid->Disable();
 
+        // Threshold...
+        LowerThresholdSpinner->Disable();
+        UpperThresholdSpinner->Disable();
+
+        // Candidate size...
+        MinimumCandidateSize->Disable();
+        MaximumCandidateSize->Disable();
+        
+        // Inlet detection...
+        InletDetectionCheckBox->Disable();
+        InletCorrectionSpinner->Disable();
+
         // Alert user...
         sTemp = ChosenAnalysisType->GetString(
                     ChosenAnalysisType->GetCurrentSelection()) + 
@@ -1057,6 +1069,18 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
 
         // Analysis grid...
         AnalysisGrid->Enable();
+
+        // Threshold...
+        LowerThresholdSpinner->Enable();
+        UpperThresholdSpinner->Enable();
+
+        // Candidate size...
+        MinimumCandidateSize->Enable();
+        MaximumCandidateSize->Enable();
+        
+        // Inlet detection...
+        InletDetectionCheckBox->Enable();
+        InletCorrectionSpinner->Enable();
 
         // Alert user...
         AnalysisStatusList->Append(wxT("Analysis ended..."));

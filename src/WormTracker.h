@@ -81,6 +81,15 @@ class WormTracker
             // Set the field of view diameter...
             void                SetFieldOfViewDiameter(float const fDiameter);
 
+            // Set artificial intelligence magic numbers...
+            void                SetMagicNumbers(
+                unsigned int const _unLowerThreshold, 
+                unsigned int const _unUpperThreshold,
+                unsigned int const _unMinimumCandidateSize, 
+                unsigned int const _unMaximumCandidateSize, 
+                bool const _bInletDetection,
+                unsigned int unMorphologySize);
+
         // Operators...
 
             // Output some info on current tracker state......
@@ -146,6 +155,14 @@ class WormTracker
         // The current frame and the total number of frames...
         unsigned int        unCurrentFrame;
         unsigned int        unTotalFrames;
+        
+        // Artificial intelligence settings...
+        unsigned int const  unLowerThreshold; 
+        unsigned int const  unUpperThreshold;
+        unsigned int const  unMinimumCandidateSize; 
+        unsigned int const  unMaximumCandidateSize;
+        bool const          bInletDetection;
+        unsigned int        unMorphologySize;
 };
 
 #endif
