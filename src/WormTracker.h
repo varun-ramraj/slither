@@ -77,18 +77,18 @@ class WormTracker
             
             // Reset the tracker...
             void                Reset(unsigned int const _unTotalFrames);
-            
+
+            // Set artificial intelligence magic numbers / flags...
+            void                SetArtificialIntelligenceMagic(
+                unsigned int const  _unLowerThreshold, 
+                unsigned int const  _unUpperThreshold,
+                unsigned int const  _unMinimumCandidateSize, 
+                unsigned int const  _unMaximumCandidateSize, 
+                bool const          _bInletDetection,
+                unsigned int        _unMorphologySize);
+
             // Set the field of view diameter...
             void                SetFieldOfViewDiameter(float const fDiameter);
-
-            // Set artificial intelligence magic numbers...
-            void                SetMagicNumbers(
-                unsigned int const _unLowerThreshold, 
-                unsigned int const _unUpperThreshold,
-                unsigned int const _unMinimumCandidateSize, 
-                unsigned int const _unMaximumCandidateSize, 
-                bool const _bInletDetection,
-                unsigned int unMorphologySize);
 
         // Operators...
 
@@ -157,11 +157,11 @@ class WormTracker
         unsigned int        unTotalFrames;
         
         // Artificial intelligence settings...
-        unsigned int const  unLowerThreshold; 
-        unsigned int const  unUpperThreshold;
-        unsigned int const  unMinimumCandidateSize; 
-        unsigned int const  unMaximumCandidateSize;
-        bool const          bInletDetection;
+        unsigned int        unLowerThreshold; 
+        unsigned int        unUpperThreshold;
+        unsigned int        unMinimumCandidateSize; 
+        unsigned int        unMaximumCandidateSize;
+        bool                bInletDetection;
         unsigned int        unMorphologySize;
 };
 

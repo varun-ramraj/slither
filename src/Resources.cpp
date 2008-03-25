@@ -246,7 +246,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	DataPane->SetSizer( DataPaneSizer );
 	DataPane->Layout();
 	DataPaneSizer->Fit( DataPane );
-	MainNotebook->AddPage( DataPane, wxT("Data"), true );
+	MainNotebook->AddPage( DataPane, wxT("Data"), false );
 	CapturePane = new wxPanel( MainNotebook, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxTAB_TRAVERSAL );
 	CapturePane->Enable( false );
 	
@@ -349,7 +349,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
 	wxStaticBoxSizer* sbSizer9;
-	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Analysis Type:") ), wxVERTICAL );
+	sbSizer9 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Analysis Type:") ), wxHORIZONTAL );
 	
 	wxString ChosenAnalysisTypeChoices[] = { wxT("Body Size"), wxT("Long Term Habituation"), wxT("Short Term Habituation") };
 	int ChosenAnalysisTypeNChoices = sizeof( ChosenAnalysisTypeChoices ) / sizeof( wxString );
@@ -359,31 +359,22 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	sbSizer9->Add( ChosenAnalysisType, 1, wxALL|wxEXPAND, 5 );
 	
+	AccumulateCheckBox = new wxCheckBox( AnalysisPane, wxID_ANY, wxT("Accumulate results"), wxDefaultPosition, wxDefaultSize, 0 );
+	
+	AccumulateCheckBox->SetToolTip( wxT("When this is enabled, the results of this analysis will not erase the previous results listed. Instead, they will be appended to the previous.") );
+	
+	sbSizer9->Add( AccumulateCheckBox, 0, wxALL, 5 );
+	
 	AnalysisSetupSizer->Add( sbSizer9, 0, wxEXPAND, 5 );
 	
 	
 	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
 	
-	wxStaticBoxSizer* sbSizer10;
-	sbSizer10 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Processor Throttle:") ), wxHORIZONTAL );
+	AnalysisGauge = new wxGauge( AnalysisPane, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL|wxGA_SMOOTH );
+	AnalysisGauge->SetToolTip( wxT("This shows the current progress of the analysis. If the codec used on your system cannot report the total video length, then a non-progressive animation will be displayed.") );
+	AnalysisGauge->SetMinSize( wxSize( -1,25 ) );
 	
-	m_staticText6 = new wxStaticText( AnalysisPane, wxID_ANY, wxT("-"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText6->Wrap( -1 );
-	sbSizer10->Add( m_staticText6, 0, wxALL|wxEXPAND, 5 );
-	
-	ProcessorThrottle = new wxSlider( AnalysisPane, wxID_ANY, 100, 0, 100, wxDefaultPosition, wxDefaultSize, wxSL_AUTOTICKS|wxSL_BOTTOM|wxSL_HORIZONTAL );
-	ProcessorThrottle->SetToolTip( wxT("Image analysis is computationally expensive and you may find your system lagging undesirably while you attempt to do something else. Lowering the CPU throttle will reduce the load on the processor, but will take longer to finish a full analysis (and vise versa).") );
-	
-	sbSizer10->Add( ProcessorThrottle, 1, wxALL|wxEXPAND, 5 );
-	
-	m_staticText71 = new wxStaticText( AnalysisPane, wxID_ANY, wxT("+"), wxDefaultPosition, wxDefaultSize, 0 );
-	m_staticText71->Wrap( -1 );
-	sbSizer10->Add( m_staticText71, 0, wxALL, 5 );
-	
-	AnalysisSetupSizer->Add( sbSizer10, 0, wxEXPAND, 5 );
-	
-	
-	AnalysisSetupSizer->Add( 0, 10, 0, wxEXPAND, 5 );
+	AnalysisSetupSizer->Add( AnalysisGauge, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
 	
 	bSizer7->Add( AnalysisSetupSizer, 1, wxALL|wxEXPAND, 5 );
 	
@@ -443,19 +434,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	StatusFlexSizer->Add( AnalysisWormsTrackingStatus, 1, wxALL, 5 );
 	
-	AccumulateCheckBox = new wxCheckBox( AnalysisPane, wxID_ANY, wxT("Accumulate"), wxDefaultPosition, wxDefaultSize, 0 );
-	
-	AccumulateCheckBox->SetToolTip( wxT("When this is enabled, the results of this analysis will not erase the previous results listed. Instead, they will be appended to the previous.") );
-	
-	StatusFlexSizer->Add( AccumulateCheckBox, 0, wxALL, 5 );
-	
 	StatusSizer2->Add( StatusFlexSizer, 0, wxEXPAND, 5 );
-	
-	AnalysisGauge = new wxGauge( AnalysisPane, wxID_ANY, 100, wxDefaultPosition, wxDefaultSize, wxGA_HORIZONTAL|wxGA_SMOOTH );
-	AnalysisGauge->SetToolTip( wxT("This shows the current progress of the analysis. If the codec used on your system cannot report the total video length, then a non-progressive animation will be displayed.") );
-	AnalysisGauge->SetMinSize( wxSize( -1,25 ) );
-	
-	StatusSizer2->Add( AnalysisGauge, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
 	
 	StatusSizer->Add( StatusSizer2, 1, wxEXPAND, 5 );
 	
@@ -547,8 +526,12 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText1311->Wrap( -1 );
 	bSizer101->Add( m_staticText1311, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	MinimumCandidateSize = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 150 );
-	bSizer101->Add( MinimumCandidateSize, 0, wxALL, 5 );
+	MinimumCandidateSizeSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 50 );
+	bSizer101->Add( MinimumCandidateSizeSpinner, 0, wxALL, 5 );
+	
+	m_staticText13111 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText13111->Wrap( -1 );
+	bSizer101->Add( m_staticText13111, 0, wxALL, 5 );
 	
 	sbSizer18->Add( bSizer101, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
 	
@@ -559,8 +542,12 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	m_staticText1411->Wrap( -1 );
 	bSizer111->Add( m_staticText1411, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	MaximumCandidateSize = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 255 );
-	bSizer111->Add( MaximumCandidateSize, 0, wxALL, 5 );
+	MaximumCandidateSizeSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 120 );
+	bSizer111->Add( MaximumCandidateSizeSpinner, 0, wxALL, 5 );
+	
+	m_staticText131111 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText131111->Wrap( -1 );
+	bSizer111->Add( m_staticText131111, 0, wxALL, 5 );
 	
 	sbSizer18->Add( bSizer111, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
 	
@@ -591,6 +578,9 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	
 	bSizer9->Add( sbSizer14, 0, wxEXPAND, 5 );
 	
+	ResetAIToDefaultsButton = new wxButton( m_scrolledWindow1, wxID_ANY, wxT("Reset to Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+	bSizer9->Add( ResetAIToDefaultsButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
+	
 	m_scrolledWindow1->SetSizer( bSizer9 );
 	m_scrolledWindow1->Layout();
 	bSizer9->Fit( m_scrolledWindow1 );
@@ -603,7 +593,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	AnalysisPane->SetSizer( AnalysisPaneSizer );
 	AnalysisPane->Layout();
 	AnalysisPaneSizer->Fit( AnalysisPane );
-	MainNotebook->AddPage( AnalysisPane, wxT("Analysis"), false );
+	MainNotebook->AddPage( AnalysisPane, wxT("Analysis"), true );
 	
 	EverythingSizer->Add( MainNotebook, 1, wxALL|wxEXPAND, 0 );
 	
@@ -650,6 +640,7 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	BeginAnalysisButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnBeginAnalysis ), NULL, this );
 	CancelAnalysisButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnCancelAnalysis ), NULL, this );
 	AnalysisGrid->Connect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnAnalysisCellRightClick ), NULL, this );
+	ResetAIToDefaultsButton->Connect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnResetAIToDefaults ), NULL, this );
 }
 
 MainFrame_Base::~MainFrame_Base()
@@ -690,6 +681,7 @@ MainFrame_Base::~MainFrame_Base()
 	BeginAnalysisButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnBeginAnalysis ), NULL, this );
 	CancelAnalysisButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnCancelAnalysis ), NULL, this );
 	AnalysisGrid->Disconnect( wxEVT_GRID_CELL_RIGHT_CLICK, wxGridEventHandler( MainFrame_Base::OnAnalysisCellRightClick ), NULL, this );
+	ResetAIToDefaultsButton->Disconnect( wxEVT_COMMAND_BUTTON_CLICKED, wxCommandEventHandler( MainFrame_Base::OnResetAIToDefaults ), NULL, this );
 }
 
 ImageAnalysisWindow_Base::ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id, const wxString& title, const wxPoint& pos, const wxSize& size, long style ) : wxFrame( parent, id, title, pos, size, style )

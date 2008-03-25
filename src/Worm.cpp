@@ -584,7 +584,7 @@ inline unsigned int Worm::PinchShiftForAnEnd(
         for(unsigned int unOrthogonalCorrection = 1;
             unOrthogonalCorrection <= 40 && 
             cvPointPolygonTest(pContour, CorrectedOrthogonal.second, 0) <= 0.0f;
-            ++unOrthogonalCorrection)
+          ++unOrthogonalCorrection)
         {
             // Preserve precision by starting with the original orthogonal...
             CorrectedOrthogonal = OrthogonalLineSegment;

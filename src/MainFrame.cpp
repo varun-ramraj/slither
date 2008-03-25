@@ -543,6 +543,15 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         return;
     }
 
+    // Load the artificial intelligence settings...
+    Tracker.SetArtificialIntelligenceMagic(
+        LowerThresholdSpinner->GetValue(),
+        UpperThresholdSpinner->GetValue(),
+        MinimumCandidateSizeSpinner->GetValue(),
+        MaximumCandidateSizeSpinner->GetValue(),
+        InletDetectionCheckBox->IsChecked(),
+        InletCorrectionSpinner->GetValue());
+
     // Lock the UI...
 
         // Begin analysis button...
@@ -578,8 +587,8 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         UpperThresholdSpinner->Disable();
 
         // Candidate size...
-        MinimumCandidateSize->Disable();
-        MaximumCandidateSize->Disable();
+        MinimumCandidateSizeSpinner->Disable();
+        MaximumCandidateSizeSpinner->Disable();
         
         // Inlet detection...
         InletDetectionCheckBox->Disable();
@@ -590,6 +599,10 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
                     ChosenAnalysisType->GetCurrentSelection()) + 
                 wxT(" analysis is running...");
         AnalysisStatusList->Append(sTemp);
+
+        // Show some information about the AI settings we are using...
+        if(InletDetectionCheckBox->IsChecked())
+            AnalysisStatusList->Append(wxT("Inlet detection enabled..."));
 
         // Refresh the main frame...
         Refresh();
@@ -1075,8 +1088,8 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
         UpperThresholdSpinner->Enable();
 
         // Candidate size...
-        MinimumCandidateSize->Enable();
-        MaximumCandidateSize->Enable();
+        MinimumCandidateSizeSpinner->Enable();
+        MaximumCandidateSizeSpinner->Enable();
         
         // Inlet detection...
         InletDetectionCheckBox->Enable();

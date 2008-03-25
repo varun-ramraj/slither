@@ -25,7 +25,7 @@ WormTracker::WormTracker()
       unMinimumCandidateSize(150),
       unMaximumCandidateSize(255),
       bInletDetection(true),
-      unMorphologySize
+      unMorphologySize(5)
 {
     // Initialize the thinking label font...
     
@@ -123,29 +123,36 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         // Duplicate the gray image before editing...
         IplImage *pMorphologicalImage = cvCloneImage(pGrayImage);
 
-        // Allocate conversion kernel...
-        IplConvKernel *pConversionKernel = cvCreateStructuringElementEx(
-            21, 21, 10, 10, CV_SHAPE_RECT);
+        // User requested the operation, so edit the image...
+        if(bInletDetection)
+        {
+            // Allocate conversion kernel...
+            IplConvKernel *pConversionKernel = cvCreateStructuringElementEx(
+                unMorphologySize, unMorphologySize, unMorphologySize / 2, 
+                unMorphologySize / 2, CV_SHAPE_RECT);
 
-        // Eroding and then dilating the image is same as the higher order
-        //  operation of opening...
-        
-            // Erode...
-            cvErode(pGrayImage, pMorphologicalImage, pConversionKernel, 1);
-        
-            // Dilate...
-            cvDilate(
-                pMorphologicalImage, pMorphologicalImage, pConversionKernel, 1);
+            // Eroding and then dilating the image is same as the higher order
+            //  operation of opening...
+            
+                // Erode...
+                cvErode(pGrayImage, pMorphologicalImage, pConversionKernel, 1);
+            
+                // Dilate...
+                cvDilate(
+                    pMorphologicalImage, pMorphologicalImage, pConversionKernel, 
+                    1);
 
-        // Done with conversion kernel...
-        cvReleaseStructuringElement(&pConversionKernel);
+            // Done with conversion kernel...
+            cvReleaseStructuringElement(&pConversionKernel);
+        }
 
     // Find the contours in the threshold image...
 
         // Create threshold...
         IplImage *pThresholdImage = cvCloneImage(pMorphologicalImage);
         cvThreshold(
-            pMorphologicalImage, pThresholdImage, 150, 255, CV_THRESH_BINARY);
+            pMorphologicalImage, pThresholdImage, unLowerThreshold, 
+            unUpperThreshold, CV_THRESH_BINARY);
 
         // Allocate contour storage space...
         pStorage = cvCreateMemStorage(0);
@@ -441,7 +448,8 @@ bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 
     // Too small / too big to be a worm...
 //    if((dPixelArea < 200.0) || (800.0 < dPixelArea))
-    if((dMillimeterArea < 0.05f) || (0.12f < dMillimeterArea))
+    if((dMillimeterArea < ((float) unMinimumCandidateSize / 1000.0f)) || 
+       (((float) unMaximumCandidateSize / 1000.0f) < dMillimeterArea))
         return false;
 
     // Contours with points on image exterior not permitted...
@@ -513,6 +521,24 @@ void WormTracker::SetFieldOfViewDiameter(float const fDiameter)
 {
     // Store...
     fFieldOfViewDiameter = fDiameter > 0.01 ? fDiameter : 0.01;
+}
+
+// Set artificial intelligence magic numbers / flags...
+void WormTracker::SetArtificialIntelligenceMagic(
+    unsigned int const  _unLowerThreshold, 
+    unsigned int const  _unUpperThreshold,
+    unsigned int const  _unMinimumCandidateSize, 
+    unsigned int const  _unMaximumCandidateSize, 
+    bool const          _bInletDetection,
+    unsigned int        _unMorphologySize)
+{
+    // Store new numbers / flags...
+    unLowerThreshold        = _unLowerThreshold;
+    unUpperThreshold        = _unUpperThreshold;
+    unMinimumCandidateSize  = _unMinimumCandidateSize;
+    unMaximumCandidateSize  = _unMaximumCandidateSize;
+    bInletDetection         = _bInletDetection;
+    unMorphologySize        = _unMorphologySize;
 }
 
 // Deconstructor...

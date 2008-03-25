@@ -123,26 +123,6 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
     // Keep showing media until there is nothing left or cancel requested...
     while(!TestDestroy())
     {
-        // Depending on processor throttle setting, idle...
-        if(Frame.ProcessorThrottle->GetValue() < 100)
-        {
-            // Get the throttle value...
-            int const nThrottle = Frame.ProcessorThrottle->GetValue();
-            
-            // Compute sleep time from slider value... [1,2000ms]
-            int nSleepTime = ((100 - nThrottle) * 20);
-
-            // Give up rest of time slice to system for other threads...
-            Yield();
-            
-            // Sleep...
-            wxThread::Sleep(nSleepTime);
-            
-            // Throttle was at zero, don't bother doing any processing...
-            if(nThrottle == 0)
-                continue;
-        }
-
         // Retrieve the captured image...
         IplImage const *pOriginalImage = cvQueryFrame(pCapture);
         

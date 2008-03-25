@@ -26,10 +26,9 @@
 #include <wx/grid.h>
 #include <wx/bmpbuttn.h>
 #include <wx/choice.h>
-#include <wx/slider.h>
-#include <wx/listbox.h>
 #include <wx/checkbox.h>
 #include <wx/gauge.h>
+#include <wx/listbox.h>
 #include <wx/spinctrl.h>
 #include <wx/scrolwin.h>
 #include <wx/notebook.h>
@@ -89,11 +88,9 @@ class MainFrame_Base : public wxFrame
 		wxStaticText* m_staticText121;
 		
 		wxChoice* ChosenAnalysisType;
+		wxCheckBox* AccumulateCheckBox;
 		
-		wxStaticText* m_staticText6;
-		wxSlider* ProcessorThrottle;
-		wxStaticText* m_staticText71;
-		
+		wxGauge* AnalysisGauge;
 		wxListBox* AnalysisStatusList;
 		wxStaticText* m_staticText12;
 		wxTextCtrl* AnalysisCurrentFrameStatus;
@@ -105,8 +102,6 @@ class MainFrame_Base : public wxFrame
 		
 		wxStaticText* m_staticText14;
 		wxTextCtrl* AnalysisWormsTrackingStatus;
-		wxCheckBox* AccumulateCheckBox;
-		wxGauge* AnalysisGauge;
 		wxGrid* AnalysisGrid;
 		wxScrolledWindow* m_scrolledWindow1;
 		wxStaticText* m_staticText131;
@@ -115,13 +110,16 @@ class MainFrame_Base : public wxFrame
 		wxSpinCtrl* UpperThresholdSpinner;
 		
 		wxStaticText* m_staticText1311;
-		wxSpinCtrl* MinimumCandidateSize;
+		wxSpinCtrl* MinimumCandidateSizeSpinner;
+		wxStaticText* m_staticText13111;
 		wxStaticText* m_staticText1411;
-		wxSpinCtrl* MaximumCandidateSize;
+		wxSpinCtrl* MaximumCandidateSizeSpinner;
+		wxStaticText* m_staticText131111;
 		
 		wxCheckBox* InletDetectionCheckBox;
 		wxStaticText* m_staticText19;
 		wxSpinCtrl* InletCorrectionSpinner;
+		wxButton* ResetAIToDefaultsButton;
 		wxStatusBar* MainFrame_Base_statusbar;
 		
 		// Virtual event handlers, overide them in your derived class
@@ -153,6 +151,7 @@ class MainFrame_Base : public wxFrame
 		virtual void OnBeginAnalysis( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnCancelAnalysis( wxCommandEvent& event ){ event.Skip(); }
 		virtual void OnAnalysisCellRightClick( wxGridEvent& event ){ event.Skip(); }
+		virtual void OnResetAIToDefaults( wxCommandEvent& event ){ event.Skip(); }
 		
 	
 	public:
