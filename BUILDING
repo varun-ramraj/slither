@@ -1,5 +1,5 @@
-Ubuntu Feisty Building
-======================
+Ubuntu Gutsy Building
+=====================
 
 - All the packages you need are already good to go in the Ubuntu Feisty 
   repository. To prepare build environment, enable all repositories under the

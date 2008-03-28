@@ -20,8 +20,8 @@ WormTracker::WormTracker()
       unWormsJustAdded(0),
       unCurrentFrame(0),
       unTotalFrames(0),
-      unLowerThreshold(150),
-      unUpperThreshold(255),
+      unThreshold(150),
+      unMaxThresholdValue(255),
       unMinimumCandidateSize(150),
       unMaximumCandidateSize(255),
       bInletDetection(true),
@@ -151,8 +151,8 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         // Create threshold...
         IplImage *pThresholdImage = cvCloneImage(pMorphologicalImage);
         cvThreshold(
-            pMorphologicalImage, pThresholdImage, unLowerThreshold, 
-            unUpperThreshold, CV_THRESH_BINARY);
+            pMorphologicalImage, pThresholdImage, unThreshold, 
+            unMaxThresholdValue, CV_THRESH_BINARY);
 
         // Allocate contour storage space...
         pStorage = cvCreateMemStorage(0);
@@ -525,16 +525,16 @@ void WormTracker::SetFieldOfViewDiameter(float const fDiameter)
 
 // Set artificial intelligence magic numbers / flags...
 void WormTracker::SetArtificialIntelligenceMagic(
-    unsigned int const  _unLowerThreshold, 
-    unsigned int const  _unUpperThreshold,
+    unsigned int const  _unThreshold, 
+    unsigned int const  _unMaxThresholdValue,
     unsigned int const  _unMinimumCandidateSize, 
     unsigned int const  _unMaximumCandidateSize, 
     bool const          _bInletDetection,
     unsigned int        _unMorphologySize)
 {
     // Store new numbers / flags...
-    unLowerThreshold        = _unLowerThreshold;
-    unUpperThreshold        = _unUpperThreshold;
+    unThreshold             = _unThreshold;
+    unMaxThresholdValue     = _unMaxThresholdValue;
     unMinimumCandidateSize  = _unMinimumCandidateSize;
     unMaximumCandidateSize  = _unMaximumCandidateSize;
     bInletDetection         = _bInletDetection;

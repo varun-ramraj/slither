@@ -193,6 +193,7 @@ class MainFrame : public MainFrame_Base
         void OnAnalysisFrameReadyTimer(wxTimerEvent &Event);
         void OnCancelAnalysis(wxCommandEvent &Event);
         void OnEndAnalysis(wxCommandEvent &Event);
+        void OnResetAIToDefaults(wxCommandEvent &Event);
 
         // Image analysis window has been toggled...
         void OnToggleImageAnalysisWindow(wxCommandEvent &Event);

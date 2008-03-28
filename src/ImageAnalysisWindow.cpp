@@ -12,7 +12,10 @@
 
 // Constructor...
 ImageAnalysisWindow::ImageAnalysisWindow(MainFrame *Parent)
-    :   ImageAnalysisWindow_Base(Parent),
+    :   ImageAnalysisWindow_Base(
+            Parent, wxID_ANY, wxT("Image Analysis"), wxDefaultPosition, 
+            wxDefaultSize, wxDEFAULT_FRAME_STYLE | wxFRAME_FLOAT_ON_PARENT | 
+                wxFULL_REPAINT_ON_RESIZE),
         Bitmap(slither_xpm)
 {
     // For now, resize window for default image...

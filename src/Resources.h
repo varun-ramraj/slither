@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Feb 21 2008)
+// C++ code generated with wxFormBuilder (version Mar 19 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -11,6 +11,7 @@
 #include <wx/string.h>
 #include <wx/bitmap.h>
 #include <wx/image.h>
+#include <wx/icon.h>
 #include <wx/menu.h>
 #include <wx/gdicmn.h>
 #include <wx/font.h>
@@ -103,11 +104,11 @@ class MainFrame_Base : public wxFrame
 		wxStaticText* m_staticText14;
 		wxTextCtrl* AnalysisWormsTrackingStatus;
 		wxGrid* AnalysisGrid;
-		wxScrolledWindow* m_scrolledWindow1;
+		wxScrolledWindow* AISettingsScrolledWindow;
 		wxStaticText* m_staticText131;
-		wxSpinCtrl* LowerThresholdSpinner;
+		wxSpinCtrl* ThresholdSpinner;
 		wxStaticText* m_staticText141;
-		wxSpinCtrl* UpperThresholdSpinner;
+		wxSpinCtrl* MaxThresholdValueSpinner;
 		
 		wxStaticText* m_staticText1311;
 		wxSpinCtrl* MinimumCandidateSizeSpinner;
@@ -175,7 +176,7 @@ class ImageAnalysisWindow_Base : public wxFrame
 		
 	
 	public:
-		ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Image Analysis"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 320,240 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxTAB_TRAVERSAL );
+		ImageAnalysisWindow_Base( wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = wxT("Image Analysis"), const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxSize( 320,240 ), long style = wxCAPTION|wxCLOSE_BOX|wxFRAME_FLOAT_ON_PARENT|wxFULL_REPAINT_ON_RESIZE|wxTAB_TRAVERSAL );
 		~ImageAnalysisWindow_Base();
 	
 };

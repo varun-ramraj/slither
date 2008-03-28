@@ -85,8 +85,7 @@ MainFrame::MainFrame(wxWindow *Parent)
     wxArtProvider::GetBitmap(wxART_FILE_SAVE_AS, wxART_TOOLBAR);
     wxArtProvider::GetBitmap(wxART_HELP_SETTINGS, wxART_TOOLBAR);
     wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);
-    wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);
-    */
+    wxArtProvider::GetBitmap(wxART_INFORMATION, wxART_TOOLBAR);*/
 
     // Configure the notebook...   
 
@@ -340,9 +339,6 @@ void MainFrame::OnAnalysisCellRightClick(wxGridEvent &Event)
         pMenuItem = new wxMenuItem(&Menu, ID_ANALYSIS_COPY_CLIPBOARD, 
                                    wxT("&Copy to clipboard"));
         pMenuItem->SetBitmap(wxArtProvider::GetBitmap(wxART_COPY, wxART_MENU));
-        #ifdef __WXMAC__
-        pMenuItem->Enable(false);
-        #endif
         Menu.Append(pMenuItem);
         
         // Save to file...
@@ -545,8 +541,8 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
 
     // Load the artificial intelligence settings...
     Tracker.SetArtificialIntelligenceMagic(
-        LowerThresholdSpinner->GetValue(),
-        UpperThresholdSpinner->GetValue(),
+        ThresholdSpinner->GetValue(),
+        MaxThresholdValueSpinner->GetValue(),
         MinimumCandidateSizeSpinner->GetValue(),
         MaximumCandidateSizeSpinner->GetValue(),
         InletDetectionCheckBox->IsChecked(),
@@ -582,17 +578,8 @@ void MainFrame::OnBeginAnalysis(wxCommandEvent &Event)
         // Analysis grid...
         AnalysisGrid->Disable();
 
-        // Threshold...
-        LowerThresholdSpinner->Disable();
-        UpperThresholdSpinner->Disable();
-
-        // Candidate size...
-        MinimumCandidateSizeSpinner->Disable();
-        MaximumCandidateSizeSpinner->Disable();
-        
-        // Inlet detection...
-        InletDetectionCheckBox->Disable();
-        InletCorrectionSpinner->Disable();
+        // Artificial intelligence settings...
+        AISettingsScrolledWindow->Disable();
 
         // Alert user...
         sTemp = ChosenAnalysisType->GetString(
@@ -1083,17 +1070,8 @@ void MainFrame::OnEndAnalysis(wxCommandEvent &Event)
         // Analysis grid...
         AnalysisGrid->Enable();
 
-        // Threshold...
-        LowerThresholdSpinner->Enable();
-        UpperThresholdSpinner->Enable();
-
-        // Candidate size...
-        MinimumCandidateSizeSpinner->Enable();
-        MaximumCandidateSizeSpinner->Enable();
-        
-        // Inlet detection...
-        InletDetectionCheckBox->Enable();
-        InletCorrectionSpinner->Enable();
+        // Artificial intelligence settings...
+        AISettingsScrolledWindow->Enable();
 
         // Alert user...
         AnalysisStatusList->Append(wxT("Analysis ended..."));
@@ -1915,7 +1893,7 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
 
         // Developers... (kind of)
         AboutDialogInfo.AddDeveloper(wxT("Current Developers:"));
-        AboutDialogInfo.AddDeveloper(wxT("\tKip Warner <Kip@TheVertigo.com>"));
+        AboutDialogInfo.AddDeveloper(wxT("\tKip Warner <kip@thevertigo.com> (OpenPGP: B6E28B6D)"));
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Beta Testers:"));
         AboutDialogInfo.AddDeveloper(wxT("\tEvan Ardiel <eardiel@yahoo.ca>"));
@@ -1928,7 +1906,7 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
         AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <silverballer47@gmail.com> (criticisms)"));
         
         // Documentation writers...
-        AboutDialogInfo.AddDocWriter(wxT("Kip Warner <Kip@TheVertigo.com>"));
+        AboutDialogInfo.AddDocWriter(wxT("Kip Warner <kip@thevertigo.com> (OpenPGP: B6E28B6D)"));
             
         // Website...
         AboutDialogInfo.SetWebSite(wxT("http://slither.thevertigo.com/"));
@@ -2052,6 +2030,22 @@ void MainFrame::OnQuit(wxCommandEvent &Event)
 
     // Close the frame...
     Close();
+}
+
+// Reset the artificial intelligence magic to defaults...
+void MainFrame::OnResetAIToDefaults(wxCommandEvent &Event)
+{
+    // Image threshold...
+    ThresholdSpinner->SetValue(150);
+    MaxThresholdValueSpinner->SetValue(255);
+    
+    // Candidate size...
+    MinimumCandidateSizeSpinner->SetValue(50);
+    MaximumCandidateSizeSpinner->SetValue(120);
+    
+    // Inlet detection...
+    InletDetectionCheckBox->SetValue(true);
+    InletCorrectionSpinner->SetValue(5);
 }
 
 // User clicked the (X) / system menu (Windows) or Close() was invoked...

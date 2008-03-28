@@ -80,8 +80,8 @@ class WormTracker
 
             // Set artificial intelligence magic numbers / flags...
             void                SetArtificialIntelligenceMagic(
-                unsigned int const  _unLowerThreshold, 
-                unsigned int const  _unUpperThreshold,
+                unsigned int const  _unThreshold, 
+                unsigned int const  _unMaxThresholdValue,
                 unsigned int const  _unMinimumCandidateSize, 
                 unsigned int const  _unMaximumCandidateSize, 
                 bool const          _bInletDetection,
@@ -157,8 +157,8 @@ class WormTracker
         unsigned int        unTotalFrames;
         
         // Artificial intelligence settings...
-        unsigned int        unLowerThreshold; 
-        unsigned int        unUpperThreshold;
+        unsigned int        unThreshold; 
+        unsigned int        unMaxThresholdValue;
         unsigned int        unMinimumCandidateSize; 
         unsigned int        unMaximumCandidateSize;
         bool                bInletDetection;

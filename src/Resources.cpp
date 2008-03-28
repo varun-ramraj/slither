@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// C++ code generated with wxFormBuilder (version Feb 21 2008)
+// C++ code generated with wxFormBuilder (version Mar 19 2008)
 // http://www.wxformbuilder.org/
 //
 // PLEASE DO "NOT" EDIT THIS FILE!
@@ -479,35 +479,39 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	wxStaticBoxSizer* sbSizer16;
 	sbSizer16 = new wxStaticBoxSizer( new wxStaticBox( AnalysisPane, wxID_ANY, wxT("Artificial Intelligence:") ), wxVERTICAL );
 	
-	m_scrolledWindow1 = new wxScrolledWindow( AnalysisPane, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxHSCROLL|wxVSCROLL );
-	m_scrolledWindow1->SetScrollRate( 5, 5 );
+	AISettingsScrolledWindow = new wxScrolledWindow( AnalysisPane, wxID_ANY, wxDefaultPosition, wxSize( -1,-1 ), wxHSCROLL|wxVSCROLL );
+	AISettingsScrolledWindow->SetScrollRate( 5, 5 );
 	wxBoxSizer* bSizer9;
 	bSizer9 = new wxBoxSizer( wxVERTICAL );
 	
 	wxStaticBoxSizer* sbSizer17;
-	sbSizer17 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Image Threshold:") ), wxVERTICAL );
+	sbSizer17 = new wxStaticBoxSizer( new wxStaticBox( AISettingsScrolledWindow, wxID_ANY, wxT("Image Threshold:") ), wxVERTICAL );
 	
 	wxBoxSizer* bSizer10;
 	bSizer10 = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_staticText131 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Lower:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText131 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("Threshold:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText131->Wrap( -1 );
 	bSizer10->Add( m_staticText131, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	LowerThresholdSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 150 );
-	bSizer10->Add( LowerThresholdSpinner, 0, wxALL, 5 );
+	ThresholdSpinner = new wxSpinCtrl( AISettingsScrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 150 );
+	ThresholdSpinner->SetToolTip( wxT("During image processing, fixed-level thresholding is applied to each pixel in the 8-bit image representation (grayscale). If a pixel is greater than the threshold, then the maximum value is applied. e.g.\n\ndst(x,y) = max_value, if src(x,y)>threshold\n           0, otherwise\n") );
+	
+	bSizer10->Add( ThresholdSpinner, 0, wxALL, 5 );
 	
 	sbSizer17->Add( bSizer10, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
 	
 	wxBoxSizer* bSizer11;
 	bSizer11 = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_staticText141 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Upper:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText141 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("Max Value:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText141->Wrap( -1 );
 	bSizer11->Add( m_staticText141, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	UpperThresholdSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 255 );
-	bSizer11->Add( UpperThresholdSpinner, 0, wxALL, 5 );
+	MaxThresholdValueSpinner = new wxSpinCtrl( AISettingsScrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 255 );
+	MaxThresholdValueSpinner->SetToolTip( wxT("During image processing, fixed-level thresholding is applied to each pixel in the 8-bit image representation (grayscale). If a pixel is greater than the threshold, then the maximum value is applied. e.g.\n\ndst(x,y) = max_value, if src(x,y)>threshold\n           0, otherwise\n") );
+	
+	bSizer11->Add( MaxThresholdValueSpinner, 0, wxALL, 5 );
 	
 	sbSizer17->Add( bSizer11, 0, wxALIGN_CENTER_HORIZONTAL, 5 );
 	
@@ -517,19 +521,21 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer9->Add( 0, 5, 0, 0, 5 );
 	
 	wxStaticBoxSizer* sbSizer18;
-	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Candidate Size:") ), wxVERTICAL );
+	sbSizer18 = new wxStaticBoxSizer( new wxStaticBox( AISettingsScrolledWindow, wxID_ANY, wxT("Candidate Size:") ), wxVERTICAL );
 	
 	wxBoxSizer* bSizer101;
 	bSizer101 = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_staticText1311 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Min:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1311 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("Min:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText1311->Wrap( -1 );
 	bSizer101->Add( m_staticText1311, 0, wxALL|wxALIGN_CENTER_HORIZONTAL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	MinimumCandidateSizeSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 50 );
+	MinimumCandidateSizeSpinner = new wxSpinCtrl( AISettingsScrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 50 );
+	MinimumCandidateSizeSpinner->SetToolTip( wxT("The minimum size of a contour's area necessary to be considered a nematode. e.g. A value of 50 is the same as 0.050 mm².") );
+	
 	bSizer101->Add( MinimumCandidateSizeSpinner, 0, wxALL, 5 );
 	
-	m_staticText13111 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText13111 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText13111->Wrap( -1 );
 	bSizer101->Add( m_staticText13111, 0, wxALL, 5 );
 	
@@ -538,14 +544,16 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer111;
 	bSizer111 = new wxBoxSizer( wxHORIZONTAL );
 	
-	m_staticText1411 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Max:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText1411 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("Max:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText1411->Wrap( -1 );
 	bSizer111->Add( m_staticText1411, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5 );
 	
-	MaximumCandidateSizeSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 120 );
+	MaximumCandidateSizeSpinner = new wxSpinCtrl( AISettingsScrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 255, 120 );
+	MaximumCandidateSizeSpinner->SetToolTip( wxT("The maximum size of a contour's area necessary to be considered a nematode. e.g. A value of 120 is the same as 0.120 mm².") );
+	
 	bSizer111->Add( MaximumCandidateSizeSpinner, 0, wxALL, 5 );
 	
-	m_staticText131111 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText131111 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("x 10^-3 mm²"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText131111->Wrap( -1 );
 	bSizer111->Add( m_staticText131111, 0, wxALL, 5 );
 	
@@ -557,9 +565,9 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	bSizer9->Add( 0, 5, 0, 0, 5 );
 	
 	wxStaticBoxSizer* sbSizer14;
-	sbSizer14 = new wxStaticBoxSizer( new wxStaticBox( m_scrolledWindow1, wxID_ANY, wxT("Inlet Detection:") ), wxVERTICAL );
+	sbSizer14 = new wxStaticBoxSizer( new wxStaticBox( AISettingsScrolledWindow, wxID_ANY, wxT("Inlet Detection:") ), wxVERTICAL );
 	
-	InletDetectionCheckBox = new wxCheckBox( m_scrolledWindow1, wxID_ANY, wxT("Enabled"), wxDefaultPosition, wxDefaultSize, 0 );
+	InletDetectionCheckBox = new wxCheckBox( AISettingsScrolledWindow, wxID_ANY, wxT("Enabled"), wxDefaultPosition, wxDefaultSize, 0 );
 	InletDetectionCheckBox->SetValue(true);
 	
 	sbSizer14->Add( InletDetectionCheckBox, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
@@ -567,24 +575,28 @@ MainFrame_Base::MainFrame_Base( wxWindow* parent, wxWindowID id, const wxString&
 	wxBoxSizer* bSizer18;
 	bSizer18 = new wxBoxSizer( wxVERTICAL );
 	
-	m_staticText19 = new wxStaticText( m_scrolledWindow1, wxID_ANY, wxT("Morphology Size:"), wxDefaultPosition, wxDefaultSize, 0 );
+	m_staticText19 = new wxStaticText( AISettingsScrolledWindow, wxID_ANY, wxT("Morphology Size:"), wxDefaultPosition, wxDefaultSize, 0 );
 	m_staticText19->Wrap( -1 );
 	bSizer18->Add( m_staticText19, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
 	
-	InletCorrectionSpinner = new wxSpinCtrl( m_scrolledWindow1, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 2, 20, 5 );
+	InletCorrectionSpinner = new wxSpinCtrl( AISettingsScrolledWindow, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 2, 20, 5 );
+	InletCorrectionSpinner->SetToolTip( wxT("When enabled, helps to smooth out the contour surrounding the nematode with the goal of removing sharp contour inlets. These can lead to inaccurate results. The method works by applying the morphological composite operations of erosion followed by dilation. The result forms the result of the higher order operation of \"opening\" the image. When you erode, objects tend to shrink. When dilating, objects tend to grow.\n\nThe morphology size is the number of pixels that form the width / height of the box used to apply the opening of the image. Play with this to get your automatic inlet correction just right.") );
+	
 	bSizer18->Add( InletCorrectionSpinner, 0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_CENTER_HORIZONTAL, 5 );
 	
 	sbSizer14->Add( bSizer18, 0, wxALIGN_CENTER_HORIZONTAL|wxEXPAND, 5 );
 	
 	bSizer9->Add( sbSizer14, 0, wxEXPAND, 5 );
 	
-	ResetAIToDefaultsButton = new wxButton( m_scrolledWindow1, wxID_ANY, wxT("Reset to Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+	ResetAIToDefaultsButton = new wxButton( AISettingsScrolledWindow, wxID_ANY, wxT("Reset to Defaults"), wxDefaultPosition, wxDefaultSize, 0 );
+	ResetAIToDefaultsButton->SetToolTip( wxT("Reset the artificial intelligence settings to the default values.") );
+	
 	bSizer9->Add( ResetAIToDefaultsButton, 0, wxALL|wxALIGN_CENTER_HORIZONTAL, 5 );
 	
-	m_scrolledWindow1->SetSizer( bSizer9 );
-	m_scrolledWindow1->Layout();
-	bSizer9->Fit( m_scrolledWindow1 );
-	sbSizer16->Add( m_scrolledWindow1, 1, wxALL|wxEXPAND, 5 );
+	AISettingsScrolledWindow->SetSizer( bSizer9 );
+	AISettingsScrolledWindow->Layout();
+	bSizer9->Fit( AISettingsScrolledWindow );
+	sbSizer16->Add( AISettingsScrolledWindow, 1, wxALL|wxEXPAND, 5 );
 	
 	bSizer8->Add( sbSizer16, 1, wxEXPAND, 5 );
 	
