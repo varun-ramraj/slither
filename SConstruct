@@ -1,7 +1,7 @@
 # SCons declarative input file that controls how Slither is built...
 
 # Imports...
-import os, platform
+import os, sys, platform
 
 # Grab environment object and prepare prettier build messages......
 env = Environment(CXXCOMSTR     = "Compiling $SOURCE ...",
@@ -33,6 +33,14 @@ else:
     env.ParseConfig('wx-config --cxxflags --libs std,core,base,media --debug=no'
                     ' --unicode=yes')
     env.Append(CXXFLAGS = '-O3')
+
+# Add some additional search paths. Add more as necessary for your system...
+env.Append(CPPPATH = os.popen('echo $HOME').read()[:-1] + str("/local/include"))
+
+# Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
+if sys.platform == 'darwin':
+    env.MergeFlags(env.ParseFlags("-isysroot /Developer/SDKs/MacOSX10.5.sdk " + \
+                   "-framework QuartzCore "))
 
 # Slither...
 SlitherProgram = env.Program(
