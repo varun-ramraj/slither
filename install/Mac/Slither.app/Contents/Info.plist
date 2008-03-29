@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+ <dict>
+   <key>CFBundleInfoDictionaryVersion</key>
+       <string>6.0</string>
+    <key>CFBundleIdentifier</key>
+        <string>com.kip.Slither</string>
+    <key>CFBundleDevelopmentRegion</key>
+        <string>English</string>
+    <key>CFBundleDocumentTypes</key>
+    <array>
+         <dict>
+         <key>CFBundleTypeExtensions</key>
+         <array>
+            <string>sex</string>
+         </array>
+         <key>CFBundleTypeIconFile</key>
+            <string>experiment.icns</string>
+            <key>CFBundleTypeName</key>
+            <string>Slither Experiment File</string>
+            <key>CFBundleTypeRole</key>
+            <string>Editor</string>
+         </dict>
+    </array>
+    <key>CFBundleExecutable</key>
+        <string>slither</string>
+    <key>CFBundleIconFile</key>
+        <string>slither.icns</string>
+    <key>CFBundleName</key>
+        <string>Slither</string>
+    <key>CFBundlePackageType</key>
+        <string>APPL</string>
+    <key>CFBundleSignature</key>
+        <string>????</string>
+    <key>CFBundleVersion</key>
+        <string>0.0.45</string>
+    <key>CFBundleShortVersionString</key>
+        <string>0.0.45</string>
+    <key>CFBundleGetInfoString</key>
+        <string>Slither 0.0.45</string>
+    <key>CFBundleLongVersionString</key>
+        <string>0.0.45</string>
+    <key>NSHumanReadableCopyright</key>
+        <string>Released under the GPL.</string>
+    <key>LSRequiresCarbon</key>
+        <true/>
+    <key>CSResourcesFileMapped</key>
+        <true/>
+ </dict>
+</plist>
+

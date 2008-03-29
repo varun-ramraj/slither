@@ -9,16 +9,17 @@ on
 - Recent file list...
 - Selectable capture sources...
 - Perhaps nematode pencil sketch anatomical diagram for splash...
-- Move our math routines out of Worm and Tracker classes to global
+* Move our math routines out of Worm and Tracker classes to global
   WormMath namespace...
 * Fix Mac spell check hooking UI
 * Analyze specific frame out of video
 * JPEG support
 * Check for update on mac crash
 * Copy / paste from results
-* Fix crash in analysis window being closed and then re-opened on next analysis...
 * Update wxMac to 2.8.7
 - Get rid of premake and replace with SCons
 * Update OpenCV to cvs head
 - Implement dmg target for OS X
+- Fix crash when running analysis for second time after having closed image
+  analysis window.
 

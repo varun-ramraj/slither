@@ -146,7 +146,9 @@ Mac OS X Building
     - scons -Q [debug=0|1]
 
 - Building Slither installer
-    - scons -Q osx
+    - The osx target is stubbed for now.
+    - You will have to edit the Info.plist file to update version.
+    
 
 Win32 Building
 ==============
