@@ -258,6 +258,9 @@ MainFrame::MainFrame(wxWindow *Parent)
             ChosenAnalysisType->SetSelection(ANALYSIS_BODY_SIZE);
             OnChooseAnalysisType(DummyCommandEvent);
 
+        // Trigger reset AI settings, since under OS X defaults filled...
+        OnResetAIToDefaults(DummyCommandEvent);
+
     // Refresh...
     Refresh();
 
