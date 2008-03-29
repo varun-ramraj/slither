@@ -148,7 +148,8 @@ Mac OS X Building
 - Building Slither installer
     - The osx target is stubbed for now.
     - You will have to edit the Info.plist file to update version.
-    
+    - cp slither install/Mac/Slither.app/Contents/MacOS
+    - hdiutil create -ov -srcfolder install/Mac -volname Slither -format UDZO Slither_0.45.dmg
 
 Win32 Building
 ==============
