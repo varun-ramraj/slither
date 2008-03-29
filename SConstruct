@@ -43,7 +43,7 @@ if sys.platform == 'darwin':
                    "-framework QuartzCore "))
 
 # Slither...
-SlitherProgram = env.Program(
+env.SlitherProgram = env.Program(
     'slither', ['src/AnalysisThread.cpp',
                 'src/CaptureThread.cpp',
                 'src/Experiment.cpp',
@@ -56,7 +56,7 @@ SlitherProgram = env.Program(
                 'src/Worm.cpp',
                 'src/WormTracker.cpp'],
     LIBS=env['LIBS'] + ['cxcore', 'cv', 'cvaux', 'highgui'])
-env.Alias('slither', SlitherProgram)
+env.Alias('slither', env.SlitherProgram)
 
 # Build an Ubuntu package...
 if 'ubuntu' in COMMAND_LINE_TARGETS:
