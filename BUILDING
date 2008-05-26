@@ -1,7 +1,7 @@
-Ubuntu Gutsy Building
+Ubuntu Hardy Building
 =====================
 
-- All the packages you need are already good to go in the Ubuntu Feisty 
+- All the packages you need are already good to go in the Ubuntu Hardy 
   repository. To prepare build environment, enable all repositories under the
   Software Sources
 
