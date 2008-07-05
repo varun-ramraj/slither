@@ -1,5 +1,5 @@
 /* XPM */
-static char * record_60x60_xpm[] = {
+static const char * record_60x60_xpm[] = {
 "60 60 122 2",
 "  	c None",
 ". 	c #333333",

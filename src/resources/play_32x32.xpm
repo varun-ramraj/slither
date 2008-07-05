@@ -1,5 +1,5 @@
 /* XPM */
-static char * play_32x32_xpm[] = {
+static const char * play_32x32_xpm[] = {
 "32 32 89 1",
 " 	c None",
 ".	c #333333",

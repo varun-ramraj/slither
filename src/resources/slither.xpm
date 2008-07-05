@@ -1,5 +1,5 @@
 /* XPM */
-static char * slither_xpm[] = {
+static const char * slither_xpm[] = {
 "125 160 829 2",
 "  	c None",
 ". 	c #020202",

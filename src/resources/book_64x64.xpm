@@ -1,5 +1,5 @@
 /* XPM */
-static char * book_64x64_xpm[] = {
+static const char * book_64x64_xpm[] = {
 "64 64 1545 2",
 "  	c None",
 ". 	c #7E5C41",

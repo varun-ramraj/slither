@@ -1,5 +1,5 @@
 /* XPM */
-static char * skip_forward_32x32_xpm[] = {
+static const char * skip_forward_32x32_xpm[] = {
 "32 32 100 2",
 "  	c None",
 ". 	c #333333",

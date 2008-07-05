@@ -1,5 +1,5 @@
 /* XPM */
-static char * usb_32x32_xpm[] = {
+static const char * usb_32x32_xpm[] = {
 "32 32 278 2",
 "  	c None",
 ". 	c #BCBCBC",

@@ -1,5 +1,5 @@
 /* XPM */
-static char * folder_64x64_xpm[] = {
+static const char * folder_64x64_xpm[] = {
 "64 64 687 2",
 "  	c None",
 ". 	c #5895DD",

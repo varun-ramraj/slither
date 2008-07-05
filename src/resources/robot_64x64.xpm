@@ -1,5 +1,5 @@
 /* XPM */
-static char * robot_64x64_xpm[] = {
+static const char * robot_64x64_xpm[] = {
 "64 64 1072 2",
 "  	c None",
 ". 	c #4F4F4E",
