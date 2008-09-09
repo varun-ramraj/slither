@@ -9,8 +9,8 @@ env = Environment(CXXCOMSTR     = "Compiling $SOURCE ...",
                   ARCOMSTR      = "Archiving $TARGET ...",
                   RANLIBCOMSTR  = "Indexing $TARGET ...")
 
-# SCons internal settings...
-env.SourceSignatures('MD5')
+# Determine a file has changed based upon a changed md5 checksum...
+env.Decider('MD5')
 
 # Versioning...
 env.VERSION_MAJOR   = 0
