@@ -13,7 +13,7 @@ DEBVERSION  = str(env.VERSION_MAJOR) + "." + str(env.VERSION_MINOR)
 DEBMAINT    = "Kip Warner [kip@thevertigo.com]"
 DEBARCH     = os.popen('dpkg-architecture -qDEB_HOST_ARCH').read()[:-1]
 print "Building Ubuntu package for " + str(DEBARCH) + "..."
-DEBDEPENDS  = "wx-common, libwxgtk2.8-0, libwxbase2.8-0, libcv1 (>= 1.0.0), libhighgui1 (>= 1.0.0), libcvaux1 (>= 1.0.0)"
+DEBDEPENDS  = "wx-common, libwxgtk2.8-0, libwxbase2.8-0, libcv4 (>= 2.0.0), libhighgui4 (>= 2.0.0), libcvaux4 (>= 2.0.0)"
 DEBDESC     = """Track the movement of C.elegans worms in a laboratory environment. 
  You can either use video footage you've already captured from your dissection 
  microscope camera, or you can allow Slither to capture new footage for you.
@@ -22,7 +22,7 @@ DEBDESC     = """Track the movement of C.elegans worms in a laboratory environme
  Catharine Rankin, at the Brain Research Centre located at the University of 
  British Columbia.
  .
- Slither is released under the GNU General Public License and is available for 
+ Slither is released under the GNU General Public License v3 and is available for 
  Linux, Windows, and Mac OS X. Accessibility is important, and thus porting to 
  other operating systems is encouraged.
  .
@@ -34,7 +34,7 @@ DEBFILES = [
     ("usr/bin/slither",                 "#slither"),
     ("usr/share/slither/tips.txt",      "#src/resources/tips.txt"),
     ("usr/share/doc/slither/AUTHORS",   "#AUTHORS"),
-    ("usr/share/doc/slither/LICENSE",   "#LICENSE"),
+    ("usr/share/doc/slither/COPYING",   "#COPYING"),
     ("usr/share/doc/slither/README",    "#doc/README"),
     ("usr/share/doc/slither/TODO",      "#TODO"),
     ("usr/share/pixmaps/slither.png",   "#src/resources/slither.png")

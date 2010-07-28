@@ -30,7 +30,7 @@ Icon "Shell.ico"
 InstallDir "$PROGRAMFILES\${PRODUCT_NAME}"
 InstallDirRegKey HKLM "${PRODUCT_DIR_REGKEY}" ""
 InstProgressFlags "smooth"
-LicenseData "../../LICENSE"
+LicenseData "../../COPYING"
 LicenseForceSelection checkbox
 LicenseText "If you accept all the terms of the agreement, choose I Agree to continue. You must accept the agreement to install $(^Name)."
 LoadLanguageFile "${NSISDIR}\Contrib\Language files\English.nlf"
