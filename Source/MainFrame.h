@@ -20,7 +20,7 @@
     #include "AnalysisThread.h"
     
     // OpenCV...
-    #include <opencv/cv.h>
+    #include <opencv2/opencv.hpp>
 
     // STL stuff...
     #include <list>
