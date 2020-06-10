@@ -19,7 +19,9 @@
     #include <wx/cmdline.h>
     
     // For initializing OpenCV...
-    #include <opencv/cv.h>
+    // $VR$: 2020/06/10 - updated for OpenCV 4
+    //#include <opencv/cv.h>
+    #include <opencv2/opencv.hpp>
 
 // Give wxWidgets the means to create a SlitherApp object...
 IMPLEMENT_APP(SlitherApp)
@@ -62,6 +64,9 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
 // Invoked on application startup... (analagous to main or WinMain)
 bool SlitherApp::OnInit()
 {
+    //$VR$: 2020/06/10 - initialise standard path handler
+    wxStandardPaths StandardPaths = wxStandardPaths::Get();
+
     // Enable fatal signal handler...
 //  ::wxHandleFatalExceptions(true);
 
