@@ -29,7 +29,8 @@ DebugToggle = ARGUMENTS.get('debug', 1)
 if int(DebugToggle):
     env.ParseConfig('wx-config --cxxflags --libs std,core,base,media --debug=yes'
                     ' --unicode=yes')
-    env.Append(CXXFLAGS = '-g3 -O0 -Wall -Werror')
+    #env.Append(CXXFLAGS = '-g3 -O0 -Wall -Werror') #$VR$: 2020/06/10 - removing Werror for now
+    env.Append(CXXFLAGS = '-g3 -O0 -Wall')
 else:
     env.ParseConfig('wx-config --cxxflags --libs std,core,base,media --debug=no'
                     ' --unicode=yes')
@@ -59,7 +60,8 @@ env.SlitherProgram = env.Program(
                 'src/VideosGridDropTarget.cpp',
                 'src/Worm.cpp',
                 'src/WormTracker.cpp'],
-    LIBS=env['LIBS'] + ['cxcore', 'cv', 'cvaux', 'highgui'])
+    #LIBS=env['LIBS'] + ['cxcore', 'cv', 'cvaux', 'highgui'])
+    LIBS=env['LIBS'] + ['cxcore', 'cv4', 'cvaux', 'highgui'])
 env.Alias('slither', env.SlitherProgram)
 
 # Build an Ubuntu package...

@@ -12,9 +12,12 @@
 
     // wxWidgets...
     #include <wx/wx.h>
-    
+   
+    //$VR$: 2020/06/10 - updating OpenCV headers
     // OpenCV...
     #include <opencv2/opencv.hpp>
+    #include <opencv2/imgproc/imgproc.hpp>
+    #include <opencv2/imgproc/imgproc_c.h>
 
 // Forward declarations...
 class MainFrame;
