@@ -14,8 +14,11 @@
     #include "Worm.h"
 
     // OpenCV...
-    #include <opencv/cv.h>
-    #include <opencv/highgui.h>
+    #include <opencv2/opencv.hpp>
+    //$VR$: 2020/06/10 - deprecated header, using new one
+    //#include <opencv/highgui.h>
+    #include <opencv2/highgui.hpp>
+    #include <opencv2/imgproc/imgproc_c.h>
     
     // wxWidgets for thread safe usage...
     #include <wx/thread.h>
@@ -137,7 +140,7 @@ class WormTracker
         float               fFieldOfViewDiameter;
 
         // Thinking image label font...
-        CvFont              ThinkingLabelFont;
+	CvFont              ThinkingLabelFont;
 
         // Current frame's gray image and thinking image...
         IplImage           *pGrayImage;

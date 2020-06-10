@@ -15,7 +15,9 @@
     #include <wx/stopwatch.h>
     
     // OpenCV...
-    #include <opencv/cv.h>
+    // $VR$: 2020/06/10 - updating headers for new OpenCV
+    #include <opencv2/opencv.hpp>
+    #include <opencv2/imgcodecs.hpp>
     
     // Worm tracker...
     #include "WormTracker.h"
