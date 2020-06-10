@@ -96,7 +96,7 @@ class SlitherApp : public wxApp
             
             // Standard system paths...
 	    // $VR$: 2020/06/10 - deprecated usage, see CPP file
-            wxStandardPaths     StandardPaths;
+            //wxStandardPaths     StandardPaths;
             
             // Contains experiment to load if shell passed it to us...
             wxString            sExperimentRequestedFromShell;
