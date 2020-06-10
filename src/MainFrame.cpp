@@ -485,7 +485,8 @@ void MainFrame::OnAnalysisFrameReadyTimer(wxTimerEvent &Event)
 void MainFrame::OnAnalysisSaveToDisk(wxCommandEvent &Event)
 {
     // Cache the last location saved to...
-    static wxString sLastPath = ::wxGetApp().StandardPaths.GetDocumentsDir();
+    wxStandardPaths StandardPaths = wxStandardPaths::Get();
+    static wxString sLastPath = StandardPaths.GetDocumentsDir();
 
     // Prepare save dialog...
     // $VR$: 2020/06/10 - updating for wxGTK 3
@@ -1232,11 +1233,11 @@ void MainFrame::OnImportMedia(wxCommandEvent &Event)
 {
     // Variables...
     wxArrayString   sFileNameArray;
-
+    
     // Prepare import dialog...
     // $VR$: 2020/06/10 - Updating for wxGTK 3 
     wxFileDialog FileDialog(this, wxT("Please select media to import..."), 
-      ::wxGetApp().StandardPaths.GetDocumentsDir(), wxEmptyString, 
+      wxStandardPaths::Get().GetDocumentsDir(), wxEmptyString, 
         wxT("Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|"
             "Videos (*.mov;*.avi;*.mpg;*.mpeg)|*.mov;*.avi;*.mpg;*.mpeg"),
         wxFD_OPEN | wxFD_PREVIEW | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
@@ -1584,7 +1585,7 @@ void MainFrame::OnOpen(wxCommandEvent &Event)
 	    // $VR$: 2020/06/10 - updated for wxGTK 3
             wxFileDialog 
                 FileDialog(this, wxT("Please select a Slither experiment..."), 
-                         ::wxGetApp().StandardPaths.GetDocumentsDir(), 
+                         wxStandardPaths::Get().GetDocumentsDir(), 
                            ExperimentTitle->GetValue() + wxT(".sex"), 
                            wxT("Slither experiment (*.sex)|*.sex"),
                            wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST);
@@ -1773,7 +1774,7 @@ void MainFrame::OnSaveAs(wxCommandEvent &Event)
     // Prepare save as dialog...
     // $VR$: 2020/06/10 - updating for wxGTK 3
     wxFileDialog FileDialog(this, wxT("Save Slither experiment as..."), 
-                          ::wxGetApp().StandardPaths.GetDocumentsDir(), 
+                          wxStandardPaths::Get().GetDocumentsDir(), 
                             ExperimentTitle->GetValue() + wxT(".sex"), 
                             wxT("Slither experiment (*.sex)|*.sex"),
                             wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxFD_PREVIEW);
