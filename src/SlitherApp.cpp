@@ -32,17 +32,17 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
     // Help...
     {   
         wxCMD_LINE_SWITCH, 
-        wxT("h"), 
-        wxT("help"),
-        wxT("displays help on the command line parameters")
+        "h", 
+        "help",
+        "displays help on the command line parameters"
     },
     
     // Version...
     {
         wxCMD_LINE_SWITCH, 
-        wxT("v"), 
-        wxT("version"),
-        wxT("print version")
+        "v", 
+        "version",
+        "print version"
     },
 
     // Experiment file to open...
@@ -50,7 +50,7 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
         wxCMD_LINE_PARAM,
         NULL, 
         NULL,
-        wxT("experiment file"), 
+        "experiment file", 
         wxCMD_LINE_VAL_STRING, 
         wxCMD_LINE_PARAM_OPTIONAL 
     },
