@@ -14,7 +14,7 @@
     #include <wx/wx.h>
     
     // OpenCV...
-    #include <opencv/cv.h>
+    #include <opencv2/opencv.hpp>
 
 // Forward declarations...
 class MainFrame;

@@ -14,9 +14,10 @@ env.Decider('MD5')
 
 # Versioning...
 env.VERSION_MAJOR   = 0
-env.VERSION_MINOR   = 45
-env.VERSION_SVN     = os.popen('svnversion .').read()[:-1]
-env.VERSION_SVN     = env.VERSION_SVN.split(':')[-1]
+env.VERSION_MINOR   = 46
+#env.VERSION_SVN     = os.popen('svnversion .').read()[:-1]
+#env.VERSION_SVN     = env.VERSION_SVN.split(':')[-1]
+env.VERSION_SVN	    = 'git' 
 
 # Common defines...
 env.Append(CPPDEFINES=[('VERSION_MAJOR', env.VERSION_MAJOR),
@@ -36,6 +37,9 @@ else:
 
 # Add some additional search paths. Add more as necessary for your system...
 env.Append(CPPPATH = os.popen('echo $HOME').read()[:-1] + str("/local/include"))
+
+# $VR$: 2020/06/10 - new search path for OpenCV4
+env.Append(CPPPATH = str("/usr/include/opencv4"))
 
 # Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
 if sys.platform == 'darwin':

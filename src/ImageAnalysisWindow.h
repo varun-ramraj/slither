@@ -10,8 +10,12 @@
 
 // Includes...
 #include "Resources.h"
-#include "opencv/cv.h"
-#include "opencv/highgui.h"
+#include "opencv2/opencv.hpp"
+
+//$VR$: 2020/06/10 - Deprecated, switching to
+//new highgui header
+//#include "opencv/highgui.h"
+#include "opencv2/highgui.hpp"
 
 // Forward declarations...
 class MainFrame;
