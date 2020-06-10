@@ -20,7 +20,14 @@
     #include "AnalysisThread.h"
     
     // OpenCV...
+    // $VR$: Updated for OpenCV 4
     #include <opencv2/opencv.hpp>
+    #include <opencv2/highgui/highgui.hpp>
+    #include <opencv2/highgui/highgui_c.h>
+    #include <opencv2/core/core.hpp>
+    #include <opencv2/videoio/videoio_c.h>
+    //#include <opencv2/imgcodecs/imgcodecs_c.h> $VR$: 2020/06/10 - deprecated
+    #include <opencv2/imgcodecs/legacy/constants_c.h>
     
     // STL stuff...
     #include <list>

@@ -488,11 +488,12 @@ void MainFrame::OnAnalysisSaveToDisk(wxCommandEvent &Event)
     static wxString sLastPath = ::wxGetApp().StandardPaths.GetDocumentsDir();
 
     // Prepare save dialog...
+    // $VR$: 2020/06/10 - updating for wxGTK 3
     wxFileDialog FileDialog(this, wxT("Save analysis results..."), sLastPath, 
                             ExperimentTitle->GetValue() + 
                                 wxT(" Analysis Results.txt"),
                             wxT("Tab delimited text file (*.txt)|*.txt"),
-                            wxSAVE | wxOVERWRITE_PROMPT | wxFD_PREVIEW);
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxFD_PREVIEW);
 
         // Show save as dialog and check if user hit cancel...
         if(wxID_CANCEL == FileDialog.ShowModal())
@@ -1188,9 +1189,14 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
         // Remove old, if present...
         if(::wxFileExists(wxT("Frame.png")))
             ::wxRemoveFile(wxT("Frame.png"));
-
+	
+	//$VR$: 2020/06/10 - convert to C++ Mat
+	//so we can save it (cvSaveImage is deprecated)
         // Save to temporary file name..
-        cvSaveImage("Frame.png", pOriginalImage);
+        //cvSaveImage("Frame.png", pOriginalImage);
+	cv::Mat pOriginalMatImage = cv::cvarrToMat( pOriginalImage );
+	cv::imwrite("Frame.png", pOriginalMatImage);
+
 
         // Get the media grid drop target...
         MediaGridDropTarget *pDropTarget = 
@@ -1228,11 +1234,12 @@ void MainFrame::OnImportMedia(wxCommandEvent &Event)
     wxArrayString   sFileNameArray;
 
     // Prepare import dialog...
+    // $VR$: 2020/06/10 - Updating for wxGTK 3 
     wxFileDialog FileDialog(this, wxT("Please select media to import..."), 
       ::wxGetApp().StandardPaths.GetDocumentsDir(), wxEmptyString, 
         wxT("Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|"
             "Videos (*.mov;*.avi;*.mpg;*.mpeg)|*.mov;*.avi;*.mpg;*.mpeg"),
-        wxOPEN | wxFD_PREVIEW | wxMULTIPLE | wxFD_FILE_MUST_EXIST);
+        wxFD_OPEN | wxFD_PREVIEW | wxFD_MULTIPLE | wxFD_FILE_MUST_EXIST);
 
     // Show open dialog and check if user hit cancel...
     if(wxID_CANCEL == FileDialog.ShowModal())
@@ -1574,12 +1581,13 @@ void MainFrame::OnOpen(wxCommandEvent &Event)
         else
         {
             // Prepare open dialog...
+	    // $VR$: 2020/06/10 - updated for wxGTK 3
             wxFileDialog 
                 FileDialog(this, wxT("Please select a Slither experiment..."), 
                          ::wxGetApp().StandardPaths.GetDocumentsDir(), 
                            ExperimentTitle->GetValue() + wxT(".sex"), 
                            wxT("Slither experiment (*.sex)|*.sex"),
-                           wxOPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST);
+                           wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST);
 
             // Show open dialog and check if user hit cancel...
             if(wxID_CANCEL == FileDialog.ShowModal())
@@ -1763,11 +1771,12 @@ void MainFrame::OnSave(wxCommandEvent &Event)
 void MainFrame::OnSaveAs(wxCommandEvent &Event)
 {
     // Prepare save as dialog...
+    // $VR$: 2020/06/10 - updating for wxGTK 3
     wxFileDialog FileDialog(this, wxT("Save Slither experiment as..."), 
                           ::wxGetApp().StandardPaths.GetDocumentsDir(), 
                             ExperimentTitle->GetValue() + wxT(".sex"), 
                             wxT("Slither experiment (*.sex)|*.sex"),
-                            wxSAVE | wxOVERWRITE_PROMPT | wxFD_PREVIEW);
+                            wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxFD_PREVIEW);
 
     // Show save as dialog and check if user hit cancel...
     if(wxID_CANCEL == FileDialog.ShowModal())
@@ -2088,7 +2097,9 @@ void MainFrame::ShowTip()
 {
     // Variables...
     static size_t           nTipIndex   = (size_t) - 1;
-           wxStandardPaths  StandardPaths;
+    //$VR$: 2020/06/10 - wxStandardPaths is protected now
+    //in wxWidgets 3
+           wxStandardPaths  StandardPaths = wxStandardPaths::Get();
            wxString         sTipsPath;
 
     // Has the user disabled tips?
@@ -2124,7 +2135,7 @@ void MainFrame::ShowTip()
 
             // Working standard paths...
             else
-                sTipsPath = StandardPaths.GetResourcesDir() + wxT("/tips.txt");
+                sTipsPath = wxStandardPaths.GetResourcesDir() + wxT("/tips.txt");
 
         // Linux has it in the primary hierarchy's share...
         #elif defined(__LINUX__)
