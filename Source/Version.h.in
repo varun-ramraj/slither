@@ -1,0 +1,17 @@
+/*
+    Slither.
+    Copyright (C) 2006-2020 Kip Warner. GPLv3 or later.
+*/
+
+// Multiple include protection...
+#ifndef _VERSION_H_
+#define _VERSION_H_
+
+// Version and bug report url or email...
+#define SLITHER_VERSION    "@PACKAGE_VERSION@"
+#define SLITHER_BUGREPORT  "@PACKAGE_BUGREPORT@"
+#define SLITHER_BUILD_DATE "@PACKAGE_BUILD_DATE@"
+
+// Multiple include protection...
+#endif
+
