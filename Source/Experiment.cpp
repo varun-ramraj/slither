@@ -358,17 +358,20 @@ bool Experiment::Load(const wxString _sPath)
                             SetCellValue(nRow, MainFrame::TITLE, sValue);
 
                         // Date...
-                        sValue = pMediaNode->GetPropVal(wxT("date"), wxEmptyString);
-                        pMainFrame->MediaGrid->
+			// Use GetAttribute() instead of deprecated GetPropVal()
+                        sValue = pMediaNode->GetAttribute(wxT("date"), wxEmptyString);
+			pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::DATE, sValue);
 
                         // Time...
-                        sValue = pMediaNode->GetPropVal(wxT("time"), wxEmptyString);
+			// Use GetAttribute() instead of deprecated GetPropVal()
+                        sValue = pMediaNode->GetAttribute(wxT("time"), wxEmptyString);
                         pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::TIME, sValue);
                         
                         // Technician...
-                        sValue = pMediaNode->GetPropVal(wxT("technician"), 
+			// Use GetAttribute() instead of deprecated GetPropVal()
+                        sValue = pMediaNode->GetAttribute(wxT("technician"), 
                                                         ::wxGetUserId());
                         pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::TECHNICIAN, sValue);
@@ -395,7 +398,8 @@ bool Experiment::Load(const wxString _sPath)
                                 wxT(" KB"));
 
                         // Notes...
-                        sValue = pMediaNode->GetPropVal(wxT("notes"), 
+			// Use GetAttribute() instead of deprecated GetPropVal()
+                        sValue = pMediaNode->GetAttribute(wxT("notes"), 
                                                         wxEmptyString);
                         pMainFrame->MediaGrid->
                             SetCellValue(nRow, MainFrame::NOTES, sValue);
@@ -558,7 +562,9 @@ bool Experiment::Save()
                     wxXmlNode(XmlTitleElementNode, wxXML_TEXT_NODE, 
                               wxEmptyString, 
                               pMainFrame->ExperimentTitle->GetValue());
-                    
+                   
+		    delete XmlTitleChildNode;
+
                 // Set notes element node...
                 wxXmlNode *XmlNotesElementNode = new 
                 wxXmlNode(XmlControlDocument.GetRoot(), wxXML_ELEMENT_NODE, 
@@ -570,6 +576,8 @@ bool Experiment::Save()
                     wxXmlNode(XmlNotesElementNode, wxXML_TEXT_NODE, 
                               wxEmptyString, 
                               pMainFrame->ExperimentNotes->GetValue());
+		    
+		    delete XmlNotesChildNode;
 
                 // Set media element node...
                 wxXmlNode *XmlMediaElementNode = new 
@@ -587,22 +595,26 @@ bool Experiment::Save()
                               wxT("file"), wxEmptyString);
                         
                         // Add date property...
-                        XmlMediaChildNode->AddProperty(wxT("date"), 
+			// Use AddAttribute() instead of deprecated AddProperty()
+                        XmlMediaChildNode->AddAttribute(wxT("date"), 
                             pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::DATE));
                         
                         // Add time property...
-                        XmlMediaChildNode->AddProperty(wxT("time"), 
+			// Use AddAttribute() instead of deprecated AddProperty()
+                        XmlMediaChildNode->AddAttribute(wxT("time"), 
                             pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::TIME));
                         
                         // Add technician property...
-                        XmlMediaChildNode->AddProperty(wxT("technician"), 
+			// Use AddAttribute() instead of deprecated AddProperty()
+                        XmlMediaChildNode->AddAttribute(wxT("technician"), 
                             pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::TECHNICIAN));
                         
                         // Add notes property...
-                        XmlMediaChildNode->AddProperty(wxT("notes"), 
+			// Use AddAttribute() instead of deprecated AddProperty()
+                        XmlMediaChildNode->AddAttribute(wxT("notes"), 
                             pMainFrame->MediaGrid->
                                 GetCellValue(nRow, MainFrame::NOTES));
                         
@@ -613,6 +625,8 @@ bool Experiment::Save()
                                   wxEmptyString, 
                                   pMainFrame->MediaGrid->
                                     GetCellValue(nRow, MainFrame::TITLE));
+
+			delete XmlMediaNameChildNode;
                 }
 
         // Write...
@@ -654,7 +668,7 @@ bool Experiment::Save()
 
     // Clear need save flag...
     ClearNeedSave();
-
+    
     // Done...
     return true;
 }
