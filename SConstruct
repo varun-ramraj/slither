@@ -48,17 +48,17 @@ if sys.platform == 'darwin':
 
 # Slither...
 env.SlitherProgram = env.Program(
-    'slither', ['src/AnalysisThread.cpp',
-                'src/CaptureThread.cpp',
-                'src/Experiment.cpp',
-                'src/ImageAnalysisWindow.cpp',
-                'src/MainFrame.cpp',
-                'src/Resources.cpp',
-                'src/SlitherApp.cpp',
-                'src/SlitherMath.cpp',
-                'src/VideosGridDropTarget.cpp',
-                'src/Worm.cpp',
-                'src/WormTracker.cpp'],
+    'slither', ['Source/AnalysisThread.cpp',
+                'Source/CaptureThread.cpp',
+                'Source/Experiment.cpp',
+                'Source/ImageAnalysisWindow.cpp',
+                'Source/MainFrame.cpp',
+                'Source/Resources.cpp',
+                'Source/SlitherApp.cpp',
+                'Source/SlitherMath.cpp',
+                'Source/VideosGridDropTarget.cpp',
+                'Source/Worm.cpp',
+                'Source/WormTracker.cpp'],
     LIBS=env['LIBS'] + ['opencv_core', 'opencv_highgui', 'opencv_imgproc', 'opencv_imgcodecs', 'opencv_videoio'])
 env.Alias('slither', env.SlitherProgram)
 
