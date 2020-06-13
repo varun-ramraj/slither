@@ -42,6 +42,8 @@ env.Append(CPPPATH = os.popen('echo $HOME').read()[:-1] + str("/local/include"))
 # $VR$: 2020/06/10 - new search path for OpenCV4
 env.Append(CPPPATH = str("/usr/include/opencv4"))
 
+# $VR$: 2020/06/13 - pkg-config doesn't find libraries; adding path
+env.Append(LIBPATH = str("/usr/lib/x86_64-linux-gnu"))
 # Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
 if sys.platform == 'darwin':
     env.MergeFlags(env.ParseFlags("-isysroot /Developer/SDKs/MacOSX10.5.sdk " + \
@@ -60,8 +62,7 @@ env.SlitherProgram = env.Program(
                 'src/VideosGridDropTarget.cpp',
                 'src/Worm.cpp',
                 'src/WormTracker.cpp'],
-    #LIBS=env['LIBS'] + ['cxcore', 'cv', 'cvaux', 'highgui'])
-    LIBS=env['LIBS'] + ['cxcore', 'cv4', 'cvaux', 'highgui'])
+    LIBS=env['LIBS'] + ['opencv_core', 'opencv_highgui', 'opencv_imgproc', 'opencv_imgcodecs', 'opencv_videoio'])
 env.Alias('slither', env.SlitherProgram)
 
 # Build an Ubuntu package...
