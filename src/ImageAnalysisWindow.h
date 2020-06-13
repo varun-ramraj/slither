@@ -12,7 +12,7 @@
 #include "Resources.h"
 #include "opencv2/opencv.hpp"
 
-//$VR$: 2020/06/10 - Deprecated, switching to
+// 2020/06/10 - Deprecated, switching to
 //new highgui header
 //#include "opencv/highgui.h"
 #include "opencv2/highgui.hpp"

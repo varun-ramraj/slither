@@ -489,7 +489,7 @@ void MainFrame::OnAnalysisSaveToDisk(wxCommandEvent &Event)
     static wxString sLastPath = StandardPaths.GetDocumentsDir();
 
     // Prepare save dialog...
-    // $VR$: 2020/06/10 - updating for wxGTK 3
+    //  2020/06/10 - updating for wxGTK 3
     wxFileDialog FileDialog(this, wxT("Save analysis results..."), sLastPath, 
                             ExperimentTitle->GetValue() + 
                                 wxT(" Analysis Results.txt"),
@@ -1191,7 +1191,7 @@ void MainFrame::OnExtractFrame(wxCommandEvent &Event)
         if(::wxFileExists(wxT("Frame.png")))
             ::wxRemoveFile(wxT("Frame.png"));
 	
-	//$VR$: 2020/06/10 - convert to C++ Mat
+	// 2020/06/10 - convert to C++ Mat
 	//so we can save it (cvSaveImage is deprecated)
         // Save to temporary file name..
         //cvSaveImage("Frame.png", pOriginalImage);
@@ -1235,7 +1235,7 @@ void MainFrame::OnImportMedia(wxCommandEvent &Event)
     wxArrayString   sFileNameArray;
     
     // Prepare import dialog...
-    // $VR$: 2020/06/10 - Updating for wxGTK 3 
+    //  2020/06/10 - Updating for wxGTK 3 
     wxFileDialog FileDialog(this, wxT("Please select media to import..."), 
       wxStandardPaths::Get().GetDocumentsDir(), wxEmptyString, 
         wxT("Images (*.jpg;*.jpeg;*.png;*.bmp)|*.jpg;*.jpeg;*.png;*.bmp|"
@@ -1582,7 +1582,7 @@ void MainFrame::OnOpen(wxCommandEvent &Event)
         else
         {
             // Prepare open dialog...
-	    // $VR$: 2020/06/10 - updated for wxGTK 3
+	    //  2020/06/10 - updated for wxGTK 3
             wxFileDialog 
                 FileDialog(this, wxT("Please select a Slither experiment..."), 
                          wxStandardPaths::Get().GetDocumentsDir(), 
@@ -1772,7 +1772,7 @@ void MainFrame::OnSave(wxCommandEvent &Event)
 void MainFrame::OnSaveAs(wxCommandEvent &Event)
 {
     // Prepare save as dialog...
-    // $VR$: 2020/06/10 - updating for wxGTK 3
+    //  2020/06/10 - updating for wxGTK 3
     wxFileDialog FileDialog(this, wxT("Save Slither experiment as..."), 
                           wxStandardPaths::Get().GetDocumentsDir(), 
                             ExperimentTitle->GetValue() + wxT(".sex"), 
@@ -2098,7 +2098,7 @@ void MainFrame::ShowTip()
 {
     // Variables...
     static size_t           nTipIndex   = (size_t) - 1;
-    //$VR$: 2020/06/10 - wxStandardPaths is protected now
+    // 2020/06/10 - wxStandardPaths is protected now
     //in wxWidgets 3
            wxStandardPaths  StandardPaths = wxStandardPaths::Get();
            wxString         sTipsPath;

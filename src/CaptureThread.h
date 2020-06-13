@@ -13,7 +13,7 @@
     // wxWidgets...
     #include <wx/wx.h>
    
-    //$VR$: 2020/06/10 - updating OpenCV headers
+    // 2020/06/10 - updating OpenCV headers
     // OpenCV...
     #include <opencv2/opencv.hpp>
     #include <opencv2/imgproc/imgproc.hpp>

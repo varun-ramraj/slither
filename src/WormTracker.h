@@ -15,7 +15,7 @@
 
     // OpenCV...
     #include <opencv2/opencv.hpp>
-    //$VR$: 2020/06/10 - deprecated header, using new one
+    // 2020/06/10 - deprecated header, using new one
     //#include <opencv/highgui.h>
     #include <opencv2/highgui.hpp>
     #include <opencv2/imgproc/imgproc_c.h>
