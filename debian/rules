@@ -1,0 +1,93 @@
+#!/usr/bin/make -f
+#
+#   Slither.
+#   Copyright (C) 2006-2020 Kip Warner. GPLv3 or later.
+#
+
+# Output every command that modifies files on the build system...
+DH_VERBOSE = 1
+export DH_OPTIONS=-v
+
+# Set flags for how the package will be compiled and built. Note separated with
+#  white space and not comma, as per DPM § 4.9.1...
+
+    # N.B. DEB_BUILD_MAINT_OPTIONS is for the package maintainer.
+    #  DEB_BUILD_OPTIONS can optionally be set by the user to override build
+    #  settings. The following are several options which may be useful to users.
+    #
+    #  noopt - No optimization, contrary to DPM § 10.1, but can make life easier
+    #  during debugging;
+    #
+    #  nocheck - Skip build tree's built-in unit testing. Note that this is
+    #  separate from any DEP-8 autopkgtest tests;
+    #
+    #  parallel=n - Build in parallel using n processes;
+    #
+    #  hardening=+all, enable all build hardening flags.
+    #
+    export DEB_BUILD_MAINT_OPTIONS  = hardening=+all
+
+    # Our build system reads values from standard environment variables like
+    #  CXXFLAGS, CPPFLAGS and LDFLAGS, so export these values so ./configure
+    #  can read them. This may happen automatically, but for good measure...
+    export DPKG_EXPORT_BUILDFLAGS = 1
+
+# Standard rules and preset shell variables...
+include /usr/share/dpkg/default.mk
+
+# Directory containing package since may not be called from current working
+#  directory. MAKEFILE_LIST pre-defined by Make and appended each time another
+#  makefile is included, so first one should be debian/rules...
+PACKAGE_DIR = $(abspath $(dir $(firstword $(MAKEFILE_LIST))))
+
+# Source directory...
+SOURCE_DIR  = $(abspath $(PACKAGE_DIR)/../)
+
+# Flags to pass to ./configure...
+CONFIGURE_FLAGS =                                                               \
+    CXX="g++-9"                                                                 \
+    CC="gcc-9"
+
+# Enable parallel build and unit tests if parallel is requested...
+PARALLEL_JOBS = 1
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  PARALLEL_JOBS = $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+  MAKEFLAGS += -j$(PARALLEL_JOBS)
+endif
+
+# Main packaging script based on debhelper 7 syntax. The % is an implicit
+#  pattern rule that acts as a universal target...
+%:
+	dh $@
+
+# Prepare an upstream vanilla distribution tarball as per DPM § 4.9...
+#  http://wiki.debian.org/onlyjob/get-orig-source
+get-orig-source: $(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM).orig.tar.bz2 $(info I: $(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM))
+	@
+
+# Configure source...
+override_dh_auto_configure:
+	dh_auto_configure -- $(CONFIGURE_FLAGS)
+
+# Prepare an upstream vanilla distribution tarball which also runs *all* build
+#  tree unit tests. This is safe because this target is normally run on a
+#  development workstation and not on a build server / chroot where some of our
+#  tests break...
+$(DEB_SOURCE)_$(DEB_VERSION_UPSTREAM).orig.tar.bz2:
+	@echo "# Preparing source for $(DEB_SOURCE) v$(DEB_VERSION_UPSTREAM)..."
+	cd $(SOURCE_DIR)                                                            \
+	&& cd $(PACKAGE_DIR)                                                        \
+	&& mkdir tmp                                                                \
+	&& cd tmp                                                                   \
+	&& $(SOURCE_DIR)/configure $(CONFIGURE_FLAGS)                               \
+	&& make V=0 -j distcheck || { find . -iname "test-suite.log" -exec cat {} \; ; exit 99; } \
+	&& mv -v $(DEB_SOURCE)-$(DEB_VERSION_UPSTREAM).tar.bz2 $(SOURCE_DIR)/../$@
+	@echo "# Cleaning up..."
+	cd $(PACKAGE_DIR)/tmp                                                       \
+	&& make clean
+	cd $(PACKAGE_DIR)                                                           \
+	&& $(RM) -r tmp
+
+# Targets which aren't actually files...
+.PHONY: get-orig-source
+

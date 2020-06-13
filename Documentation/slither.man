@@ -1,0 +1,45 @@
+.TH slither 1 "June 2020"
+.SH NAME
+slither - Track the movement of C.elegans worms in a laboratory environment.
+
+.SH SYNOPSIS
+.B slither [\fIOPTIONS\fR]
+
+.SH DESCRIPTION
+Slither is an application designed to track the movement of C. elegan worms in
+a laboratory environment. You can either use video footage you've already
+captured from your dissection microscope camera, or you can allow Slither to
+capture new footage for you.
+
+It was developed under the Small Neural Systems Group of Dr. Catharine Rankin
+at the Brain Research Centre located at the University of British Columbia.
+
+Slither is released under the GNU General Public License version 3 or later.
+
+.SH OPTIONS
+
+.TP
+\fB\-h\fR \fB\--help\fR
+Show this help.
+
+.TP
+\fB\-v\fR \fB\--version\fR
+Show version information.
+
+.SH EXIT STATUS
+\fBslither\fR exits with a status of zero (\fIEXIT_SUCCESS\fR) on normal
+operation and a status of one (\fIEXIT_FAILURE\fR) on error.
+
+.SH AUTHOR
+Kip Warner <kip@thevertigo.com.com>
+
+.SH REPORTING BUGS
+Report bugs to \fIhttps://github.com/kiplingw/slither\fR.
+
+.SH COPYRIGHT
+Copyright (C) 2006-2020 Kip Warner. GPLv3 or later.
+
+.SH SEE ALSO
+\fIhttps://github.com/kiplingw/slither\fR
+.br
+
