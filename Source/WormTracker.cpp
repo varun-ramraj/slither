@@ -77,7 +77,8 @@ void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 }
 
 // Advance frame...
-// $VR$: 2020/06/13 - TODO: Fix CV_RGB!!
+// $VR$: 2020/06/13 - Fixed contour drawing by using cvScalar
+// functions instead of CV_RGB which does not return a CvScalar any more 
 void WormTracker::Advance(IplImage const &NewGrayImage)
 {
     // Variables...
@@ -227,11 +228,17 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         Worm const &CurrentWorm = GetWorm(unWormIndex);
 
         // Draw the contours onto the thinking image...
-	// TODO: Figure out how to fix this function
-        //cvDrawContours(pThinkingImage, (CvSeq *) &CurrentWorm.Contour(),
-        //               CV_RGB(0x00, 0x00, 0xfe), CV_RGB(0x00, 0x00, 0xfe), 0, 
-        //               1);
-
+	
+	//$VR$: 2020/06/13 - since we cannot use CV_RGB(r,g,b) as it no longer
+	//returns a CvScalar, we need to use cvScalar(b,g,r)
+	//The RGB value is (0x00, 0x00, 0xfe)	
+	//ref: https://www.rubydoc.info/github/gonzedge/ruby-opencv/OpenCV/CvScalar
+	CvScalar externColour = cvScalar(0xfe, 0x00, 0x00);
+	CvScalar holeColour = cvScalar(0xfe, 0x00, 0x00);	
+        cvDrawContours(pThinkingImage, (CvSeq *) &CurrentWorm.Contour(),
+                       externColour, holeColour, 0, 
+                       1);
+	
         // Show some information about the worm on the thinking image...
         AddThinkingLabel("head", CurrentWorm.Head());
         std::ostringstream ssCentre;
