@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Slither
 [![N|Solid](https://github.com/kiplingw/slither/blob/master/Resources/slither.png)](https://github.com/kiplingw/slither)
 
@@ -13,3 +14,9 @@ Slither is released under the GNU General Public License version 3 or later.
 
 Website: <https://github.com/kiplingw/slither>
 
+=======
+Slither: Rebirth
+==================
+
+This repository captures an attempt to bring the Slither worm tracking tool up to scratch with the latest OpenCV (currently 4.x) and wxWidgets (currently 3.x).
+>>>>>>> Renamed Readme.
