@@ -77,7 +77,7 @@ void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 }
 
 // Advance frame...
-// $VR$: 2020/06/13 - Fixed contour drawing by using cvScalar
+//  2020/06/13 - Fixed contour drawing by using cvScalar
 // functions instead of CV_RGB which does not return a CvScalar any more 
 void WormTracker::Advance(IplImage const &NewGrayImage)
 {
@@ -110,7 +110,7 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
             throw bad_alloc();
 
     // Prepare the thinking image...
-	//$VR$: 2020/06/13 - using cv::Mat to get around
+	// 2020/06/13 - using cv::Mat to get around
 	//issues with cvConvertImage in OpenCV 4
 	cv::Mat pGrayMatImage = cv::cvarrToMat(pGrayImage); 
 	cv::Mat pThinkingMatImage(cvGetSize(pGrayImage), CV_8UC1);
@@ -229,7 +229,7 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
 
         // Draw the contours onto the thinking image...
 	
-	//$VR$: 2020/06/13 - since we cannot use CV_RGB(r,g,b) as it no longer
+	// 2020/06/13 - since we cannot use CV_RGB(r,g,b) as it no longer
 	//returns a CvScalar, we need to use cvScalar(b,g,r)
 	//The RGB value is (0x00, 0x00, 0xfe)	
 	//ref: https://www.rubydoc.info/github/gonzedge/ruby-opencv/OpenCV/CvScalar
@@ -254,7 +254,7 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         unsigned int const unLegendLength = 
             (unsigned int) ConvertMillimetersToPixels(1.0f);
 	
-	//$VR$: Fixing line and text to work with OpenCV 4
+	// Fixing line and text to work with OpenCV 4
 	//C++ API	
         // Draw the legend line...
         //cvLine(pThinkingImage, 

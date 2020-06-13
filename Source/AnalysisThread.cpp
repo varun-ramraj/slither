@@ -43,7 +43,7 @@ void *AnalysisThread::Entry()
         if(!MediaFile.IsOk()) {
             int a = 10;
 	    void *myVoidPtr = &a;
-	    return myVoidPtr; //$VR$: 2020/06/10 - need to return a void pointer 
+	    return myVoidPtr; // 2020/06/10 - need to return a void pointer 
 	}
     // Get the file extension...
     wxString sExtension = MediaFile.GetExt().Lower();
@@ -73,7 +73,7 @@ void AnalysisThread::AnalyzeImage(wxString sPath)
     Frame.Tracker.Reset(0);
 
     // Load the image...
-    // $VR$: 2020/06/10 - updating to cv::IMREAD_* constants
+    //  2020/06/10 - updating to cv::IMREAD_* constants
     // and general C++ best practices
     //pGrayImage = cvLoadImage(sPath.mb_str(), CV_LOAD_IMAGE_GRAYSCALE);
     //pGrayImage = cvLoadImage(sPath.mb_str(), cv::IMREAD_GRAYSCALE);
@@ -104,7 +104,7 @@ void AnalysisThread::AnalyzeImage(wxString sPath)
 }
 
 // Analyze video...
-// $VR$: 2020/06/10 - updated to use renamed functions
+//  2020/06/10 - updated to use renamed functions
 // in OpenCV 4
 void AnalysisThread::AnalyzeVideo(wxString sPath)
 {
@@ -114,7 +114,7 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
     cv::VideoCapture	slitherCap;
 
     // Initialize capture from AVI...
-    // $VR$: 2020/06/10 - renamed function for OpenCV4
+    //  2020/06/10 - renamed function for OpenCV4
     pCapture = cvCreateFileCapture(sPath.fn_str());
 
         // Failed to load media...
@@ -129,7 +129,7 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
         }
 
     // Reset the tracker, if not already...
-    // $VR$: 2020/06/10 - I think the new constant needs to be used
+    //  2020/06/10 - I think the new constant needs to be used
     Frame.Tracker.Reset((unsigned int) 
         cvGetCaptureProperty(pCapture, cv::CAP_PROP_FRAME_COUNT));
 
@@ -153,7 +153,7 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
         #ifdef __APPLE__
 
             // Get current position...
-	    // $VR$: 2020/06/10 - updating to new constants in OpenCV4
+	    //  2020/06/10 - updating to new constants in OpenCV4
             int const nCurrentFrame = (int) 
                 cvGetCaptureProperty(pCapture, cv::CAP_PROP_POS_FRAMES);
 
@@ -167,7 +167,7 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
 
         #endif
 
-	//$VR$: 2020/06/10 - converting to C++ API using cv::Mat
+	// 2020/06/10 - converting to C++ API using cv::Mat
         // The tracker prefers grayscale 8-bit unsigned format, prepare...
 	
 	    cv::Mat pOriginalMatImage = cv::cvarrToMat(pOriginalImage); 
