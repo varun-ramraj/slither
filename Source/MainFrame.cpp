@@ -16,21 +16,21 @@
 #include <fstream>
 
 // Bitmaps...
-#include "resources/analyze_32x32.xpm"
-#include "resources/play_32x32.xpm"
-#include "resources/record_60x60.xpm"
-#include "resources/remove_32x32.xpm"
-#include "resources/rename_32x32.xpm"
-#include "resources/slither.xpm"
-#include "resources/save_60x60.xpm"
-#include "resources/stop_32x32.xpm"
-//#include "resources/usb_32x32.xpm"
+#include "Resources/analyze_32x32.xpm"
+#include "Resources/play_32x32.xpm"
+#include "Resources/record_60x60.xpm"
+#include "Resources/remove_32x32.xpm"
+#include "Resources/rename_32x32.xpm"
+#include "Resources/slither.xpm"
+#include "Resources/save_60x60.xpm"
+#include "Resources/stop_32x32.xpm"
+//#include "Resources/usb_32x32.xpm"
 
     // Notebook icons... (look terrible on mac, so don't use)
     #ifndef __APPLE__
-    #include "resources/book_64x64.xpm"
-    #include "resources/camera_64x64.xpm"
-    #include "resources/robot_64x64.xpm"
+    #include "Resources/book_64x64.xpm"
+    #include "Resources/camera_64x64.xpm"
+    #include "Resources/robot_64x64.xpm"
     #endif
 
 // Event table for MainFrame...
