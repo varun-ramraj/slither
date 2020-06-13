@@ -11,7 +11,7 @@
 // Includes...
 
     // OpenCV...
-    // $VR$: 2020/06/10 - Updated to include new headers
+    //  2020/06/10 - Updated to include new headers
     #include <opencv2/opencv.hpp>
     #include <opencv2/core/types_c.h>
     
