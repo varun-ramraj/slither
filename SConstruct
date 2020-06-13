@@ -29,8 +29,7 @@ DebugToggle = ARGUMENTS.get('debug', 1)
 if int(DebugToggle):
     env.ParseConfig('wx-config --cxxflags --libs std,core,base,media --debug=yes'
                     ' --unicode=yes')
-    #env.Append(CXXFLAGS = '-g3 -O0 -Wall -Werror') #$VR$: 2020/06/10 - removing Werror for now
-    env.Append(CXXFLAGS = '-g3 -O0 -Wall')
+    env.Append(CXXFLAGS = '-g3 -O0 -Wall -Werror')
 else:
     env.ParseConfig('wx-config --cxxflags --libs std,core,base,media --debug=no'
                     ' --unicode=yes')
