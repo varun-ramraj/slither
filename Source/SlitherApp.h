@@ -95,7 +95,7 @@ class SlitherApp : public wxApp
             wxConfig           *pConfiguration;
             
             // Standard system paths...
-	    // $VR$: 2020/06/10 - deprecated usage, see CPP file
+	    //  2020/06/10 - deprecated usage, see CPP file
             //wxStandardPaths     StandardPaths;
             
             // Contains experiment to load if shell passed it to us...
