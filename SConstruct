@@ -43,8 +43,6 @@ env.Append(CPPPATH = os.popen('echo $PWD').read()[:-1] + str("/Resources"))
 # pkg-config for OpenCV includes and libraries
 env.ParseConfig('pkg-config --cflags --libs opencv4')
 
-print(env.Dump())
-
 # Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
 if sys.platform == 'darwin':
     env.MergeFlags(env.ParseFlags("-isysroot /Developer/SDKs/MacOSX10.5.sdk " + \
