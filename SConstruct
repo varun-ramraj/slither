@@ -37,9 +37,13 @@ else:
 
 # Add some additional search paths. Add more as necessary for your system...
 env.Append(CPPPATH = os.popen('echo $HOME').read()[:-1] + str("/local/include"))
+env.Append(CPPPATH = os.popen('echo $PWD').read()[:-1])
+env.Append(CPPPATH = os.popen('echo $PWD').read()[:-1] + str("/Resources"))
 
 # pkg-config for OpenCV includes and libraries
 env.ParseConfig('pkg-config --cflags --libs opencv4')
+
+print(env.Dump())
 
 # Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
 if sys.platform == 'darwin':
