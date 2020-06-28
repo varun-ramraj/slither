@@ -298,8 +298,9 @@ class MainFrame : public MainFrame_Base
         wxTimer                 CaptureTimer;
 
         // Capture frame queue...
-        std::list<IplImage *>   CaptureFrameBuffer;
-        
+        //std::list<IplImage *>   CaptureFrameBuffer;
+	std::list<cv::Mat *>	CaptureFrameBuffer;
+
         // Analysis thread and timer...
         AnalysisThread         *pAnalysisThread;
         wxTimer                 AnalysisTimer;
