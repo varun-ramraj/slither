@@ -12,6 +12,7 @@
 
     #include <cstdio>
 
+using namespace cv;
 // Capture thread constructor...
 CaptureThread::CaptureThread(MainFrame *_pMainFrame)
     : wxThread(wxTHREAD_DETACHED),
@@ -24,18 +25,18 @@ CaptureThread::CaptureThread(MainFrame *_pMainFrame)
 void *CaptureThread::Entry()
 {
     // Variables...
-    IplImage   *pOriginalIntelImage = NULL;
-    IplImage   *pClonedIntelImage   = NULL;
+    cv::Mat   pOriginalIntelImage;
+    cv::Mat   *pClonedIntelImage = NULL;
 
     /* TODO: Allow user to pick which camera, if more than one detected.
              http://opencvlibrary.sourceforge.net/faq#head-3921717fef168800c43a822b03ca241ce8e9cc6d */
 
     // Initialize live capture from camera, then re-enable capture button...
-    CvCapture *pCapture = cvCreateCameraCapture(CV_CAP_ANY);
+    VideoCapture pCapture(0);
     pMainFrame->GetToolBar()->EnableTool(MainFrame::ID_CAPTURE, true);
 
         // Failed to connect to camera...
-        if(!pCapture)
+        if(!pCapture.isOpened())
         {
             // Alert...
             printf("cvCreateCameraCapture failed (%d)\n", cvGetErrStatus());
@@ -54,32 +55,20 @@ void *CaptureThread::Entry()
 
     // Keep showing live feed as long there are frames and the capture button
     //  remains toggled...
-    while(cvGrabFrame(pCapture) &&
+    while(pCapture.grab() &&
           pMainFrame->GetToolBar()->GetToolState(MainFrame::ID_CAPTURE))
     {
-/*
-printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
-       "%.2f\tCV_CAP_PROP_POS_FRAMES\n"
-       "%.2f\tCV_CAP_PROP_POS_AVI_RATIO\n"
-       "%.2f\tCV_CAP_PROP_POS_WIDTH\n"
-       "%.2f\tCV_CAP_PROP_POS_HEIGHT\n"
-       "%.2f\tCV_CAP_PROP_POS_FPS\n"
-       "%.2f\tCV_CAP_PROP_FRAME_COUNT\n"
-       "%.2f\tCV_CAP_PROP_POS_FOURCC\n\n",
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_MSEC),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_AVI_RATIO),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_WIDTH),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_HEIGHT),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FPS),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT),
-       cvGetCaptureProperty(pCapture, CV_CAP_PROP_FOURCC));
-*/
         // Retrieve the captured frame we just grabbed and check for error...
-        pOriginalIntelImage = cvRetrieveFrame(pCapture);
+        //pOriginalIntelImage = cvRetrieveFrame(pCapture);
+
+	pCapture.retrieve(pOriginalIntelImage);
 
         // Make our own internal copy to modify...
-        pClonedIntelImage = cvCloneImage(pOriginalIntelImage);
+	if (pClonedIntelImage)
+	    delete pClonedIntelImage;
+	
+	pClonedIntelImage = new cv::Mat();
+	*pClonedIntelImage = pOriginalIntelImage.clone();
 
         // Perform post processing...
         PerformPostProcessing(pClonedIntelImage);
@@ -95,13 +84,13 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
     while(!pMainFrame->CaptureFrameBuffer.empty())
     {
         // Deallocate oldest...
-        pClonedIntelImage = (IplImage *) pMainFrame->CaptureFrameBuffer.front();
+        pClonedIntelImage = pMainFrame->CaptureFrameBuffer.front();
         pMainFrame->CaptureFrameBuffer.pop_front();
-        cvReleaseImage(&pClonedIntelImage);
+        //cvReleaseImage(&pClonedIntelImage);
     }
 
     // Release the capture source...
-    cvReleaseCapture(&pCapture);
+    pCapture.release();
 
     // Repaint the capture image panel...
     wxMutexGuiEnter(); 
@@ -113,13 +102,15 @@ printf("%.2f\tCV_CAP_PROP_POS_MSEC\n"
 
     // Untoggle the capture button...
     pMainFrame->GetToolBar()->ToggleTool(MainFrame::ID_CAPTURE, false);
+    
+    delete pClonedIntelImage;
 
     // Done...
     return NULL;
 }
 
 // Perform post processing...
-void CaptureThread::PerformPostProcessing(IplImage *pIntelImage)
+void CaptureThread::PerformPostProcessing(cv::Mat *pIntelImage)
 {
     // Stubbed...
 }
