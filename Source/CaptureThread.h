@@ -35,7 +35,7 @@ class CaptureThread : public wxThread
         virtual void *Entry();
         
         // Perform post processing...
-        void PerformPostProcessing(IplImage *pIntelImage);
+        void PerformPostProcessing(cv::Mat *pIntelImage);
 
         // Show the OSD over the frame...
         void ShowOnScreenDisplay(IplImage *pIntelImage);
