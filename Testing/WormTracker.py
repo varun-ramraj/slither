@@ -10,7 +10,7 @@ class WormTracker():
     def __init__(self, fovDiameter = 5.0, grayImg = None, thinkingImg = None,
         unWormsJustAdded = 0, unCurrentFrame = 0, unTotalFrames = 0,
         unThreshold = 150.0, unMaxThresholdValue = 255.0,
-        unMinimumCandidateSize = 100.0, unMaximumCandidateSize = 350.0,
+        unMinimumCandidateSize = 150.0, unMaximumCandidateSize = 455.0,
         bInletDetection = True, unMorphologySize = 5.0):
 
         logging.getLogger('SlitherLogger')
@@ -85,7 +85,7 @@ class WormTracker():
 
         for pCurrentContour in contours:
             if self.IsPossibleWorm(pCurrentContour):
-                cv.drawContours(grayImage, pCurrentContour, -1, (0, 255, 0), 3)
+                cv.drawContours(thinkingImage, pCurrentContour, -1, (0, 255, 0), 1)
 
 
-        cv.imshow('Tracker', grayImage)
+        cv.imshow('Tracker', thinkingImage)
