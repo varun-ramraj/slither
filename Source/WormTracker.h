@@ -76,7 +76,8 @@ class WormTracker
 
             // Advance frame...
             void                Advance(IplImage const &NewGrayImage);
-            
+	    void Advance(cv::Mat const &NewGrayMat);
+
             // Get the number of worms just added since last check...
             unsigned int const  GetWormsAddedSinceLastCheck();
             

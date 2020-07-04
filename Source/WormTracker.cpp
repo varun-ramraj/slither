@@ -354,12 +354,15 @@ IplImage *WormTracker::GetThinkingImage() const
         return NULL;
 
     // Clone the thinking image, if any...
-    if(pThinkingImage)
+    if(pThinkingImage) {
+	cerr << "Trying to clone image..." << endl;
         return cvCloneImage(pThinkingImage);
-    
+    }
     // Otherwise, no thinking image available yet...
-    else
+    else {
+	cerr << "Cannot clone image!" << endl;
         return NULL;
+    }
 }
 
 // Get the total number of frames...
@@ -471,10 +474,12 @@ bool WormTracker::IsAnyPointOnImageExterior(CvContour const &MysteryContour)
 // Could this contour be a worm, independent of what we know?
 bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
+    cerr << "FOV: " << fFieldOfViewDiameter << endl;
     // Too few vertices...
-    if(MysteryContour.total < 6)
+    if(MysteryContour.total < 6) {
+	cerr << "Contours: " << MysteryContour.total << endl;
         return false;
-
+    }
     // We must have had the field of view diameter set...
     assert(fFieldOfViewDiameter > 0.0f);
 
