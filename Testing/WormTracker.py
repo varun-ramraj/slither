@@ -4,6 +4,7 @@ import numpy as np
 import math
 import logging
 import cv2 as cv
+from Worm import *
 
 class WormTracker():
 
@@ -34,6 +35,9 @@ class WormTracker():
         self.fontLineWidth = 1
         self.fontFace = cv.FONT_HERSHEY_PLAIN
 
+        # worm tracking table
+        self.TrackingTable = []
+
     def ConvertMillimetersToPixels(self, dMillimeters):
         width = np.size(self.grayImg, 1)
         logging.debug("imgwidth: %f" % width)
@@ -45,6 +49,20 @@ class WormTracker():
 
         return curval
 
+    def IsAnyPointOnImageExterior(self, MysteryContour):
+
+        height, width = self.grayImg.shape #same as np.size(img, 0 or 1)
+        for i in MysteryContour:
+            currentPoint = i[0]
+
+            if(currentPoint[0] == 0 or currentPoint[0] == width):
+                return True
+
+            if(currentPoint[1] == 0 or currentPoint[1] == height):
+                return True
+
+        return False
+
     def IsPossibleWorm(self, MysteryContour):
 
         logging.debug("Field of view: %f" % self.fovDiameter)
@@ -54,8 +72,9 @@ class WormTracker():
 
         dPixelArea = abs(cv.contourArea(MysteryContour))
 
-
         dMillimeterArea = self.ConvertSquarePixelsToSquareMillimeters(dPixelArea)
+
+        # Too small/too big to be a worm
         if ((dMillimeterArea < self.unMinimumCandidateSize / 1000.0) or
             (self.unMaximumCandidateSize / 1000.0 < dMillimeterArea)):
             logging.debug("Absolute pixel area: %f" % dPixelArea)
@@ -63,10 +82,20 @@ class WormTracker():
 
             return False
 
-        # TODO: Image exterior check
+        if (self.IsAnyPointOnImageExterior(MysteryContour)):
+            return False
+
+
         logging.debug('Possible worm contour area: %f' % dMillimeterArea)
 
         return True
+
+    def Tracking(self):
+        return len(self.TrackingTable)
+
+    def Add(self, WormContour):
+        self.TrackingTable.append(WormContour)
+        self.unWormsJustAdded += 1
 
     def Advance(self, grayImage):
         self.grayImg = grayImage
@@ -75,7 +104,7 @@ class WormTracker():
         morphologicalImage = grayImage.copy()
 
         if self.bInletDetection:
-            pass # implement later
+            pass # TODO: implement later
 
         thresh1, thresholdImage = cv.threshold(morphologicalImage, self.unThreshold,
             self.unMaxThresholdValue, cv.THRESH_BINARY)
@@ -83,8 +112,18 @@ class WormTracker():
         contours, hierarchy = cv.findContours(thresholdImage, cv.RETR_LIST,
             cv.CHAIN_APPROX_NONE)
 
+        bInitialDiscovery = True
+        if self.Tracking() > 0:
+            bInitialDiscovery = False
+
         for pCurrentContour in contours:
-            if self.IsPossibleWorm(pCurrentContour):
+            if not self.IsPossibleWorm(pCurrentContour):
+                continue
+
+            elif bInitialDiscovery is True:
+                self.Add(pCurrentContour) #TODO: create Worm class and add
+
+            else:
                 cv.drawContours(thinkingImage, pCurrentContour, -1, (0, 255, 0), 1)
 
 
