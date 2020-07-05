@@ -8,7 +8,7 @@
 #include "SlitherApp.h"
 #include "MainFrame.h"
 #include "ImageAnalysisWindow.h"
-#include "resources/slither.xpm"
+#include "Resources/slither.xpm"
 
 // Constructor...
 ImageAnalysisWindow::ImageAnalysisWindow(MainFrame *Parent)

@@ -15,7 +15,17 @@
     #include <wx/stopwatch.h>
     
     // OpenCV...
-    #include <opencv/cv.h>
+    //  2020/06/10 - updating headers for new OpenCV
+    #include <opencv2/opencv.hpp>
+    #include <opencv2/highgui/highgui.hpp>
+    #include <opencv2/highgui/highgui_c.h>
+    #include <opencv2/imgcodecs.hpp>
+    #include <opencv2/imgproc/imgproc.hpp>
+    #include <opencv2/imgproc/imgproc_c.h>
+    #include <opencv2/core/core.hpp>
+    #include <opencv2/videoio/videoio_c.h>
+    //#include <opencv2/imgcodecs/imgcodecs_c.h>  2020/06/10 - deprecated
+    #include <opencv2/imgcodecs/legacy/constants_c.h>
     
     // Worm tracker...
     #include "WormTracker.h"

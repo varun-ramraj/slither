@@ -12,9 +12,12 @@
 
     // wxWidgets...
     #include <wx/wx.h>
-    
+   
+    // 2020/06/10 - updating OpenCV headers
     // OpenCV...
-    #include <opencv/cv.h>
+    #include <opencv2/opencv.hpp>
+    #include <opencv2/imgproc/imgproc.hpp>
+    #include <opencv2/imgproc/imgproc_c.h>
 
 // Forward declarations...
 class MainFrame;
@@ -32,7 +35,7 @@ class CaptureThread : public wxThread
         virtual void *Entry();
         
         // Perform post processing...
-        void PerformPostProcessing(IplImage *pIntelImage);
+        void PerformPostProcessing(cv::Mat *pIntelImage);
 
         // Show the OSD over the frame...
         void ShowOnScreenDisplay(IplImage *pIntelImage);

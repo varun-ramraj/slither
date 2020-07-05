@@ -20,8 +20,15 @@
     #include "AnalysisThread.h"
     
     // OpenCV...
-    #include <opencv/cv.h>
-
+    //  Updated for OpenCV 4
+    #include <opencv2/opencv.hpp>
+    #include <opencv2/highgui/highgui.hpp>
+    #include <opencv2/highgui/highgui_c.h>
+    #include <opencv2/core/core.hpp>
+    #include <opencv2/videoio/videoio_c.h>
+    //#include <opencv2/imgcodecs/imgcodecs_c.h>  2020/06/10 - deprecated
+    #include <opencv2/imgcodecs/legacy/constants_c.h>
+    
     // STL stuff...
     #include <list>
     #include <map>
@@ -291,8 +298,9 @@ class MainFrame : public MainFrame_Base
         wxTimer                 CaptureTimer;
 
         // Capture frame queue...
-        std::list<IplImage *>   CaptureFrameBuffer;
-        
+        //std::list<IplImage *>   CaptureFrameBuffer;
+	std::list<cv::Mat *>	CaptureFrameBuffer;
+
         // Analysis thread and timer...
         AnalysisThread         *pAnalysisThread;
         wxTimer                 AnalysisTimer;

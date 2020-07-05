@@ -2,13 +2,17 @@
   Name:         TrackerDriver.cpp
   Author:       Kip Warner (Kip@TheVertigo.com)
   Description:  Driver for the worm tracker class...
-  Quick Debug:  g++ TrackerDriver.cpp ../WormTracker.cpp ../Worm.cpp -g3 -o TrackerDriver -Wall -Werror -lcxcore -lcv -lhighgui -lcvaux && insight --readnow --args ./TrackerDriver TrackerFrame1.png TrackerFrame2.png TrackerFrame3.png TrackerFrame4.png
+  Quick Debug: g++ -I/home/varun/Projects/slither/Source `pkg-config --cflags opencv4` `wx-config --cflags` TrackerDriver.cpp ../Source/WormTracker.cpp ../Source/Worm.cpp ../Source/SlitherMath.cpp -g3 -o TrackerDriver -Wall -Werror `pkg-config --libs opencv4` `wx-config --libs`
+
 */
 
 // Includes...
-#include "../WormTracker.h"
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include "../Source/WormTracker.h"
+#include "../Source/SlitherMath.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui_c.h>
+#include <opencv2/imgcodecs.hpp>
 #include <iostream>
 #include <cstdlib>
 #include <cmath>
@@ -146,8 +150,11 @@ int main(int nArguments, char *ppszArguments[])
 int main(int nArguments, char *ppszArguments[])
 {
     // Objects...
-    WormTracker     TestTracker;
-    IplImage       *pGrayImage      = NULL;
+    WormTracker TestTracker;
+    cv::Mat pGrayImage; 
+    cv::Mat pThinkingImage;
+
+    TestTracker.SetFieldOfViewDiameter(5.0f);
 
     // Print usage...
     if(nArguments <= 1)
@@ -159,7 +166,7 @@ int main(int nArguments, char *ppszArguments[])
     }
     
     // Create windows...
-    cvNamedWindow("Tracker", 0);//, CV_WINDOW_AUTOSIZE);
+    cv::namedWindow("Tracker", cv::WINDOW_AUTOSIZE);
 
     // Process and display each image in sequence...
     for(int nCurrentFrame = 0; 
@@ -170,22 +177,27 @@ int main(int nArguments, char *ppszArguments[])
         cout << "Processing " << ppszArguments[nCurrentFrame + 1] << endl;
 
         // Load the image...
-        pGrayImage = cvLoadImage(ppszArguments[nCurrentFrame + 1],
-                                 CV_LOAD_IMAGE_GRAYSCALE);
+        pGrayImage = cv::imread(ppszArguments[nCurrentFrame + 1],
+                                 cv::IMREAD_GRAYSCALE);
 
-        assert(pGrayImage);
-                                           
+	cv::imshow("Tracker", pGrayImage);
+
         // Advance tracker frame...
-        TestTracker.AdvanceNextFrame(*pGrayImage);
+        IplImage grayImg = cvIplImage(pGrayImage);
+	TestTracker.Advance(grayImg);
 
         // Show some information on the tracker...
-        cout << TestTracker << endl;
+        cout << "Tracker reports: " << TestTracker << endl;
 
         // Show it...
-        cvShowImage("Tracker", &TestTracker.GetThinkingImage());
-        CvSize Size = cvGetSize(&TestTracker.GetThinkingImage());
-        cvResizeWindow("Tracker", Size.width * 2, Size.height * 2);
-
+        //cvShowImage("Tracker", TestTracker.GetThinkingImage());
+	//CvSize Size = cvGetSize(TestTracker.GetThinkingImage());
+	//printf("Image size: %d x %d", Size.width, Size.height);
+	//pThinkingImage = cv::cvarrToMat(TestTracker.GetThinkingImage());
+	//cv::imshow("Tracker", pThinkingImage);
+	//CvSize Size = cvGetSize(TestTracker.GetThinkingImage());
+        //cvResizeWindow("Tracker", Size.width * 2, Size.height * 2);
+	
         // Wait for key press...
         while(true)
         {
@@ -194,7 +206,7 @@ int main(int nArguments, char *ppszArguments[])
             if(nKey == 27)      // Escape exits...
             {
                 // Cleanup...
-                cvDestroyAllWindows();
+		cv::destroyAllWindows();
                 
                 // Done...
                 return 0;
@@ -206,11 +218,11 @@ int main(int nArguments, char *ppszArguments[])
         }
         
         // Cleanup...
-        cvReleaseImage(&pGrayImage);
+        //cvReleaseImage(&pGrayImage);
     }
     
     // Cleanup...
-    cvDestroyAllWindows();
+    cv::destroyAllWindows();
     
     // Done...
     return 0;

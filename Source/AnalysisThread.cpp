@@ -41,7 +41,7 @@ void *AnalysisThread::Entry()
 
         // Failed...
         if(!MediaFile.IsOk())
-            return false;
+	    return nullptr;
 
     // Get the file extension...
     wxString sExtension = MediaFile.GetExt().Lower();
@@ -65,14 +65,23 @@ void *AnalysisThread::Entry()
 void AnalysisThread::AnalyzeImage(wxString sPath)
 {
     // Variables...
-    IplImage           *pGrayImage              = NULL;
     wxString            sTemp;
 
     // Reset the tracker, if not already...
     Frame.Tracker.Reset(0);
 
     // Load the image...
-    pGrayImage = cvLoadImage(sPath.mb_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    //  2020/06/10 - updating to cv::IMREAD_* constants
+    // and general C++ best practices
+    //pGrayImage = cvLoadImage(sPath.mb_str(), CV_LOAD_IMAGE_GRAYSCALE);
+    //pGrayImage = cvLoadImage(sPath.mb_str(), cv::IMREAD_GRAYSCALE);
+    
+    string sPathStr(sPath.mb_str());
+
+    cv::Mat matImage = cv::imread(sPathStr, cv::IMREAD_GRAYSCALE);
+    IplImage copyImg = cvIplImage(matImage);
+    IplImage *pGrayImage = &copyImg;
+     
 
         // Failed to load media...
         if(!pGrayImage)
@@ -93,13 +102,17 @@ void AnalysisThread::AnalyzeImage(wxString sPath)
 }
 
 // Analyze video...
+//  2020/06/10 - updated to use renamed functions
+// in OpenCV 4
 void AnalysisThread::AnalyzeVideo(wxString sPath)
 {
     // Variables...
     IplImage           *pGrayImage              = NULL;
     wxString            sTemp;
+    cv::VideoCapture	slitherCap;
 
     // Initialize capture from AVI...
+    //  2020/06/10 - renamed function for OpenCV4
     pCapture = cvCreateFileCapture(sPath.fn_str());
 
         // Failed to load media...
@@ -114,8 +127,9 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
         }
 
     // Reset the tracker, if not already...
+    //  2020/06/10 - I think the new constant needs to be used
     Frame.Tracker.Reset((unsigned int) 
-        cvGetCaptureProperty(pCapture, CV_CAP_PROP_FRAME_COUNT));
+        cvGetCaptureProperty(pCapture, cv::CAP_PROP_FRAME_COUNT));
 
     // Start the analysis stop watch...
     StatusUpdateStopWatch.Start();
@@ -137,8 +151,9 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
         #ifdef __APPLE__
 
             // Get current position...
+	    //  2020/06/10 - updating to new constants in OpenCV4
             int const nCurrentFrame = (int) 
-                cvGetCaptureProperty(pCapture, CV_CAP_PROP_POS_FRAMES);
+                cvGetCaptureProperty(pCapture, cv::CAP_PROP_POS_FRAMES);
 
             // Get total number of frames...
             int const nTotalFrames = (int) 
@@ -150,16 +165,26 @@ void AnalysisThread::AnalyzeVideo(wxString sPath)
 
         #endif
 
+	// 2020/06/10 - converting to C++ API using cv::Mat
         // The tracker prefers grayscale 8-bit unsigned format, prepare...
-
+	
+	    cv::Mat pOriginalMatImage = cv::cvarrToMat(pOriginalImage); 
+	    cv::Mat pGrayMatImage(cvGetSize(pOriginalImage), CV_8UC1);
+	    //convert to grayscale
+	    cv::cvtColor(pOriginalMatImage, pGrayMatImage, CV_8UC1);
             // Allocate blank grayscale image...
-            pGrayImage = 
-                cvCreateImage(cvGetSize(pOriginalImage), IPL_DEPTH_8U, 1);
+            //pGrayImage = 
+            //    cvCreateImage(cvGetSize(pOriginalImage), IPL_DEPTH_8U, 1);
 
             // Convert original to grayscale...
-            cvConvertImage(pOriginalImage, pGrayImage);
-
-        // Feed into tracker...
+            //cvConvertImage(pOriginalImage, pGrayImage);
+	    
+	      
+	    //replace pGrayImage
+	    IplImage copyGrayImg = cvIplImage(pGrayMatImage);
+	    pGrayImage = &copyGrayImg;
+        
+	// Feed into tracker...
         Frame.Tracker.Advance(*pGrayImage);
         
         // Cleanup gray image...

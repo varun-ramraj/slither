@@ -70,7 +70,7 @@ AC_SUBST([COPYRIGHT_NOTICE], [$copyright_notice])
         subdir-objects  \
         tar-pax         \
         -Wall           \
-        -Werror])
+	-Werror])
 
     # Set by default to use silent build rules...
     AM_SILENT_RULES([yes])

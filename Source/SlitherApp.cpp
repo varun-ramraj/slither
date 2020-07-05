@@ -19,7 +19,9 @@
     #include <wx/cmdline.h>
     
     // For initializing OpenCV...
-    #include <opencv/cv.h>
+    //  2020/06/10 - updated for OpenCV 4
+    //#include <opencv/cv.h>
+    #include <opencv2/opencv.hpp>
 
 // Give wxWidgets the means to create a SlitherApp object...
 IMPLEMENT_APP(SlitherApp)
@@ -30,17 +32,17 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
     // Help...
     {   
         wxCMD_LINE_SWITCH, 
-        wxT("h"), 
-        wxT("help"),
-        wxT("displays help on the command line parameters")
+        "h", 
+        "help",
+        "displays help on the command line parameters"
     },
     
     // Version...
     {
         wxCMD_LINE_SWITCH, 
-        wxT("v"), 
-        wxT("version"),
-        wxT("print version")
+        "v", 
+        "version",
+        "print version"
     },
 
     // Experiment file to open...
@@ -48,7 +50,7 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
         wxCMD_LINE_PARAM,
         NULL, 
         NULL,
-        wxT("experiment file"), 
+        "experiment file", 
         wxCMD_LINE_VAL_STRING, 
         wxCMD_LINE_PARAM_OPTIONAL 
     },
@@ -62,6 +64,9 @@ static const wxCmdLineEntryDesc g_CommandLineDescriptions[] =
 // Invoked on application startup... (analagous to main or WinMain)
 bool SlitherApp::OnInit()
 {
+    // 2020/06/10 - initialise standard path handler
+    wxStandardPaths StandardPaths = wxStandardPaths::Get();
+
     // Enable fatal signal handler...
 //  ::wxHandleFatalExceptions(true);
 

@@ -19,7 +19,7 @@
 
 #include "Resources.h"
 
-#include "resources/usb_32x32.xpm"
+#include "Resources/usb_32x32.xpm"
 
 ///////////////////////////////////////////////////////////////////////////
 

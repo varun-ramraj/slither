@@ -14,8 +14,13 @@
     #include "Worm.h"
 
     // OpenCV...
-    #include <opencv/cv.h>
-    #include <opencv/highgui.h>
+    #include <opencv2/opencv.hpp>
+    // 2020/06/10 - deprecated header, using new one
+    //#include <opencv/highgui.h>
+    #include <opencv2/highgui.hpp>
+    #include <opencv2/imgproc/imgproc_c.h>
+    #include <opencv2/imgproc.hpp>
+    #include <opencv2/highgui/highgui_c.h>
     
     // wxWidgets for thread safe usage...
     #include <wx/thread.h>
@@ -71,7 +76,8 @@ class WormTracker
 
             // Advance frame...
             void                Advance(IplImage const &NewGrayImage);
-            
+	    void Advance(cv::Mat const &NewGrayMat);
+
             // Get the number of worms just added since last check...
             unsigned int const  GetWormsAddedSinceLastCheck();
             
@@ -137,7 +143,7 @@ class WormTracker
         float               fFieldOfViewDiameter;
 
         // Thinking image label font...
-        CvFont              ThinkingLabelFont;
+	CvFont              ThinkingLabelFont;
 
         // Current frame's gray image and thinking image...
         IplImage           *pGrayImage;

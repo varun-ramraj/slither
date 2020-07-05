@@ -11,7 +11,9 @@
 // Includes...
 
     // OpenCV...
-    #include <opencv/cv.h>
+    //  2020/06/10 - Updated to include new headers
+    #include <opencv2/opencv.hpp>
+    #include <opencv2/core/types_c.h>
     
     // Standard libraries and STL...
     #include <ostream>

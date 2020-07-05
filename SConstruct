@@ -14,9 +14,10 @@ env.Decider('MD5')
 
 # Versioning...
 env.VERSION_MAJOR   = 0
-env.VERSION_MINOR   = 45
-env.VERSION_SVN     = os.popen('svnversion .').read()[:-1]
-env.VERSION_SVN     = env.VERSION_SVN.split(':')[-1]
+env.VERSION_MINOR   = 46
+#env.VERSION_SVN     = os.popen('svnversion .').read()[:-1]
+#env.VERSION_SVN     = env.VERSION_SVN.split(':')[-1]
+env.VERSION_SVN	    = 'git' 
 
 # Common defines...
 env.Append(CPPDEFINES=[('VERSION_MAJOR', env.VERSION_MAJOR),
@@ -36,6 +37,11 @@ else:
 
 # Add some additional search paths. Add more as necessary for your system...
 env.Append(CPPPATH = os.popen('echo $HOME').read()[:-1] + str("/local/include"))
+env.Append(CPPPATH = os.popen('echo $PWD').read()[:-1])
+env.Append(CPPPATH = os.popen('echo $PWD').read()[:-1] + str("/Resources"))
+
+# pkg-config for OpenCV includes and libraries
+env.ParseConfig('pkg-config --cflags --libs opencv4')
 
 # Prepare linker flags for OS X stuff manually, since Apple violated the FHS...
 if sys.platform == 'darwin':
@@ -44,18 +50,18 @@ if sys.platform == 'darwin':
 
 # Slither...
 env.SlitherProgram = env.Program(
-    'slither', ['src/AnalysisThread.cpp',
-                'src/CaptureThread.cpp',
-                'src/Experiment.cpp',
-                'src/ImageAnalysisWindow.cpp',
-                'src/MainFrame.cpp',
-                'src/Resources.cpp',
-                'src/SlitherApp.cpp',
-                'src/SlitherMath.cpp',
-                'src/VideosGridDropTarget.cpp',
-                'src/Worm.cpp',
-                'src/WormTracker.cpp'],
-    LIBS=env['LIBS'] + ['cxcore', 'cv', 'cvaux', 'highgui'])
+    'slither', ['Source/AnalysisThread.cpp',
+                'Source/CaptureThread.cpp',
+                'Source/Experiment.cpp',
+                'Source/ImageAnalysisWindow.cpp',
+                'Source/MainFrame.cpp',
+                'Source/Resources.cpp',
+                'Source/SlitherApp.cpp',
+                'Source/SlitherMath.cpp',
+                'Source/VideosGridDropTarget.cpp',
+                'Source/Worm.cpp',
+                'Source/WormTracker.cpp'],
+    LIBS=env['LIBS'] + ['opencv_core', 'opencv_highgui', 'opencv_imgproc', 'opencv_imgcodecs', 'opencv_videoio'])
 env.Alias('slither', env.SlitherProgram)
 
 # Build an Ubuntu package...

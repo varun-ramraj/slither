@@ -6,9 +6,9 @@
 */
 
 // Includes...
-#include "../Worm.h"
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include "../Source/Worm.h"
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui/highgui_c.h>
 #include <cassert>
 #include <iostream>
 #include <cstdlib>

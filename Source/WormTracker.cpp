@@ -6,6 +6,7 @@
 
 // Includes...
 #include "WormTracker.h"
+#include <opencv2/core/types_c.h>
 #include <new>
 #include <cmath>
 #include <cassert>
@@ -59,17 +60,25 @@ void WormTracker::Add(CvContour const &WormContour)
 // Add a text label to the thinking image at a point...
 void WormTracker::AddThinkingLabel(string const sLabel, CvPoint Point)
 {
+    cv::Mat pThinkingMatImage = cv::cvarrToMat(pThinkingImage); 
+    
     // Draw label line...
-    cvLine(pThinkingImage, cvPoint(Point.x + 20, Point.y + 20), Point,
-           CV_RGB(0xfe, 0x00, 0x00));
+    cv::line(pThinkingMatImage, cvPoint(Point.x + 20, Point.y + 20), Point,
+	   CV_RGB(0xfe, 0x00, 0x00)); 
+    //cvLine(pThinkingImage, cvPoint(Point.x + 20, Point.y + 20), Point,
+    //       CV_RGB(0xfe, 0x00, 0x00));
 
     // Draw text...
-    cvPutText(pThinkingImage, sLabel.c_str(), 
-              cvPoint(Point.x + 25, Point.y + 25), &ThinkingLabelFont,
-              CV_RGB(0xfe, 0x00, 0x00));
+    cv::putText(pThinkingMatImage, sLabel, cvPoint(Point.x + 25, Point.y + 25),  cv::FONT_HERSHEY_PLAIN, 0.7,
+	    CV_RGB(0xfe, 0x00, 0x00));
+    //cvPutText(pThinkingImage, sLabel.c_str(), 
+    //          cvPoint(Point.x + 25, Point.y + 25), &ThinkingLabelFont,
+    //         CV_RGB(0xfe, 0x00, 0x00));
 }
 
 // Advance frame...
+//  2020/06/13 - Fixed contour drawing by using cvScalar
+// functions instead of CV_RGB which does not return a CvScalar any more 
 void WormTracker::Advance(IplImage const &NewGrayImage)
 {
     // Variables...
@@ -101,16 +110,27 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
             throw bad_alloc();
 
     // Prepare the thinking image...
-    
-        // Allocate...
-        pThinkingImage = cvCreateImage(ImageSize, IPL_DEPTH_8U, 3);
+	// 2020/06/13 - using cv::Mat to get around
+	//issues with cvConvertImage in OpenCV 4
+	cv::Mat pGrayMatImage = cv::cvarrToMat(pGrayImage); 
+	cv::Mat pThinkingMatImage(cvGetSize(pGrayImage), CV_8UC1);
+	//convert to grayscale
+	cv::cvtColor(pGrayMatImage, pThinkingMatImage, CV_GRAY2BGR);
+	  
+	// Allocate...
+        //pThinkingImage = cvCreateImage(ImageSize, IPL_DEPTH_8U, 3);
+	
+	//replace pGrayImage
+	IplImage copyThinkingImg = cvIplImage(pThinkingMatImage);
+	pThinkingImage = &copyThinkingImg;
+        
         
             // Failed...
             if(!pThinkingImage)
                 throw bad_alloc();
 
         // Copy in the original grayscale image as colour now...
-        cvConvertImage(pGrayImage, pThinkingImage, CV_GRAY2BGR);
+        //cvConvertImage(pGrayImage, pThinkingImage, CV_GRAY2BGR);
 
     // Image must be a 8-bit, unsigned, grayscale...
     assert(pGrayImage->depth == IPL_DEPTH_8U);
@@ -208,10 +228,17 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         Worm const &CurrentWorm = GetWorm(unWormIndex);
 
         // Draw the contours onto the thinking image...
+	
+	// 2020/06/13 - since we cannot use CV_RGB(r,g,b) as it no longer
+	//returns a CvScalar, we need to use cvScalar(b,g,r)
+	//The RGB value is (0x00, 0x00, 0xfe)	
+	//ref: https://www.rubydoc.info/github/gonzedge/ruby-opencv/OpenCV/CvScalar
+	CvScalar externColour = cvScalar(0xfe, 0x00, 0x00);
+	CvScalar holeColour = cvScalar(0xfe, 0x00, 0x00);	
         cvDrawContours(pThinkingImage, (CvSeq *) &CurrentWorm.Contour(),
-                       CV_RGB(0x00, 0x00, 0xfe), CV_RGB(0x00, 0x00, 0xfe), 0, 
+                       externColour, holeColour, 0, 
                        1);
-
+	
         // Show some information about the worm on the thinking image...
         AddThinkingLabel("head", CurrentWorm.Head());
         std::ostringstream ssCentre;
@@ -226,17 +253,29 @@ void WormTracker::Advance(IplImage const &NewGrayImage)
         // Convert one millimeter to pixels...
         unsigned int const unLegendLength = 
             (unsigned int) ConvertMillimetersToPixels(1.0f);
-    
+	
+	// Fixing line and text to work with OpenCV 4
+	//C++ API	
         // Draw the legend line...
-        cvLine(pThinkingImage, 
+        //cvLine(pThinkingImage, 
+        //       cvPoint(50, ImageSize.height - 5),
+        //       cvPoint(50 + unLegendLength, ImageSize.height - 5),
+        //       CV_RGB(0x00, 0x00, 0xff), 2);
+
+	cv::line(pThinkingMatImage, 
                cvPoint(50, ImageSize.height - 5),
                cvPoint(50 + unLegendLength, ImageSize.height - 5),
                CV_RGB(0x00, 0x00, 0xff), 2);
 
         // Draw label...
-        cvPutText(pThinkingImage, "1 mm", 
+        //cvPutText(pThinkingImage, "1 mm", 
+        //            cvPoint(50 + unLegendLength + 5, ImageSize.height - 3), 
+        //            &ThinkingLabelFont, CV_RGB(0x00, 0x00, 0xff));
+	
+	cv::putText(pThinkingMatImage, "1 mm", 
                     cvPoint(50 + unLegendLength + 5, ImageSize.height - 3), 
-                    &ThinkingLabelFont, CV_RGB(0x00, 0x00, 0xff));
+                    cv::FONT_HERSHEY_PLAIN, 0.7, CV_RGB(0x00, 0x00, 0xff));
+
 
     // Advance frame counter...
   ++unCurrentFrame;
@@ -315,12 +354,15 @@ IplImage *WormTracker::GetThinkingImage() const
         return NULL;
 
     // Clone the thinking image, if any...
-    if(pThinkingImage)
+    if(pThinkingImage) {
+	cerr << "Trying to clone image..." << endl;
         return cvCloneImage(pThinkingImage);
-    
+    }
     // Otherwise, no thinking image available yet...
-    else
+    else {
+	cerr << "Cannot clone image!" << endl;
         return NULL;
+    }
 }
 
 // Get the total number of frames...
@@ -432,10 +474,12 @@ bool WormTracker::IsAnyPointOnImageExterior(CvContour const &MysteryContour)
 // Could this contour be a worm, independent of what we know?
 bool WormTracker::IsPossibleWorm(CvContour const &MysteryContour) const
 {
+    cerr << "FOV: " << fFieldOfViewDiameter << endl;
     // Too few vertices...
-    if(MysteryContour.total < 6)
+    if(MysteryContour.total < 6) {
+	cerr << "Contours: " << MysteryContour.total << endl;
         return false;
-
+    }
     // We must have had the field of view diameter set...
     assert(fFieldOfViewDiameter > 0.0f);
 

@@ -408,7 +408,7 @@
                     <event name="OnUpdateUI"></event>
                 </object>
                 <object class="tool" expanded="1">
-                    <property name="bitmap">resources/usb_32x32.xpm; Load From File</property>
+                    <property name="bitmap">Resources/usb_32x32.xpm; Load From File</property>
                     <property name="id">ID_CAPTURE</property>
                     <property name="kind">wxITEM_CHECK</property>
                     <property name="label">Capture</property>
