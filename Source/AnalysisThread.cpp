@@ -40,11 +40,9 @@ void *AnalysisThread::Entry()
     wxFileName MediaFile(sPath);
 
         // Failed...
-        if(!MediaFile.IsOk()) {
-            int a = 10;
-	    void *myVoidPtr = &a;
-	    return myVoidPtr; // 2020/06/10 - need to return a void pointer 
-	}
+        if(!MediaFile.IsOk())
+	    return nullptr;
+
     // Get the file extension...
     wxString sExtension = MediaFile.GetExt().Lower();
 
