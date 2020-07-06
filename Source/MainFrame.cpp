@@ -9,6 +9,7 @@
 #include "VideosGridDropTarget.h"
 #include "ImageAnalysisWindow.h"
 #include "Experiment.h"
+#include "Version.h"
 #include <wx/dcbuffer.h>
 #include <wx/clipbrd.h>
 #include <wx/tokenzr.h>
@@ -1864,17 +1865,15 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
     wxPlatformInfo      PlatformInfo;
 
     // Initialize about box information...
-    
+
         // Name and version...    
         AboutDialogInfo.SetName(wxT("Slither"));
-        AboutDialogInfo.SetVersion(
-            wxString::Format(wxT("%d.%d\nSubversion %s"), 
-                             VERSION_MAJOR, VERSION_MINOR, VERSION_SVN));
-    
+        AboutDialogInfo.SetVersion(SLITHER_VERSION);
+
         // Description...
         AboutDialogInfo.SetDescription(wxString::Format(
             wxT("Slither is a free and open source tool available for\n"
-                "Linux, Win32, and Mac OS X. It is designed to help\n"
+                "GNU/Linux, Win32, and Mac OS X. It is designed to help\n"
                 "you perform tap experiments on C. elegans within a\n"
                 "lab. It manages your experiments by capturing and\n"
                 "organizing media directly from your lab's dissection\n"
@@ -1883,10 +1882,7 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
                 "automagically for you.\n\n"
 
                 "Your hardware appears to be %s (%s).\n\n"
-                        
-                "You are running %s. This is of the %s\n"
-                "family of operating systems.\n\n"
-                        
+
                 "Slither was built on %s at\n"
                 "%s. It was developed using %s\n"
                 "(provided by the %s port).\n\n"
@@ -1897,8 +1893,6 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
                 PlatformInfo.GetArchName(PlatformInfo.GetArchitecture()).c_str(),
                 PlatformInfo.GetEndiannessName(PlatformInfo.GetEndianness()).
                                                 MakeLower().c_str(),
-                PlatformInfo.GetOperatingSystemIdName().c_str(),
-                PlatformInfo.GetOperatingSystemFamilyName().c_str(),
                 wxT(__DATE__),
                 wxT(__TIME__),
                 wxVERSION_STRING,
@@ -1906,7 +1900,8 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
 
         // Developers... (kind of)
         AboutDialogInfo.AddDeveloper(wxT("Current Developers:"));
-        AboutDialogInfo.AddDeveloper(wxT("\tKip Warner <kip@thevertigo.com> (OpenPGP: B6E28B6D)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tKip Warner <kip@thevertigo.com> (OpenPGP: 0x0244AE0E)"));
+        AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <vr@oracology.net> (OpenPGP: 0xD1C3104E)"));
         AboutDialogInfo.AddDeveloper(wxT(""));
         AboutDialogInfo.AddDeveloper(wxT("Beta Testers:"));
         AboutDialogInfo.AddDeveloper(wxT("\tEvan Ardiel <eardiel@yahoo.ca>"));
@@ -1916,20 +1911,20 @@ void MainFrame::OnAbout(wxCommandEvent &Event)
         AboutDialogInfo.AddDeveloper(wxT("\tCatharine Rankin <crankin@psych.ubc.ca> (opportunity)"));
         AboutDialogInfo.AddDeveloper(wxT("\tEd Knorr <knorr@cs.ubc.ca> (criticisms)"));
         AboutDialogInfo.AddDeveloper(wxT("\tThomas L. Adelman <tadelman2@yahoo.com> (advice)"));
-        AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <silverballer47@gmail.com> (criticisms)"));
-        
+        AboutDialogInfo.AddDeveloper(wxT("\tVarun Ramraj <vr@oracology.net> (OpenPGP: 0xD1C3104E)"));
+
         // Documentation writers...
         AboutDialogInfo.AddDocWriter(wxT("Kip Warner <kip@thevertigo.com> (OpenPGP: B6E28B6D)"));
-            
+
         // Website...
-        AboutDialogInfo.SetWebSite(wxT("http://slither.thevertigo.com/"));
+        AboutDialogInfo.SetWebSite(wxT("https://github.com/kiplingw/slither/"));
         
         // Set license...
         AboutDialogInfo.SetLicense(
             wxT("Slither is free software; you can redistribute it and/or "
                 "modify it under the terms of the GNU General Public License "
                 "as published by the Free Software Foundation; either version "
-                "2 of the License, or (at your option) any later version.\n\n"
+                "3 of the License, or (at your option) any later version.\n\n"
 
                 "Slither is distributed in the hope that it will be useful, "
                 "but WITHOUT ANY WARRANTY; without even the implied warranty "

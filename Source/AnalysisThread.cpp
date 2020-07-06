@@ -13,7 +13,7 @@
 AnalysisThread::AnalysisThread(MainFrame &_Frame)
     : wxThread(wxTHREAD_DETACHED),
       Frame(_Frame),
-      pCapture(NULL)
+      pCapture(nullptr)
 {
     // Reset the tracker, if not already...
     Frame.Tracker.Reset(0);

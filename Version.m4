@@ -1,4 +1,4 @@
-m4_define([PACKAGE_VERSION_MAJOR],  [0])
-m4_define([PACKAGE_VERSION_MINOR],  [45])
-m4_define([PACKAGE_VERSION_GIT],    [20200613])
+m4_define([SLITHER_VERSION_MAJOR],  [0])
+m4_define([SLITHER_VERSION_MINOR],  [46])
+m4_define([SLITHER_VERSION_GIT],    [20200705])
 

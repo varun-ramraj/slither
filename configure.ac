@@ -6,7 +6,7 @@ AC_PREREQ([2.67])
 
 # Get package version...
 m4_include([Version.m4])
-m4_define([PACKAGE_VERSION_AC_INIT], [PACKAGE_VERSION_MAJOR.PACKAGE_VERSION_MINOR.PACKAGE_VERSION_PATCH[-git]PACKAGE_VERSION_GIT])
+m4_define([PACKAGE_VERSION_AC_INIT], [SLITHER_VERSION_MAJOR.SLITHER_VERSION_MINOR[-git]SLITHER_VERSION_GIT])
 
 # Bake revision stamp into configure script. This allows us to examinate the
 #  configure script without source control management to determine which
@@ -70,7 +70,7 @@ AC_SUBST([COPYRIGHT_NOTICE], [$copyright_notice])
         subdir-objects  \
         tar-pax         \
         -Wall           \
-	-Werror])
+	    -Werror])
 
     # Set by default to use silent build rules...
     AM_SILENT_RULES([yes])
@@ -279,19 +279,19 @@ AC_LANG([C++])
 # Check for package headers and libraries...
 
     # wxWidgets...
-    AM_OPTIONS_WXCONFIG
-    reqwx=3.0.0
-    AM_PATH_WXCONFIG($reqwx, wxWin=1)
+    WX_CONFIG_OPTIONS
+    reqwx=3.0.4
+    WX_CONFIG_CHECK([$reqwx], [wxWin=1],,[std,media],[$WXCONFIG_FLAGS])
     if test "$wxWin" != 1; then
-    AC_MSG_ERROR([
-	    wxWidgets must be installed on your system.
+        AC_MSG_ERROR([
+            wxWidgets must be installed on your system
+            but wx-config script couldn't be found.
 
-	    Please check that wx-config is in path, the directory
-	    where wxWidgets libraries are installed (returned by
-	    'wx-config --libs' or 'wx-config --static --libs' command)
-	    is in LD_LIBRARY_PATH or equivalent variable and
-	    wxWidgets version is $reqwx or above.
-	    ])
+            Please check that wx-config is in path, the directory
+            where wxWidgets libraries are installed (returned by
+            'wx-config --libs' command) is in LD_LIBRARY_PATH or
+            equivalent variable and wxWidgets version is 2.3.4 or above.
+        ])
     fi
     CPPFLAGS="$CPPFLAGS $WX_CPPFLAGS"
     CXXFLAGS="$CXXFLAGS $WX_CXXFLAGS_ONLY"
@@ -302,8 +302,8 @@ AC_LANG([C++])
     PKG_CHECK_MODULES(
         [opencv], [opencv4 >= 4], [],
         [AC_MSG_ERROR([opencv >= 4 missing...])])
-    ALL_CXXFLAGS="$ALL_CXXFLAGS $opencv_CFLAGS"
-    ALL_LIBS="$ALL_LIBS $opencv_LIBS"
+    CXXFLAGS="$CXXFLAGS $opencv_CFLAGS"
+    LIBS="$LIBS $opencv_LIBS"
 
 # Checks for typedefs, structures, and compiler characteristics...
 
@@ -345,7 +345,10 @@ AC_LANG([C++])
 
     # Enable all warnings and treat them as errors...
     # -finline-limit=600
-    CXXFLAGS="$CXXFLAGS -Wall -pipe -Werror -Wextra -Wshadow -fstack-protector-all --param=ssp-buffer-size=4 -Wformat -Wformat-security -Wsuggest-override"
+    CXXFLAGS="$CXXFLAGS -pipe -Wextra -Wshadow -fstack-protector-all --param=ssp-buffer-size=4 -Wformat -Wformat-security"
+
+    # To appease wxWidgets endless warnings...
+    #CXXFLAGS="$CXXFLAGS -w"
 
 # Generate makefiles from templates containing Autoconf substitution variables
 #  for root makefile...

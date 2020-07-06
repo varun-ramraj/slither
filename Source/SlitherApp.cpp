@@ -11,17 +11,26 @@
 
     // We create an instance of MainFrame...
     #include "MainFrame.h"
-    
+
     // We also need to know about loading experiments when invoked from shell...
     #include "Experiment.h"
-    
+
+    // Application version...
+    #include "Version.h"
+
     // Command line parsing...
     #include <wx/cmdline.h>
-    
+
     // For initializing OpenCV...
     //  2020/06/10 - updated for OpenCV 4
     //#include <opencv/cv.h>
     #include <opencv2/opencv.hpp>
+
+    // Standard C++ / POSIX headers...
+    #include <iostream>
+
+// Use the standard name space...
+using namespace std;
 
 // Give wxWidgets the means to create a SlitherApp object...
 IMPLEMENT_APP(SlitherApp)
@@ -85,13 +94,8 @@ bool SlitherApp::OnInit()
     // Check if the user asked for the version
     if(CommandLineParser.Found(wxT("v")))
     {
-        // Format...
-        wxString sVersion;
-        sVersion.Printf(wxT("%d.%d\nSubversion %s"), 
-            VERSION_MAJOR, VERSION_MINOR, VERSION_SVN);
-
         // Display version...
-        printf("%s\n", (char const *) sVersion.mb_str(wxConvUTF8));
+        cout << SLITHER_VERSION << endl;
         return false;
     }
 
