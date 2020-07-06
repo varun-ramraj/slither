@@ -1,2 +1,7 @@
 autom4te.cache/
-Source/config.h.in~
+*~
+Makefile.in
+configure
+__pycache__
+aclocal.m4
+config.h.in
