@@ -156,7 +156,7 @@ AC_LANG([C++])
     # C++17 compiler with strict conformance required...
     #  TODO: Bump to C++20 when macro becomes available.
     AC_PROG_CXX
-    AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
+    #AX_CXX_COMPILE_STDCXX_17([noext], [mandatory])
 
     # Take note of the compiler vendor...
     AX_COMPILER_VENDOR
