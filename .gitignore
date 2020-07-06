@@ -5,3 +5,6 @@ configure
 __pycache__
 aclocal.m4
 config.h.in
+Auxiliary/
+ABOUT-NLS
+Translations/Makevars.template
